@@ -1,0 +1,10 @@
+<!-- index.wxml -->
+<navigation-bar title="Hello World" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<scroll-view class="scrollarea" scroll-y type="list">
+  <view class="container">
+    <view class="title">hello {{wording}}!</view>
+    <view class="description">这是我的第一个微信小程序</view>
+    <image class="person-image" src="{{imageSrc}}" mode="aspectFit"></image>
+    <button class="change-button" bindtap="onClick">点击切换状态</button>
+  </view>
+</scroll-view>

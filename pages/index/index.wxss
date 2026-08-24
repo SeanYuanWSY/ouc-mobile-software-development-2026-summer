@@ -1,0 +1,44 @@
+/**index.wxss**/
+page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f8fa;
+}
+
+.scrollarea {
+  flex: 1;
+  overflow-y: hidden;
+}
+
+.container {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 160rpx 48rpx 80rpx;
+  text-align: center;
+}
+
+.title {
+  color: #e64340;
+  font-size: 64rpx;
+  font-weight: 700;
+}
+
+.description {
+  margin-top: 24rpx;
+  color: #7a7f87;
+  font-size: 30rpx;
+}
+
+.person-image {
+  display: block;
+  width: 280rpx;
+  height: 360rpx;
+  margin: 56rpx auto 0;
+}
+
+.change-button {
+  margin-top: 96rpx;
+  color: #fff;
+  background: #07c160;
+}
