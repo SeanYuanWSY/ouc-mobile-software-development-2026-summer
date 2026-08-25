@@ -1,5 +1,6 @@
 .DS_Store
 **/project.private.config.json
+.ai/
 node_modules/
 miniprogram_npm/
 *.log
