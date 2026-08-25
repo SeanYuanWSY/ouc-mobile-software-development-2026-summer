@@ -1,0 +1,47 @@
+<view class="page">
+  <view class="business-card">
+    <view class="banner-wrap">
+      <image
+        wx:if="{{bannerImage}}"
+        class="banner-image"
+        src="{{bannerImage}}"
+        mode="aspectFill"
+      ></image>
+      <view wx:else class="banner-default">
+        <view class="banner-orb banner-orb-one"></view>
+        <view class="banner-orb banner-orb-two"></view>
+        <text class="banner-word">PERSONAL CARD</text>
+      </view>
+    </view>
+
+    <view class="profile-content">
+      <view class="identity">
+        <view class="name-row">
+          <text class="name">{{name}}</text>
+        </view>
+        <text class="title">{{title}}</text>
+        <view class="school-row">
+          <text class="school">{{school}}</text>
+        </view>
+      </view>
+
+      <view class="divider"></view>
+
+      <view class="section">
+        <text class="section-title">关于我</text>
+        <text class="introduction">{{introduction}}</text>
+      </view>
+
+      <view class="section">
+        <text class="section-title">关键词</text>
+        <view class="tag-list">
+          <text wx:for="{{tags}}" wx:key="*this" class="tag">{{item}}</text>
+        </view>
+      </view>
+
+      <button class="share-button" open-type="share">分享我的名片</button>
+    </view>
+  </view>
+
+  <text class="footer">很高兴认识你</text>
+</view>

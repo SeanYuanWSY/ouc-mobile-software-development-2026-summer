@@ -1,0 +1,184 @@
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 48rpx 32rpx 64rpx;
+  background: #f7f3ec;
+}
+
+.business-card {
+  overflow: hidden;
+  border-radius: 32rpx;
+  background: #fffcf7;
+  box-shadow: 0 18rpx 48rpx rgba(75, 49, 30, 0.14);
+}
+
+.banner-wrap,
+.banner-image,
+.banner-default {
+  width: 100%;
+  height: 386rpx;
+}
+
+.banner-image {
+  display: block;
+}
+
+.banner-default {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #244b7a 0%, #376fae 48%, #76a6d8 100%);
+}
+
+.banner-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.banner-orb-one {
+  top: -130rpx;
+  right: -58rpx;
+  width: 340rpx;
+  height: 340rpx;
+}
+
+.banner-orb-two {
+  bottom: -130rpx;
+  left: 70rpx;
+  width: 250rpx;
+  height: 250rpx;
+}
+
+.banner-word {
+  position: absolute;
+  left: 48rpx;
+  bottom: 44rpx;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 28rpx;
+  font-weight: 600;
+  letter-spacing: 8rpx;
+}
+
+.profile-content {
+  padding: 56rpx 48rpx 48rpx;
+}
+
+.identity {
+  text-align: center;
+}
+
+.name-row,
+.school-row,
+.tag-list {
+  display: flex;
+  align-items: center;
+}
+
+.name-row,
+.school-row {
+  justify-content: center;
+}
+
+.name {
+  color: #3f2f26;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 46rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  line-height: 1.25;
+}
+
+.title {
+  display: block;
+  margin-top: 18rpx;
+  color: #806854;
+  font-size: 27rpx;
+  letter-spacing: 2rpx;
+}
+
+.school-row {
+  margin-top: 20rpx;
+}
+
+.school {
+  color: #9a8068;
+  font-size: 26rpx;
+  letter-spacing: 2rpx;
+}
+
+.divider {
+  height: 1rpx;
+  margin: 46rpx 18rpx 44rpx;
+  background: #eadfce;
+}
+
+.section + .section {
+  margin-top: 44rpx;
+}
+
+.section {
+  text-align: center;
+}
+
+.section-title {
+  display: block;
+  color: #554032;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 30rpx;
+  font-weight: 600;
+  letter-spacing: 5rpx;
+}
+
+.introduction {
+  display: block;
+  margin-top: 18rpx;
+  color: #796858;
+  font-size: 27rpx;
+  line-height: 1.85;
+  letter-spacing: 1rpx;
+}
+
+.tag-list {
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 22rpx;
+}
+
+.tag {
+  margin: 0 8rpx 14rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #e3d3c0;
+  color: #775536;
+  background: #f6ede1;
+  font-size: 25rpx;
+  letter-spacing: 1rpx;
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 88rpx;
+  margin-top: 40rpx;
+  padding: 0;
+  border-radius: 44rpx;
+  color: #ffffff;
+  background: #6e4c35;
+  box-shadow: 0 10rpx 20rpx rgba(103, 70, 45, 0.18);
+  font-size: 28rpx;
+  font-weight: 500;
+  letter-spacing: 2rpx;
+  line-height: 1;
+}
+
+.footer {
+  display: block;
+  margin-top: 32rpx;
+  color: #9a8068;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
+  text-align: center;
+}
