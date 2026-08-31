@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/immersive/immersive",
+    "pages/my/my",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#F7F8FC",
+    "navigationBarTitleText": "海大 NOW",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F4F6FB",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {},
+  "tabBar": {
+    "custom": true,
+    "color": "#8790A3",
+    "selectedColor": "#4D6BFE",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/index.png",
+        "selectedIconPath": "images/index_blue.png"
+      },
+      {
+        "pagePath": "pages/immersive/immersive",
+        "text": "沉浸",
+        "iconPath": "images/index.png",
+        "selectedIconPath": "images/index_blue.png"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "iconPath": "images/my.png",
+        "selectedIconPath": "images/my_blue.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

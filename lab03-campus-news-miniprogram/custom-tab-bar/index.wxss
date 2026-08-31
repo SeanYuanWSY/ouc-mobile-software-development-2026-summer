@@ -1,0 +1,92 @@
+.tabbar-safe {
+  position: fixed;
+  z-index: 999;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0 30rpx calc(14rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.tabbar-shell {
+  display: flex;
+  height: 112rpx;
+  padding: 10rpx 18rpx;
+  align-items: center;
+  justify-content: space-around;
+  border: 1rpx solid rgba(255, 255, 255, 0.78);
+  border-radius: 42rpx;
+  background: rgba(250, 251, 255, 0.96);
+  box-shadow: 0 18rpx 48rpx rgba(27, 35, 66, 0.2);
+  pointer-events: auto;
+}
+
+.tab-item {
+  position: relative;
+  display: flex;
+  width: 150rpx;
+  height: 88rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30rpx;
+  color: #667085;
+  transition: all 220ms ease;
+}
+
+.tab-icon-wrap {
+  display: flex;
+  width: 48rpx;
+  height: 42rpx;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-icon {
+  display: block;
+  width: 100%;
+  font-size: 35rpx;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.tab-text {
+  display: block;
+  width: 100%;
+  margin-top: 3rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tab-item.active {
+  color: #4d63e8;
+}
+
+.tab-item.spotlight {
+  margin-top: -50rpx;
+}
+
+.tab-item.spotlight .tab-icon-wrap {
+  width: 82rpx;
+  height: 82rpx;
+  border: 6rpx solid #f7f8fc;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #6f7cff, #5a35d5);
+  color: #ffffff;
+  box-shadow: 0 12rpx 30rpx rgba(83, 67, 219, 0.42);
+}
+
+.tab-item.spotlight .tab-icon {
+  font-size: 40rpx;
+}
+
+.tab-item.spotlight .tab-text {
+  margin-top: 7rpx;
+}
+
+.tab-item.spotlight.active .tab-icon-wrap {
+  transform: translateY(-4rpx) scale(1.05);
+  box-shadow: 0 16rpx 38rpx rgba(83, 67, 219, 0.52);
+}

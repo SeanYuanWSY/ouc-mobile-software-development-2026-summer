@@ -1,0 +1,19 @@
+<view class="tabbar-safe">
+  <view class="tabbar-shell">
+    <view
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      class="tab-item {{selected === index ? 'active' : ''}} {{index === 1 ? 'spotlight' : ''}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+      aria-role="tab"
+      aria-label="{{item.text}}"
+      aria-selected="{{selected === index}}"
+    >
+      <view class="tab-icon-wrap">
+        <text class="tab-icon">{{item.icon}}</text>
+      </view>
+      <text class="tab-text">{{item.text}}</text>
+    </view>
+  </view>
+</view>

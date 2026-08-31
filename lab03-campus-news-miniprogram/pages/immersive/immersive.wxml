@@ -1,0 +1,93 @@
+<view class="immersive-page">
+  <swiper
+    class="immersive-swiper"
+    vertical="true"
+    circular="true"
+    current="{{currentIndex}}"
+    duration="420"
+    bindchange="onSwiperChange"
+  >
+    <swiper-item wx:for="{{newsList}}" wx:key="id">
+      <view
+        class="story"
+        data-index="{{index}}"
+        aria-role="group"
+        aria-label="第 {{index + 1}} 条，共 {{newsList.length}} 条：{{item.title}}"
+        aria-hidden="{{currentIndex !== index}}"
+        bindtouchstart="onTouchStart"
+        bindtouchend="onTouchEnd"
+        bindtouchcancel="onTouchCancel"
+      >
+        <image class="story-backdrop" src="{{item.poster}}" mode="aspectFill" aria-hidden="true"></image>
+        <view class="story-shade"></view>
+        <view class="story-vignette"></view>
+
+        <view class="immersive-topbar" style="{{topbarStyle}}">
+          <view class="brand-lockup">
+            <view class="brand-dot"></view>
+            <text>OUC NOW</text>
+          </view>
+          <view class="topbar-right">
+            <text class="story-count">{{index + 1}} / {{newsList.length}}</text>
+            <view class="profile-chip" catchtap="handleProfileTap" aria-role="button" aria-label="{{userProfile ? '打开个人中心' : '完善本机资料'}}">
+              <image wx:if="{{userProfile && userProfile.avatarUrl}}" src="{{userProfile.avatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+              <text wx:else>{{userProfile ? profileInitial : '资料'}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="story-body">
+          <view class="story-badge-row">
+            <text class="story-category">{{item.category}}</text>
+            <text class="story-reading">{{item.reading_time}}阅读</text>
+          </view>
+          <text class="story-title">{{item.title}}</text>
+          <text class="story-summary">{{item.summary}}</text>
+          <view class="story-footer">
+            <view class="story-source">
+              <view class="source-mark" aria-hidden="true">海</view>
+              <view class="source-copy">
+                <text>{{item.source_name}}</text>
+                <text>{{item.add_date}}</text>
+              </view>
+            </view>
+          <button class="read-button" data-id="{{item.id}}" catchtap="goToDetail" aria-label="阅读全文：{{item.title}}">阅读全文 ↗</button>
+          </view>
+        </view>
+
+        <view class="action-rail">
+          <view class="action-button story-step" catchtap="showPreviousStory" aria-role="button" aria-label="切换到上一条新闻">
+            <text class="action-icon">↑</text>
+            <text>上一条</text>
+          </view>
+          <view class="action-button {{item.isLiked ? 'active like' : ''}}" data-id="{{item.id}}" catchtap="toggleLike" aria-role="button" aria-label="{{item.isLiked ? '取消点赞' : '点赞'}}">
+            <text class="action-icon">{{item.isLiked ? '♥' : '♡'}}</text>
+            <text>{{item.isLiked ? '已赞' : '点赞'}}</text>
+          </view>
+          <view class="action-button {{item.isFavorite ? 'active favorite' : ''}}" data-id="{{item.id}}" catchtap="toggleFavorite" aria-role="button" aria-label="{{item.isFavorite ? '取消收藏' : '收藏'}}">
+            <text class="action-icon">{{item.isFavorite ? '★' : '☆'}}</text>
+            <text>{{item.isFavorite ? '已藏' : '收藏'}}</text>
+          </view>
+          <view class="action-button story-step" catchtap="showNextStory" aria-role="button" aria-label="切换到下一条新闻">
+            <text class="action-icon">↓</text>
+            <text>下一条</text>
+          </view>
+        </view>
+
+        <view class="gesture-guide">
+          <text>← 左滑点赞</text>
+          <view class="vertical-guide">
+            <text class="guide-arrow">⌃</text>
+            <text>上下刷新闻</text>
+          </view>
+          <text>右滑收藏 →</text>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view wx:if="{{gestureMessage}}" class="gesture-feedback {{gestureType}}" aria-role="alert">
+    <text class="feedback-icon">{{gestureType === 'like' ? '♥' : gestureType === 'favorite' ? '★' : '✓'}}</text>
+    <text>{{gestureMessage}}</text>
+  </view>
+</view>

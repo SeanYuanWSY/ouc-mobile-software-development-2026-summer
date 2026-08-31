@@ -1,0 +1,120 @@
+<view class="home-page">
+  <view class="home-header">
+    <view>
+      <text class="eyebrow">{{today}} · CAMPUS PULSE</text>
+      <text class="home-title">今天，听见海大的声音</text>
+    </view>
+    <view class="header-profile" bindtap="handleProfileTap" aria-role="button" aria-label="{{userProfile ? '打开个人中心' : '完善本机资料'}}">
+      <image wx:if="{{userProfile && userProfile.avatarUrl}}" src="{{userProfile.avatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+      <text wx:else>{{userProfile ? profileInitial : '资料'}}</text>
+    </view>
+  </view>
+
+  <view class="hero-stage">
+    <view class="hero-global-pause" bindtap="toggleHeroAutoplay" aria-role="button" aria-label="{{isHeroPaused ? '继续播放头条轮播' : '暂停头条轮播'}}">{{isHeroPaused ? '继续' : '暂停'}}</view>
+    <swiper
+      class="hero-swiper"
+      autoplay="{{!isHeroPaused}}"
+      circular="true"
+      interval="4200"
+      duration="520"
+      bindchange="onHeroChange"
+      aria-label="头条新闻轮播"
+    >
+      <swiper-item wx:for="{{featuredNews}}" wx:key="id">
+        <view class="hero-card" data-id="{{item.id}}" bindtap="goToDetail" aria-role="link" aria-label="第 {{index + 1}} 条，共 {{featuredNews.length}} 条：{{item.title}}，{{item.reading_time}}阅读" aria-hidden="{{heroIndex !== index}}">
+          <image src="{{item.poster}}" mode="aspectFill" aria-hidden="true"></image>
+          <view class="hero-shade"></view>
+          <view class="hero-topline">
+            <view class="now-badge"><view class="now-dot"></view>官方校园报道</view>
+          </view>
+          <view class="hero-content">
+            <text class="hero-category">{{item.category}}</text>
+            <text class="hero-title">{{item.title}}</text>
+            <text class="hero-summary">{{item.summary}}</text>
+            <view class="hero-actions">
+              <button class="immersive-entry" catchtap="goToImmersive" aria-label="进入沉浸式新闻流">◈ 沉浸式刷新闻</button>
+              <text class="hero-likes {{item.isLiked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="toggleLike" aria-role="button" aria-label="{{item.isLiked ? '取消点赞' : '点赞'}}">{{item.isLiked ? '♥ 已点赞' : '♡ 点赞'}}</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+  <view class="hero-pagination" aria-hidden="true">
+    <view wx:for="{{featuredNews}}" wx:key="id" class="hero-dot {{heroIndex === index ? 'active' : ''}}"></view>
+  </view>
+
+  <view class="dashboard-row">
+    <view class="dashboard-card violet" bindtap="goToImmersive" aria-role="button" aria-label="进入沉浸式阅读模式">
+      <text class="dashboard-icon" aria-hidden="true">↕</text>
+      <view>
+        <text class="dashboard-value">上下刷</text>
+        <text class="dashboard-label">沉浸阅读模式</text>
+      </view>
+    </view>
+    <view class="dashboard-card coral" bindtap="handleProfileTap" aria-role="button" aria-label="{{userProfile ? '查看我的互动足迹' : '查看游客暂存互动'}}">
+      <text class="dashboard-icon" aria-hidden="true">★</text>
+      <view>
+        <text class="dashboard-value">{{userProfile ? favoriteCount + ' 藏 · ' + likedCount + ' 赞' : '游客 ' + favoriteCount + ' 藏 · ' + likedCount + ' 赞'}}</text>
+        <text class="dashboard-label">{{userProfile ? '我的互动足迹' : '暂存在本机 · 不计入资料'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="search-shell">
+    <text class="search-icon" aria-hidden="true">⌕</text>
+    <input placeholder="搜索校园新闻" value="{{searchKeyword}}" bindinput="onSearchInput" confirm-type="search" aria-label="搜索校园新闻" />
+    <text class="search-shortcut">{{filteredNews.length}} 篇</text>
+  </view>
+
+  <scroll-view class="category-scroll" scroll-x="true" show-scrollbar="false">
+    <view class="category-row" aria-role="group" aria-label="新闻分类筛选">
+      <view
+        wx:for="{{categories}}"
+        wx:key="*this"
+        class="category-chip {{activeCategory === item ? 'active' : ''}}"
+        data-category="{{item}}"
+        bindtap="chooseCategory"
+        aria-role="button"
+        aria-label="筛选{{item}}新闻"
+        aria-pressed="{{activeCategory === item}}"
+      >{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="section-heading">
+    <view>
+      <text class="section-title">校园精选</text>
+      <text class="section-subtitle">OFFICIAL CAMPUS STORIES</text>
+    </view>
+    <text class="section-arrow" bindtap="goToImmersive" aria-role="button" aria-label="进入沉浸式新闻流">刷起来 →</text>
+  </view>
+
+  <view wx:if="{{filteredNews.length}}" class="feed-card">
+    <view
+      class="news-item"
+      wx:for="{{filteredNews}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goToDetail"
+      aria-role="link"
+      aria-label="查看新闻：{{item.title}}"
+    >
+      <image src="{{item.poster}}" mode="aspectFill" aria-hidden="true"></image>
+      <view class="news-info">
+        <text class="news-title">{{item.title}}</text>
+        <view class="news-meta-row">
+          <text class="news-category">{{item.category}}</text>
+          <view class="list-social">
+            <text>{{item.reading_time}}</text>
+            <text class="quick-like {{item.isLiked ? 'active' : ''}}" data-id="{{item.id}}" catchtap="toggleLike" aria-role="button" aria-label="{{item.isLiked ? '取消点赞' : '点赞'}}">{{item.isLiked ? '♥ 已赞' : '♡ 点赞'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty-state">没有找到相关新闻，换个关键词试试</view>
+
+  <view class="safe-tab-space"></view>
+</view>

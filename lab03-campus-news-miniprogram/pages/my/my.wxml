@@ -1,0 +1,109 @@
+<view class="profile-page">
+  <view class="profile-hero {{hasProfile ? '' : 'editing'}}">
+    <view class="orb orb-one"></view>
+    <view class="orb orb-two"></view>
+    <view class="profile-content">
+      <view wx:if="{{hasProfile}}" class="profile-avatar">
+        <image wx:if="{{userProfile.avatarUrl}}" src="{{userProfile.avatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+        <text wx:else>{{profileInitial}}</text>
+      </view>
+      <button wx:else class="profile-avatar avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" aria-label="选择微信头像">
+        <image wx:if="{{draftAvatarUrl}}" src="{{draftAvatarUrl}}" mode="aspectFill" aria-hidden="true"></image>
+        <text wx:else>+</text>
+      </button>
+      <block wx:if="{{hasProfile}}">
+        <text class="profile-name">{{userProfile.nickName}}</text>
+        <text class="profile-caption">OUC NOW · 校园探索者</text>
+        <button class="profile-logout-button" bindtap="requestLogout" loading="{{isLoggingOut}}" disabled="{{isLoggingOut}}" aria-label="退出本机资料">退出本机资料</button>
+      </block>
+      <block wx:else>
+        <text class="profile-name">完善你的本机资料</text>
+        <text class="profile-caption">头像由微信选择器提供，昵称由你确认</text>
+        <form class="profile-form" bindsubmit="completeProfile">
+          <input class="nickname-input" name="nickname" type="nickname" maxlength="20" value="{{draftNickName}}" bindinput="onNicknameInput" placeholder="选择微信昵称或自行填写" aria-label="选择微信昵称或自行填写" />
+          <button class="profile-save-button" form-type="submit" loading="{{isSavingProfile}}" disabled="{{isSavingProfile}}" aria-label="将资料保存到本机">保存本机资料 ↗</button>
+        </form>
+      </block>
+    </view>
+  </view>
+
+  <view class="stats-panel">
+    <view class="stat-item">
+      <text class="stat-value">{{favoriteCount}}</text>
+      <text class="stat-label">{{hasProfile ? '我的收藏' : '游客收藏'}}</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{likedCount}}</text>
+      <text class="stat-label">{{hasProfile ? '点赞足迹' : '游客点赞'}}</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item" bindtap="goToImmersive" aria-role="button" aria-label="继续刷新闻">
+      <text class="stat-value accent">∞</text>
+      <text class="stat-label">继续刷</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!hasProfile}}" class="guest-guide" aria-role="note" aria-label="游客模式说明">
+    <text class="guest-badge">游客模式</text>
+    <text class="guest-guide-title">当前暂存 {{favoriteCount}} 藏 · {{likedCount}} 赞</text>
+    <text class="guest-guide-desc">记录保存在这台设备上；保存本机资料时会清空，不会合并进资料足迹。</text>
+  </view>
+
+  <view class="feature-banner" bindtap="goToImmersive" aria-role="button" aria-label="回到沉浸式新闻流">
+    <view>
+      <text class="feature-kicker">IMMERSIVE FEED</text>
+      <text class="feature-title">回到沉浸式新闻流</text>
+      <text class="feature-desc">上下切换 · 左滑点赞 · 右滑收藏</text>
+    </view>
+    <view class="feature-arrow" aria-hidden="true">↗</view>
+  </view>
+
+  <view class="collection-section">
+    <view class="collection-header">
+      <view>
+        <text class="collection-title">{{hasProfile ? '互动足迹' : '游客暂存'}}</text>
+        <text class="collection-subtitle">{{hasProfile ? 'MY CAMPUS ARCHIVE' : 'LOCAL GUEST CACHE'}}</text>
+      </view>
+      <view class="mode-switch" aria-role="group" aria-label="互动足迹类型">
+        <view class="mode-item {{activeMode === 'favorite' ? 'active' : ''}}" data-mode="favorite" bindtap="switchMode" aria-role="button" aria-label="查看收藏" aria-pressed="{{activeMode === 'favorite'}}">收藏</view>
+        <view class="mode-item {{activeMode === 'liked' ? 'active' : ''}}" data-mode="liked" bindtap="switchMode" aria-role="button" aria-label="查看点赞" aria-pressed="{{activeMode === 'liked'}}">点赞</view>
+      </view>
+    </view>
+
+    <view wx:if="{{displayList.length}}" class="archive-list">
+      <view class="archive-item" wx:for="{{displayList}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail" aria-role="link" aria-label="查看新闻：{{item.title}}">
+        <image src="{{item.poster}}" mode="aspectFill" aria-hidden="true"></image>
+        <view class="archive-copy">
+          <view class="archive-meta">
+            <text>{{item.category}}</text>
+            <text>{{item.add_date}}</text>
+          </view>
+          <text class="archive-title">{{item.title}}</text>
+          <view class="archive-actions">
+            <text class="archive-more">查看全文 →</text>
+            <button
+              class="archive-remove {{activeMode === 'favorite' ? 'favorite' : 'liked'}}"
+              data-id="{{item.id}}"
+              data-mode="{{activeMode}}"
+              catchtap="removeInteraction"
+              aria-label="{{activeMode === 'favorite' ? '取消收藏' : '取消点赞'}}：{{item.title}}"
+            >{{activeMode === 'favorite' ? '取消收藏' : '取消点赞'}}</button>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:elif="{{!hasProfile}}" class="archive-empty">
+      <view class="empty-symbol" aria-hidden="true">⊙</view>
+      <text>游客点赞与收藏会暂存在本机；保存资料后，资料足迹从 0 开始。</text>
+      <button bindtap="focusProfileEditor">完善资料</button>
+    </view>
+    <view wx:else class="archive-empty">
+      <view class="empty-symbol" aria-hidden="true">{{activeMode === 'favorite' ? '☆' : '♡'}}</view>
+      <text>{{activeMode === 'favorite' ? '右滑新闻，建立你的收藏夹' : '左滑新闻，留下你的喜欢'}}</text>
+      <button bindtap="goToImmersive">现在去体验</button>
+    </view>
+  </view>
+
+  <view class="safe-tab-space"></view>
+</view>
