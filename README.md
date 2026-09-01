@@ -9,4 +9,30 @@
 - [实验三：高校新闻网](lab03-campus-news-miniprogram/)
 - [实验四：推箱子游戏](lab04-sokoban-miniprogram/)
 
-每个实验目录都是独立的小程序项目，包含各自的 `app.json` 和使用说明。使用微信开发者工具导入任一实验目录即可查看对应项目。
+每个实验目录都是独立的小程序项目，包含各自的 `app.json` 和使用说明。使用微信开发者工具导入任一实验目录即可运行。
+
+## 实验效果
+
+### 实验三：高校新闻网
+
+在首页和新闻详情页的基础上，增加了搜索、分类筛选、沉浸式新闻流、滑动点赞收藏和互动足迹。
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab03-home.jpg" alt="高校新闻小程序首页" width="260"><br>首页</td>
+    <td align="center"><img src="assets/public-lab-images/lab03-immersive-feedback.jpg" alt="沉浸式新闻互动" width="260"><br>沉浸式互动</td>
+    <td align="center"><img src="assets/public-lab-images/lab03-detail.jpg" alt="新闻详情页" width="260"><br>新闻详情</td>
+  </tr>
+</table>
+
+### 实验四：推箱子游戏
+
+完成 8 个推箱子关卡，支持方向按钮与四向滑动，并加入了撤销、BFS 解题提示、自动演示、通关评分和本地最佳纪录。
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab04-level-select.jpg" alt="推箱子关卡选择" width="260"><br>关卡选择</td>
+    <td align="center"><img src="assets/public-lab-images/lab04-auto-solve.jpg" alt="推箱子自动通关入口" width="260"><br>自动通关入口</td>
+    <td align="center"><img src="assets/public-lab-images/lab04-score.jpg" alt="推箱子手动最优通关成绩" width="260"><br>100 分、S 级通关</td>
+  </tr>
+</table>
