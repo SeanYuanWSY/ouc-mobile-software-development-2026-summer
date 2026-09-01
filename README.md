@@ -13,6 +13,28 @@
 
 ## 实验效果
 
+### 实验一：第一个微信小程序
+
+点击按钮后，页面文字和人物图片会在 girl 与 boy 两种状态之间同步切换。
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab01-simulator-girl.png" alt="第一个微信小程序 girl 状态" width="260"><br>girl 状态</td>
+    <td align="center"><img src="assets/public-lab-images/lab01-simulator-boy.png" alt="第一个微信小程序 boy 状态" width="260"><br>boy 状态</td>
+  </tr>
+</table>
+
+### 实验二：名片小程序
+
+使用卡片布局展示个人信息，并通过微信原生分享面板完成名片分享。
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab02-card.png" alt="名片小程序页面" width="260"><br>名片页面</td>
+    <td align="center"><img src="assets/public-lab-images/lab02-share-preview.png" alt="名片小程序分享预览" width="260"><br>分享预览</td>
+  </tr>
+</table>
+
 ### 实验三：高校新闻网
 
 在首页和新闻详情页的基础上，增加了搜索、分类筛选、沉浸式新闻流、滑动点赞收藏和互动足迹。
