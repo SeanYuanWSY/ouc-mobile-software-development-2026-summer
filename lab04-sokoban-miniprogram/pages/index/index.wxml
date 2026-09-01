@@ -1,0 +1,86 @@
+<view class="page-shell">
+  <view class="hero">
+    <view class="hero-glow hero-glow-left"></view>
+    <view class="hero-glow hero-glow-right"></view>
+    <view class="hero-kicker">SOKOBAN · ICE FIELD</view>
+    <view class="hero-title">冰原推箱</view>
+    <view class="hero-desc">规划路线，把每只箱子送到终点</view>
+
+    <view class="summary-card">
+      <view class="summary-item">
+        <text class="summary-value">{{completedCount}}</text>
+        <text class="summary-label">已通关</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item">
+        <text class="summary-value">{{totalLevelCount}}</text>
+        <text class="summary-label">全部关卡</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item">
+        <text class="summary-value">{{totalBestMoves || '—'}}</text>
+        <text class="summary-label">最佳总步数</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="content">
+    <view class="section-head">
+      <view>
+        <view class="section-title">选择关卡</view>
+        <view class="section-subtitle">4 个课程关卡 + 4 个原创扩展关</view>
+      </view>
+      <view class="section-count">{{completedCount}} / {{totalLevelCount}}</view>
+    </view>
+
+    <view class="level-grid">
+      <button
+        wx:for="{{levels}}"
+        wx:key="id"
+        class="level-card"
+        data-level="{{item.id}}"
+        bindtap="chooseLevel"
+        hover-class="level-card-active"
+      >
+        <view class="preview-wrap">
+          <image wx:if="{{item.preview}}" class="preview" src="{{item.preview}}" mode="aspectFill"></image>
+          <view wx:else class="mini-map-wrap">
+            <view class="mini-map">
+              <view
+                wx:for="{{item.previewTiles}}"
+                wx:for-item="tile"
+                wx:key="index"
+                class="mini-tile"
+              >
+                <image wx:if="{{tile.baseIcon}}" class="mini-sprite" src="{{tile.baseIcon}}" mode="aspectFill"></image>
+                <image wx:if="{{tile.pieceIcon}}" class="mini-sprite mini-piece" src="{{tile.pieceIcon}}" mode="aspectFill"></image>
+              </view>
+            </view>
+          </view>
+          <view class="level-number">0{{item.displayNumber}}</view>
+          <view class="source-badge {{item.source === '扩展关卡' ? 'source-custom' : ''}}">{{item.source}}</view>
+          <view wx:if="{{item.completed}}" class="complete-badge">✓ 已完成</view>
+        </view>
+        <view class="level-info">
+          <view class="level-title-row">
+            <text class="level-title">{{item.title}}</text>
+            <text class="level-arrow">↗</text>
+          </view>
+          <view class="level-meta">
+            <text class="difficulty">{{item.difficulty}}</text>
+            <text class="record {{item.completed ? 'record-done' : ''}}">{{item.recordText}}</text>
+          </view>
+        </view>
+      </button>
+    </view>
+
+    <view class="tip-card">
+      <view class="tip-icon">✦</view>
+      <view class="tip-copy">
+        <view class="tip-title">推箱提示</view>
+        <view class="tip-text">箱子只能推、不能拉。卡住时可逐步查看提示，完整解法会在多次挑战后开放。</view>
+      </view>
+    </view>
+  </view>
+  <view class="safe-bottom"></view>
+</view>

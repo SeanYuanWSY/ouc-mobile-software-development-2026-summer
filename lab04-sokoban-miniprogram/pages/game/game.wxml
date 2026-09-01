@@ -1,0 +1,178 @@
+<view class="game-page">
+  <block wx:if="{{!showResult}}">
+  <view class="level-heading">
+    <view>
+      <view class="level-kicker">LEVEL 0{{levelNumber}} · {{difficulty}} · {{source}}</view>
+      <view class="level-name">{{levelTitle}}</view>
+    </view>
+    <view class="best-record">
+      <text class="best-label">最佳</text>
+      <text class="best-value">{{bestText}}</text>
+    </view>
+  </view>
+
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{steps}}</text>
+      <text class="stat-label">移动步数</text>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{pushes}}</text>
+      <text class="stat-label">推动次数</text>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{elapsedText}}</text>
+      <text class="stat-label">本局用时</text>
+    </view>
+  </view>
+
+  <view class="board-card">
+    <view class="board-topline">
+      <text>{{assistanceUsed ? '辅助模式' : '箱子归位'}}</text>
+      <text class="goal-progress">{{completedBoxes}} / {{goalCount}}</text>
+    </view>
+    <view class="canvas-frame">
+      <canvas
+        class="game-canvas"
+        canvas-id="gameCanvas"
+        width="{{canvasSize}}"
+        height="{{canvasSize}}"
+        disable-scroll="{{true}}"
+        style="width: {{canvasSize}}px; height: {{canvasSize}}px;"
+        catchtouchstart="onBoardTouchStart"
+        catchtouchmove="onBoardTouchMove"
+        catchtouchend="onBoardTouchEnd"
+        catchtouchcancel="onBoardTouchCancel"
+      ></canvas>
+      <view wx:if="{{isComplete}}" class="complete-overlay">
+        <view class="complete-mark">✓</view>
+      </view>
+    </view>
+    <view class="swipe-hint">可在棋盘上向四个方向滑动</view>
+  </view>
+
+  <view class="assist-card {{assistanceUsed ? 'assist-card-active' : ''}}">
+    <view class="assist-heading">
+      <view>
+        <view class="assist-kicker">SOLUTION LAB</view>
+        <view class="assist-title">解题助手</view>
+      </view>
+      <view class="optimal-badge">本关最短 {{minimumMoves}} 步</view>
+    </view>
+
+    <view class="hint-display">
+      <view class="hint-orb">{{isSolving ? '…' : '✦'}}</view>
+      <text>{{hintText}}</text>
+    </view>
+
+    <view class="hint-actions">
+      <button class="hint-button" bindtap="showOneStepHint" disabled="{{isSolving || isAutoPlaying || isComplete}}">下一步</button>
+      <button class="hint-button" bindtap="showTwoStepHint" disabled="{{isSolving || isAutoPlaying || isComplete}}">两步提示</button>
+      <button class="hint-button" bindtap="showStrategyHint" disabled="{{isSolving || isAutoPlaying || isComplete}}">思路提示</button>
+    </view>
+
+    <button class="stuck-trigger" bindtap="toggleAutoPanel" disabled="{{isSolving || isComplete}}">
+      <text>{{isAutoPlaying ? '■ 停止自动演示' : (showAutoPanel ? '收起最后手段' : '实在卡住了？')}}</text>
+      <text class="stuck-arrow">{{showAutoPanel ? '⌃' : '⌄'}}</text>
+    </button>
+
+    <view wx:if="{{showAutoPanel && !isAutoPlaying}}" class="auto-panel">
+      <view class="auto-panel-head">
+        <view class="auto-lock-icon">{{autoPlayUnlocked ? '✓' : '⌁'}}</view>
+        <view class="auto-panel-copy">
+          <view class="auto-panel-title">{{autoPlayUnlocked ? '自动通关已解锁' : '首次挑战暂未解锁'}}</view>
+          <view class="auto-panel-desc">{{autoPlayUnlocked ? autoUnlockText : '先自己尝试；重新挑战本关后即可使用。'}}</view>
+        </view>
+      </view>
+      <button
+        wx:if="{{autoPlayUnlocked}}"
+        class="auto-button"
+        bindtap="toggleAutoPlay"
+        disabled="{{isSolving || isComplete}}"
+      >
+        <text>▶ 查看当前局面的最优解</text>
+      </button>
+      <button wx:else class="unlock-button" bindtap="requestEarlyUnlock">
+        直接解锁自动通关
+      </button>
+    </view>
+
+    <button
+      wx:if="{{isAutoPlaying}}"
+      class="auto-button auto-button-stop"
+      bindtap="toggleAutoPlay"
+    >
+      <text>■ 停止自动演示</text>
+    </button>
+    <view wx:if="{{assistanceUsed}}" class="assist-note">本局已使用辅助，通关后不写入个人最佳纪录</view>
+  </view>
+
+  <view class="control-card">
+    <view class="dpad">
+      <button class="direction" data-direction="up" bindtap="handleMove" hover-class="direction-active" disabled="{{isAutoPlaying || isSolving}}"><text class="direction-symbol">↑</text></button>
+      <view class="dpad-middle">
+        <button class="direction" data-direction="left" bindtap="handleMove" hover-class="direction-active" disabled="{{isAutoPlaying || isSolving}}"><text class="direction-symbol">←</text></button>
+        <view class="direction-center">◆</view>
+        <button class="direction" data-direction="right" bindtap="handleMove" hover-class="direction-active" disabled="{{isAutoPlaying || isSolving}}"><text class="direction-symbol">→</text></button>
+      </view>
+      <button class="direction" data-direction="down" bindtap="handleMove" hover-class="direction-active" disabled="{{isAutoPlaying || isSolving}}"><text class="direction-symbol">↓</text></button>
+    </view>
+
+    <view class="secondary-actions">
+      <button class="action-button action-undo {{!canUndo || isAutoPlaying || isSolving ? 'action-disabled' : ''}}" bindtap="undoMove" disabled="{{!canUndo || isAutoPlaying || isSolving}}">
+        <text class="action-icon">↶</text>
+        <text>撤销一步</text>
+      </button>
+      <button class="action-button action-restart {{isAutoPlaying || isSolving ? 'action-disabled' : ''}}" bindtap="handleRestart" disabled="{{isAutoPlaying || isSolving}}">
+        <text class="action-icon">↻</text>
+        <text>重新开始</text>
+      </button>
+    </view>
+  </view>
+  <view class="safe-bottom"></view>
+  </block>
+
+  <view wx:if="{{showResult}}" class="result-overlay" catchtouchmove="onBoardTouchMove">
+    <view class="result-glow result-glow-left"></view>
+    <view class="result-glow result-glow-right"></view>
+    <view class="result-card">
+      <view class="result-kicker">LEVEL 0{{levelNumber}} · CLEAR</view>
+      <view class="result-grade">{{resultGrade}}</view>
+      <view class="result-title">{{resultTitle}}</view>
+      <view wx:if="{{resultHasScore}}" class="result-score-row">
+        <text class="result-score">{{resultScore}}</text>
+        <text class="result-score-unit">分</text>
+      </view>
+      <view wx:else class="result-demo-label">最优路线 · 不计入成绩</view>
+      <view wx:if="{{resultIsNewBest}}" class="new-best-badge">✦ NEW BEST</view>
+
+      <view class="result-stats">
+        <view class="result-stat">
+          <text class="result-stat-value">{{resultSteps}}</text>
+          <text class="result-stat-label">移动步数</text>
+        </view>
+        <view class="result-stat-line"></view>
+        <view class="result-stat">
+          <text class="result-stat-value">{{resultPushes}}</text>
+          <text class="result-stat-label">推动次数</text>
+        </view>
+        <view class="result-stat-line"></view>
+        <view class="result-stat">
+          <text class="result-stat-value">{{resultTime}}</text>
+          <text class="result-stat-label">完成用时</text>
+        </view>
+      </view>
+
+      <view class="result-comment">{{resultComment}}</view>
+      <button class="result-primary" bindtap="handleResultPrimary">
+        {{hasNextLevel ? '挑战下一关' : '返回关卡首页'}}
+      </button>
+      <view class="result-actions">
+        <button class="result-secondary" bindtap="handleResultReplay">再玩一次</button>
+        <button class="result-secondary" open-type="share">分享成绩</button>
+      </view>
+    </view>
+  </view>
+</view>
