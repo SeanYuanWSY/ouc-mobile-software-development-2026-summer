@@ -2,6 +2,18 @@
 
 一个以中国海洋大学校园新闻为主题的原生微信小程序。项目在新闻列表、详情阅读和本地收藏等实验要求上，增加了沉浸式纵向新闻流、横向手势操作、点赞系统、阅读进度、微信头像昵称填写能力和自定义悬浮导航。所有新闻图片均保存在本地，不依赖云开发或后端服务。
 
+## 运行效果
+
+首页、沉浸式新闻流和新闻详情页的实际运行效果如下。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab03-home.jpg" alt="高校新闻小程序首页" width="260"><br>首页</td>
+    <td align="center"><img src="../assets/public-lab-images/lab03-immersive-feedback.jpg" alt="沉浸式新闻互动" width="260"><br>沉浸式互动</td>
+    <td align="center"><img src="../assets/public-lab-images/lab03-detail.jpg" alt="新闻详情页" width="260"><br>新闻详情</td>
+  </tr>
+</table>
+
 ## 功能说明
 
 ### 首页

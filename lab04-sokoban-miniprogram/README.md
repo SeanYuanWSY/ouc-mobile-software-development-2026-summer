@@ -2,10 +2,22 @@
 
 一个使用微信小程序 Canvas 和绘图 API 完成的推箱子小游戏，包含 4 个课程关卡和 4 个原创扩展关，地图均为 8×8。
 
+## 运行效果
+
+关卡选择、自动通关入口和手动最优通关成绩如下。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab04-level-select.jpg" alt="推箱子关卡选择" width="260"><br>关卡选择</td>
+    <td align="center"><img src="../assets/public-lab-images/lab04-auto-solve.jpg" alt="推箱子自动通关入口" width="260"><br>自动通关入口</td>
+    <td align="center"><img src="../assets/public-lab-images/lab04-score.jpg" alt="推箱子手动最优通关成绩" width="260"><br>100 分、S 级通关</td>
+  </tr>
+</table>
+
 ## 功能
 
 - 首页展示 8 个关卡，清晰区分课程关卡与扩展关卡
-- 关卡按最短通关步数递增排列，原有成绩仍与对应地图绑定
+- 课程关卡与扩展关卡分别标记，原有成绩始终与对应地图绑定
 - Canvas 绘制墙面、冰面、目标、箱子和角色
 - 方向按钮与棋盘滑动两种操作方式
 - 完整的碰撞、推箱和通关判断
