@@ -30,6 +30,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Verify SummerVerse bundle
+        shell: bash
+        run: |
+          cat summerverse-ai-demo/payload/{01..12}.txt \
+            | tr -d '\r\n ' \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/SummerVerse-AI-demo.html
+          echo "a650e1674a6d0bd8bc09885623dddcee438447937efa692bb93fa55c4e69d270  /tmp/SummerVerse-AI-demo.html" \
+            | sha256sum --check --strict
+          grep -q "SummerVerse AI" /tmp/SummerVerse-AI-demo.html
+          grep -q "</html>" /tmp/SummerVerse-AI-demo.html
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
