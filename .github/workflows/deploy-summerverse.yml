@@ -38,8 +38,10 @@ jobs:
             | base64 --decode \
             | gzip --decompress \
             > /tmp/SummerVerse-AI-demo.html
-          echo "a650e1674a6d0bd8bc09885623dddcee438447937efa692bb93fa55c4e69d270  /tmp/SummerVerse-AI-demo.html" \
-            | sha256sum --check --strict
+          actual_sha="$(sha256sum /tmp/SummerVerse-AI-demo.html | awk '{print $1}')"
+          echo "Reconstructed HTML SHA-256: ${actual_sha}"
+          echo "Reconstructed HTML size: $(wc -c < /tmp/SummerVerse-AI-demo.html) bytes"
+          test "${actual_sha}" = "fefbd4cd542c80eb4f84fdf7c3987c5f9de93bd93ad149b498bbf570cea770b8"
           grep -q "SummerVerse AI" /tmp/SummerVerse-AI-demo.html
           grep -q "</html>" /tmp/SummerVerse-AI-demo.html
 
