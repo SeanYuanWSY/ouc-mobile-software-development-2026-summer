@@ -1,0 +1,35 @@
+name: SummerVerse Mini Program CI
+
+on:
+  push:
+    paths:
+      - "final-project-summerverse/**"
+      - ".github/workflows/summerverse-ci.yml"
+  pull_request:
+    paths:
+      - "final-project-summerverse/**"
+      - ".github/workflows/summerverse-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: final-project-summerverse
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: final-project-summerverse/package.json
+
+      - name: Verify project
+        run: npm run verify

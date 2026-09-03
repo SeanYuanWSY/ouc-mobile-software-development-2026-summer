@@ -1,0 +1,53 @@
+name: Bootstrap SummerVerse Final Project
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".bootstrap/summerverse-source.tar.xz"
+      - ".github/workflows/bootstrap-summerverse-source.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: summerverse-source-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  publish-source:
+    name: Unpack, verify, and publish source
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Unpack SummerVerse source
+        shell: bash
+        run: |
+          rm -rf final-project-summerverse
+          mkdir -p final-project-summerverse
+          tar -xJf .bootstrap/summerverse-source.tar.xz -C final-project-summerverse
+
+      - name: Verify project
+        shell: bash
+        working-directory: final-project-summerverse
+        run: npm run verify
+
+      - name: Commit extracted source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add final-project-summerverse
+          if git diff --cached --quiet; then
+            echo "Source is already up to date."
+            exit 0
+          fi
+          git commit -m "feat: publish SummerVerse final WeChat mini program"
+          git push origin HEAD:main
