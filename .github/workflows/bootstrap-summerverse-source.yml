@@ -2,10 +2,9 @@ name: Bootstrap SummerVerse Final Project
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - ".bootstrap/summerverse-source.tar.xz"
+      - ".bootstrap/source-payload/**"
       - ".github/workflows/bootstrap-summerverse-source.yml"
   workflow_dispatch:
 
@@ -27,12 +26,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Reconstruct SummerVerse archive
+        shell: bash
+        run: |
+          cat .bootstrap/source-payload/part-*.txt \
+            | tr -d '\r\n ' \
+            | base64 --decode \
+            > /tmp/summerverse-source.tar.xz
+          echo "08a0c4594ac77e765b4e61371025cc0c835286ac283da226664f673ed4f0176c  /tmp/summerverse-source.tar.xz" \
+            | sha256sum --check --strict
+          xz -t /tmp/summerverse-source.tar.xz
+
       - name: Unpack SummerVerse source
         shell: bash
         run: |
           rm -rf final-project-summerverse
           mkdir -p final-project-summerverse
-          tar -xJf .bootstrap/summerverse-source.tar.xz -C final-project-summerverse
+          tar -xJf /tmp/summerverse-source.tar.xz -C final-project-summerverse
 
       - name: Verify project
         shell: bash
