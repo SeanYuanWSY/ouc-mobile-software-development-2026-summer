@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "ai-status": "/components/ai-status/index",
+    "empty-state": "/components/empty-state/index"
+  },
+  "enablePullDownRefresh": true
+}

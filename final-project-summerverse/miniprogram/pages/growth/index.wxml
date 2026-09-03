@@ -1,0 +1,60 @@
+<view class="page growth-page">
+  <view class="nav-header">
+    <view class="nav-title"><text class="nav-title__brand">成长花圃</text><text class="nav-title__sub">目标不是假进度，只由真实记录与手动确认推进</text></view>
+    <button class="nav-icon-button" bindtap="openReport">📊</button>
+  </view>
+
+  <view class="hero-stats">
+    <view class="hero-stat paper-card"><text class="hero-icon">📒</text><text class="hero-value">{{summary.memoryCount || 0}}</text><text class="hero-label">真实记忆</text></view>
+    <view class="hero-stat paper-card"><text class="hero-icon">📚</text><text class="hero-value">{{summary.learningHours || 0}}h</text><text class="hero-label">学习投入</text></view>
+    <button class="hero-stat paper-card" bindtap="syncStep"><text class="hero-icon">👟</text><text class="hero-value">{{step ? step.steps : '--'}}</text><text class="hero-label">{{step ? '微信步数' : '点此授权'}}</text></button>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">我的目标</text><button class="secondary-button button--small" bindtap="toggleGoalForm">{{addGoalOpen ? '收起' : '＋ 新目标'}}</button></view>
+
+  <view wx:if="{{addGoalOpen}}" class="goal-form paper-card">
+    <view class="paper-card__tape"></view>
+    <label class="field"><text class="field__label">目标名称</text><input class="input" value="{{goalDraft.title}}" data-field="title" placeholder="例如：精读 10 篇论文" maxlength="40" bindinput="onGoalInput" /></label>
+    <view class="goal-form-row">
+      <label class="field"><text class="field__label">目标数量</text><input class="input" type="number" value="{{goalDraft.target}}" data-field="target" bindinput="onGoalInput" /></label>
+      <label class="field"><text class="field__label">单位</text><input class="input" value="{{goalDraft.unit}}" data-field="unit" maxlength="8" bindinput="onGoalInput" /></label>
+    </view>
+    <scroll-view scroll-x enable-flex><view class="chip-row"><button wx:for="{{categories}}" wx:key="key" class="chip {{goalDraft.category === item.key ? 'is-active' : ''}}" data-key="{{item.key}}" bindtap="selectGoalCategory">{{item.emoji}} {{item.short}}</button></view></scroll-view>
+    <button class="primary-button goal-save" bindtap="saveGoal">种下这个目标</button>
+  </view>
+
+  <view wx:if="{{goals.length}}" class="goal-list">
+    <view wx:for="{{goals}}" wx:key="_id" class="goal-card paper-card {{item.completed ? 'is-complete' : ''}}">
+      <view class="goal-top"><view class="goal-icon" style="background:{{item.categoryMeta.soft}}">{{item.categoryMeta.emoji}}</view><view class="goal-copy"><text class="goal-title">{{item.title}}</text><text class="goal-meta">{{item.current}} / {{item.target}} {{item.unit}} · {{item.percent}}%</text></view><button class="goal-menu" data-id="{{item._id}}" bindtap="removeGoal">⋯</button></view>
+      <view class="goal-progress"><view class="goal-progress-fill" style="width:{{item.percent}}%;background:{{item.categoryMeta.color}}"></view></view>
+      <button class="goal-action {{item.completed ? 'is-done' : ''}}" data-id="{{item._id}}" bindtap="incrementGoal">{{item.completed ? '✓ 已完成' : '今天完成了一次 ＋1'}}</button>
+    </view>
+  </view>
+  <empty-state wx:else emoji="🌱" title="这里还没有目标" copy="种下一件真正想完成的事，之后每次进度都由你主动确认。" buttonText="创建第一个目标" bind:action="toggleGoalForm" />
+
+  <view class="section-title"><text class="section-title__main">最近七天的心情</text><text class="section-title__hint">没有记录的日子保持为空</text></view>
+  <view class="mood-chart paper-card">
+    <view class="chart-bars">
+      <view wx:for="{{moodSeries}}" wx:key="date" class="chart-column">
+        <view class="chart-bar-shell"><view wx:if="{{item.value !== null}}" class="chart-bar" style="height:{{item.height}}%;"></view><view wx:else class="chart-empty"></view></view>
+        <text class="chart-value">{{item.value === null ? '–' : item.value}}</text>
+        <text class="chart-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">SummerTwin 洞察</text><text class="section-title__hint">分析依据会显示在结果中</text></view>
+  <view class="insight-card paper-card">
+    <block wx:if="{{insight}}">
+      <text class="insight-headline">{{insight.headline}}</text>
+      <view class="insight-list"><text wx:for="{{insight.observations}}" wx:key="*this">• {{item}}</text></view>
+      <view class="insight-action"><text>下一个可执行动作</text><text class="text-strong">{{insight.action}}</text></view>
+    </block>
+    <block wx:else>
+      <text class="insight-placeholder">SummerTwin 会从记录类别、时间投入和情绪变化中寻找模式，但不会把推断冒充事实。</text>
+      <button class="secondary-button" loading="{{insightLoading}}" bindtap="generateInsight">✨ 生成一次有依据的洞察</button>
+    </block>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🌱</text><text class="loading-text">正在计算真实成长…</text></view></view>
+</view>

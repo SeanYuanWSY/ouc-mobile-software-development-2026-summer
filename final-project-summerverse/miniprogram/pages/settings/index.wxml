@@ -1,0 +1,43 @@
+<view class="page page--no-tab settings-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">设置与真实接口</text><text class="nav-title__sub">把“能演示”升级成“能真实使用”</text></view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">我的手账信息</text><text class="section-title__hint">由你填写</text></view>
+  <view class="profile-card paper-card">
+    <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"><image src="{{profile.avatarUrl}}" mode="aspectFill" /><text>更换头像</text></button>
+    <view class="profile-fields">
+      <label class="field"><text class="field__label">昵称</text><input class="input" type="nickname" value="{{profile.nickname}}" data-field="nickname" maxlength="24" bindinput="onProfileInput" /></label>
+      <label class="field"><text class="field__label">暑假寄语</text><textarea class="textarea profile-motto" value="{{profile.motto}}" data-field="motto" maxlength="120" bindinput="onProfileInput" /></label>
+    </view>
+    <button class="secondary-button" loading="{{savingProfile}}" bindtap="saveProfile">保存个人信息</button>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">DeepSeek AI 引擎</text><text class="section-title__hint">默认 V4 Flash</text></view>
+  <view class="ai-card paper-card">
+    <view class="engine-head"><view class="engine-logo">深</view><view><text class="text-strong">DeepSeek</text><text class="text-small">通过 deepseekProxy 云函数调用</text></view><text class="status-pill {{cloudReady ? '' : 'status-pill--warning'}}">{{cloudReady ? '云开发已连接' : '未连接'}}</text></view>
+    <label class="field"><text class="field__label">模型</text><picker mode="selector" range="{{models}}" range-key="name" value="{{modelIndex}}" bindchange="onModelChange"><view class="picker-field">{{models[modelIndex].name}} · {{models[modelIndex].note}}</view></picker></label>
+    <label class="field"><text class="field__label">临时测试 API Key <text class="field__hint">可选，仅本次小程序运行</text></text><view class="key-row"><input class="input key-input" password="{{!showKey}}" value="{{tempApiKey}}" placeholder="sk-…（正式部署不在这里填写）" bindinput="onApiKeyInput" /><button class="key-toggle" bindtap="toggleKey">{{showKey ? '隐藏' : '显示'}}</button></view></label>
+    <view class="key-actions"><button class="ghost-button button--small" bindtap="clearKey">清除临时 Key</button><button class="primary-button button--small" loading="{{testingAI}}" bindtap="testAI">测试连接</button></view>
+    <view wx:if="{{connection}}" class="connection {{connection.type}}"><text>{{connection.type === 'success' ? '✓' : connection.type === 'error' ? '!' : '…'}}</text><text>{{connection.text}}</text></view>
+    <view class="security-note"><text>🔐</text><view><text class="text-strong">推荐做法</text><text class="text-small">正式 Key 写入 deepseekProxy 的环境变量 DEEPSEEK_API_KEY。临时 Key 只保存在 getApp().globalData，不写本地存储；云函数需显式开启 ALLOW_CLIENT_API_KEY=true 才接受它。</text></view></view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">微信真实数据接口</text><text class="section-title__hint">缺少授权时显示为空</text></view>
+  <view class="permission-list">
+    <button class="permission-card paper-card" bindtap="authorizeStep"><view class="permission-icon">👟</view><view><text class="text-strong">微信运动步数</text><text class="text-small">wx.getWeRunData + CloudID 云端解密</text></view><text>{{stepStatus}} ›</text></button>
+    <button class="permission-card paper-card" bindtap="authorizeLocation"><view class="permission-icon">📍</view><view><text class="text-strong">真实定位与地图</text><text class="text-small">wx.getLocation / wx.chooseLocation / map</text></view><text>{{locationStatus}} ›</text></button>
+  </view>
+  <view class="data-source-note"><text>📱</text><text>微信步数通常需要真实 AppID、真机、用户授权和已部署云函数；开发者工具中的模拟值不能当作最终验收证据。</text></view>
+
+  <view class="section-title"><text class="section-title__main">数据与演示模式</text><text class="section-title__hint">演示和真实数据分开</text></view>
+  <view class="data-card paper-card">
+    <view class="data-row"><view><text class="text-strong">明确标注的演示数据</text><text class="text-small">只用于无真实记录时展示页面完成度</text></view><button wx:if="{{!demoImported}}" class="secondary-button button--small" bindtap="importDemo">导入</button><button wx:else class="danger-button button--small" bindtap="clearDemo">移除</button></view>
+    <view class="data-row"><view><text class="text-strong">导出本机备份</text><text class="text-small">复制 JSON 到剪贴板</text></view><button class="ghost-button button--small" bindtap="exportData">导出</button></view>
+    <view class="data-row"><view><text class="text-strong">从剪贴板恢复</text><text class="text-small">覆盖本机记忆与目标</text></view><button class="ghost-button button--small" bindtap="importData">导入</button></view>
+    <view class="data-row"><view><text class="text-strong">隐私保护说明</text><text class="text-small">权限用途、Key 安全和数据边界</text></view><button class="ghost-button button--small" bindtap="openPrivacy">查看</button></view>
+  </view>
+
+  <view class="environment-card paper-card"><text class="environment-title">当前运行环境</text><text>数据模式：{{dataMode === 'cloud' ? '微信云开发' : '本机存储回退'}}</text><text>云开发：{{cloudReady ? '初始化成功' : '未连接'}}</text><text wx:if="{{cloudError}}">原因：{{cloudError}}</text></view>
+</view>

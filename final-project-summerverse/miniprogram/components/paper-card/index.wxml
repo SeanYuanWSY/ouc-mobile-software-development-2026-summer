@@ -1,0 +1,11 @@
+<view class="paper-card {{plain ? 'paper-card--plain' : ''}}">
+  <view wx:if="{{taped}}" class="paper-card__tape"></view>
+  <view wx:if="{{title || subtitle}}" class="paper-card-head">
+    <view>
+      <text wx:if="{{title}}" class="paper-card-title">{{title}}</text>
+      <text wx:if="{{subtitle}}" class="paper-card-subtitle">{{subtitle}}</text>
+    </view>
+    <slot name="action"></slot>
+  </view>
+  <slot></slot>
+</view>

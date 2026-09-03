@@ -1,0 +1,25 @@
+.report-cover { padding:38rpx 28rpx 30rpx; background:linear-gradient(145deg,rgba(255,252,244,.97),rgba(231,241,227,.9)); }
+.report-kicker { display:block; color:var(--green); font-size:18rpx; letter-spacing:4rpx; }
+.report-name { display:block; margin-top:12rpx; font-family:"KaiTi","STKaiti",serif; font-size:43rpx; font-weight:700; }
+.report-sentence { display:block; margin-top:18rpx; color:#554f46; font-size:25rpx; line-height:1.75; }
+.copy-button { margin-top:22rpx; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; margin-top:18rpx; }
+.stat-card { min-height:175rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18rpx; }
+.stat-icon { font-size:32rpx; }
+.stat-value { margin-top:8rpx; font-family:"KaiTi","STKaiti",serif; font-size:41rpx; font-weight:700; }
+.stat-label { margin-top:3rpx; color:var(--muted); font-size:19rpx; }
+.distribution-card { padding:26rpx 22rpx; }
+.distribution-row { margin-bottom:19rpx; }
+.distribution-row:last-child { margin-bottom:0; }
+.distribution-label { display:flex; align-items:center; justify-content:space-between; gap:12rpx; font-size:22rpx; }
+.distribution-label .text-strong { font-size:21rpx; }
+.distribution-track { height:13rpx; margin-top:9rpx; overflow:hidden; border-radius:999rpx; background:#e5ded1; }
+.distribution-fill { height:100%; border-radius:inherit; }
+.highlight-grid { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; }
+.highlight-card { min-height:184rpx; padding:22rpx; }
+.highlight-label { display:block; color:var(--muted); font-size:19rpx; }
+.highlight-card .text-strong { display:-webkit-box; overflow:hidden; margin-top:10rpx; font-family:"KaiTi","STKaiti",serif; font-size:28rpx; line-height:1.35; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.highlight-card .text-small { display:block; margin-top:8rpx; color:var(--muted); font-size:18rpx; line-height:1.4; }
+.radar-card { padding:18rpx; text-align:center; }
+.radar-canvas { width:600rpx; height:520rpx; margin:0 auto; }
+.radar-note { display:block; margin-top:4rpx; color:var(--muted); font-size:19rpx; line-height:1.5; }

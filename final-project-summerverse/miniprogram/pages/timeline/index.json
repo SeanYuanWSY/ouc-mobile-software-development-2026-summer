@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "memory-card": "/components/memory-card/index",
+    "empty-state": "/components/empty-state/index"
+  },
+  "enablePullDownRefresh": true
+}

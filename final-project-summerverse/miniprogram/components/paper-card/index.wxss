@@ -1,0 +1,3 @@
+.paper-card-head { display:flex; align-items:center; justify-content:space-between; gap:16rpx; padding:24rpx 24rpx 0; }
+.paper-card-title { display:block; font-family:"KaiTi","STKaiti",serif; font-size:31rpx; font-weight:700; }
+.paper-card-subtitle { display:block; margin-top:4rpx; color:var(--muted); font-size:21rpx; }

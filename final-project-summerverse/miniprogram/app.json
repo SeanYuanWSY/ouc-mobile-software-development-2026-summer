@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/island/index",
+    "pages/timeline/index",
+    "pages/record/index",
+    "pages/growth/index",
+    "pages/twin/index",
+    "pages/map/index",
+    "pages/memory-detail/index",
+    "pages/time-phone/index",
+    "pages/parallel/index",
+    "pages/director/index",
+    "pages/report/index",
+    "pages/settings/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#f7f1e4",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#6f6b62",
+    "selectedColor": "#356f4d",
+    "backgroundColor": "#fbf7ed",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/island/index", "text": "宇宙" },
+      { "pagePath": "pages/timeline/index", "text": "轨迹" },
+      { "pagePath": "pages/record/index", "text": "记录" },
+      { "pagePath": "pages/growth/index", "text": "成长" },
+      { "pagePath": "pages/twin/index", "text": "我的" }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于记录暑假地点、绘制真实轨迹和获取当前位置天气。"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation", "chooseLocation"],
+  "requiredBackgroundModes": [],
+  "lazyCodeLoading": "requiredComponents",
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

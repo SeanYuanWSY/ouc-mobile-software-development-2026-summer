@@ -1,0 +1,5 @@
+<button class="ai-status {{ready ? 'is-ready' : ''}}" bindtap="open">
+  <view class="ai-orb"><text>🌱</text></view>
+  <view class="ai-copy"><text class="ai-title">SummerTwin</text><text class="ai-sub">{{label || (ready ? 'DeepSeek 已连接' : '本地陪伴模式')}}</text></view>
+  <text class="ai-arrow">›</text>
+</button>

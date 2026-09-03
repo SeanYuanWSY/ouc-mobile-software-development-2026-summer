@@ -1,0 +1,62 @@
+<view class="page record-page">
+  <view class="nav-header">
+    <view class="nav-title"><text class="nav-title__brand">{{editing ? '编辑这颗记忆' : '记录一件真实的事'}}</text><text class="nav-title__sub">先保存事实，再让 AI 帮你理解它</text></view>
+    <text class="status-pill {{cloudReady ? '' : 'status-pill--muted'}}">{{cloudReady ? '云端可用' : '本机保存'}}</text>
+  </view>
+
+  <view class="ai-note paper-card">
+    <view class="paper-card__tape"></view>
+    <view class="ai-note-head"><text class="ai-note-avatar">🌱</text><view><text class="ai-note-title">一句话交给 SummerTwin</text><text class="ai-note-sub">AI 只生成可编辑草稿，不会未经确认直接写入你的生活。</text></view></view>
+    <textarea class="ai-draft" value="{{aiDraft}}" placeholder="例如：昨晚和狗狗去海边散步 40 分钟，风很舒服，心情特别好。" maxlength="500" auto-height bindinput="onAiDraftInput" />
+    <button class="secondary-button" loading="{{aiParsing}}" bindtap="parseWithAI">✨ {{aiParsing ? '正在整理…' : '智能填写下面的记录卡'}}</button>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">记忆卡片</text><text class="section-title__hint">所有字段都可以修改</text></view>
+  <view class="form-card paper-card">
+    <label class="field"><text class="field__label">标题</text><input class="input" value="{{form.title}}" data-field="title" maxlength="40" placeholder="今天发生了什么？" bindinput="onFieldInput" /></label>
+    <label class="field"><text class="field__label">留下来的细节 <text class="field__hint">最多 1200 字</text></text><textarea class="textarea" value="{{form.content}}" data-field="content" maxlength="1200" placeholder="记录真实细节、感受和当时的想法……" bindinput="onFieldInput" /></label>
+
+    <view class="field"><text class="field__label">属于哪片土地</text><view class="option-grid category-grid"><button wx:for="{{categoryList}}" wx:key="key" class="option-card {{form.category === item.key ? 'is-selected' : ''}}" data-key="{{item.key}}" bindtap="selectCategory"><text class="option-emoji">{{item.emoji}}</text><text class="option-name">{{item.short}}</text></button></view></view>
+
+    <view class="field"><text class="field__label">当时的心情</text><view class="option-grid mood-grid"><button wx:for="{{moodList}}" wx:key="key" class="mood-option {{form.mood === item.key ? 'is-selected' : ''}}" data-key="{{item.key}}" bindtap="selectMood"><text>{{item.emoji}}</text><text class="text-small">{{item.name}}</text></button></view></view>
+
+    <view class="two-column">
+      <label class="field"><text class="field__label">日期</text><picker mode="date" value="{{form.date}}" bindchange="onDateChange"><view class="picker-field">📅 {{form.date}}</view></picker></label>
+      <label class="field"><text class="field__label">时间</text><picker mode="time" value="{{form.time}}" bindchange="onTimeChange"><view class="picker-field">🕰️ {{form.time}}</view></picker></label>
+    </view>
+
+    <label class="field"><text class="field__label">持续时间 <text class="field__hint">可选，单位分钟</text></text><input class="input" value="{{form.durationMinutes}}" data-field="durationMinutes" type="number" placeholder="例如 40" bindinput="onFieldInput" /></label>
+
+    <view class="field"><text class="field__label">这件事有多重要</text><view class="star-row"><button wx:for="{{importanceOptions}}" wx:key="*this" class="star {{form.importance >= item ? 'is-active' : ''}}" data-value="{{item}}" bindtap="selectImportance">★</button></view></view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">照片、视频和语音</text><text class="section-title__hint">真实素材由你主动选择</text></view>
+  <view class="media-card paper-card">
+    <view wx:if="{{form.media.length}}" class="media-grid">
+      <view wx:for="{{form.media}}" wx:key="id" class="media-item">
+        <image wx:if="{{item.type === 'image'}}" class="media-thumb" src="{{item.url || item.fileID}}" mode="aspectFill" data-index="{{index}}" bindtap="previewMedia" />
+        <view wx:elif="{{item.type === 'video'}}" class="media-thumb video-thumb" data-index="{{index}}" bindtap="previewMedia"><text>▶</text><text class="text-small">{{item.duration || 0}}s</text></view>
+        <view wx:else class="media-thumb audio-thumb"><text>🎙️</text><text class="text-small">{{item.duration || recordSeconds}}s</text></view>
+        <button class="media-remove" data-index="{{index}}" bindtap="removeMedia">×</button>
+      </view>
+    </view>
+    <view class="media-actions">
+      <button class="media-action" bindtap="chooseMedia"><text>📷</text><text class="text-small">照片 / 视频</text></button>
+      <button class="media-action {{recording ? 'is-recording' : ''}}" bindtap="toggleRecording"><text>{{recording ? '⏹️' : '🎙️'}}</text><text class="text-small">{{recording ? recordSeconds + 's · 停止' : '录一段语音'}}</text></button>
+      <button class="media-action" loading="{{aiPhotoBusy}}" bindtap="analyzeFirstPhoto"><text>✨</text><text class="text-small">AI 看图补全</text></button>
+    </view>
+    <view class="data-source-note"><text>🔐</text><text>照片只有在你保存时才上传；AI 看图需要云开发和 DeepSeek 视觉模型。临时 API Key 不会写进项目源码。</text></view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">真实地点</text><text class="section-title__hint">不授权就保持为空</text></view>
+  <view class="location-card paper-card">
+    <view wx:if="{{form.location}}" class="location-selected"><view class="location-pin">📍</view><view class="location-copy"><text class="location-name">{{form.location.name}}</text><text class="location-address">{{form.location.address}}</text><text class="location-coord">{{form.location.latitude}}, {{form.location.longitude}}</text></view><button class="location-clear" bindtap="clearLocation">×</button></view>
+    <button wx:else class="location-empty" bindtap="chooseLocation"><text>🗺️</text><view><text class="text-strong">从微信地图选择地点</text><text class="text-small">保存名称、地址与经纬度</text></view><text>›</text></button>
+    <button wx:if="{{form.location}}" class="secondary-button button--small change-location" bindtap="chooseLocation">重新选择地点</button>
+  </view>
+
+  <view class="save-dock">
+    <view class="save-note"><text>{{uploadProgress || (editing ? '修改会同步到所有页面' : '保存后，小岛和 SummerTwin 会一起变化')}}</text></view>
+    <button class="primary-button save-button" loading="{{saving}}" bindtap="save">{{editing ? '保存修改' : '保存并点亮一颗记忆'}}</button>
+  </view>
+</view>

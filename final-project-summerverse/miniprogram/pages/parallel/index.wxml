@@ -1,0 +1,50 @@
+<view class="page page--no-tab parallel-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">平行暑假</text><text class="nav-title__sub">改变一个选择，看看另一条故事线</text></view>
+  </view>
+
+  <view class="explain-card paper-card">
+    <text class="explain-title">它不是预测未来</text>
+    <text class="explain-copy">系统会基于一条真实记忆生成“反事实故事”，帮助你看清选择中的价值与取舍，不会把生成结果当作真实发生过的事情。</text>
+  </view>
+
+  <view wx:if="{{memories.length}}" class="parallel-form paper-card">
+    <view class="paper-card__tape"></view>
+    <label class="field"><text class="field__label">从哪一颗真实记忆分叉？</text><picker mode="selector" range="{{memoryTitles}}" value="{{selectedIndex}}" bindchange="onMemoryChange"><view class="picker-field">📒 {{memoryTitles[selectedIndex]}}</view></picker></label>
+    <view wx:if="{{selectedMemory}}" class="selected-memory"><view class="selected-icon" style="background:{{(selectedMemory.category === 'family' ? '#fff0ed' : '#eaf2ff')}}">{{(selectedMemory.category === 'family' ? '🏡' : '📘')}}</view><view><text class="text-strong">{{selectedMemory.title}}</text><text class="text-small">{{selectedMemory.date}} {{selectedMemory.time}}</text><text>{{selectedMemory.content}}</text></view></view>
+    <label class="field"><text class="field__label">当时做出另一种选择</text><textarea class="textarea" value="{{alternative}}" maxlength="300" placeholder="例如：如果那天没有继续调试，而是直接去海边……" bindinput="onAlternativeInput" /></label>
+    <scroll-view scroll-x enable-flex><view class="chip-row">
+      <button class="chip" data-value="如果当时先休息一天，再回来继续完成它。" bindtap="useAlternative">先休息一天</button>
+      <button class="chip" data-value="如果当时主动邀请朋友一起完成。" bindtap="useAlternative">邀请朋友一起</button>
+      <button class="chip" data-value="如果当时选择放弃这件事，去体验完全不同的一天。" bindtap="useAlternative">选择另一件事</button>
+    </view></scroll-view>
+    <button class="primary-button generate-button" loading="{{generating}}" bindtap="generate">{{generating ? '正在分裂时间线…' : '生成平行故事线'}}</button>
+  </view>
+
+  <empty-state wx:else emoji="🛤️" title="还没有可以分叉的真实记忆" copy="平行暑假必须从真实记录开始，不会凭空捏造你的过去。" buttonText="先记录一件事" bind:action="startRecord" />
+
+  <view wx:if="{{result}}" class="result-section">
+    <view class="section-title"><text class="section-title__main">{{result.title}}</text><text class="section-title__hint">生成式推演</text></view>
+    <view class="branch-canvas paper-card">
+      <view class="branch-origin"><text>真实记忆</text><text class="text-strong">{{selectedMemory.title}}</text></view>
+      <view class="branch-lines"><view class="branch-line real"></view><view class="branch-line imagined"></view></view>
+      <view class="branch-columns">
+        <view class="branch-card real-card"><text class="branch-tag">真实路线</text><text wx:for="{{result.original}}" wx:key="*this" class="branch-point">• {{item}}</text></view>
+        <view class="branch-card imagined-card"><text class="branch-tag">平行路线</text><text wx:for="{{result.parallel}}" wx:key="*this" class="branch-point">• {{item}}</text></view>
+      </view>
+    </view>
+
+    <view class="tradeoff-grid">
+      <view class="tradeoff-card paper-card"><text class="tradeoff-title">可能得到</text><text wx:for="{{result.gains}}" wx:key="*this">＋ {{item}}</text></view>
+      <view class="tradeoff-card paper-card"><text class="tradeoff-title">可能失去</text><text wx:for="{{result.losses}}" wx:key="*this">－ {{item}}</text></view>
+    </view>
+
+    <view class="parallel-letter paper-card"><text class="parallel-letter-title">SummerTwin 留下的一句话</text><text class="parallel-letter-copy">{{result.letter}}</text></view>
+    <button class="secondary-button save-reflection" disabled="{{saved}}" bindtap="saveReflection">{{saved ? '✓ 已保存为反思记忆' : '把这次思考保存进手账'}}</button>
+  </view>
+
+  <view class="data-source-note"><text>🛤️</text><text>页面会永久把“真实路线”和“生成路线”分栏展示，避免把 AI 故事混入真实记忆。</text></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🛤️</text><text class="loading-text">正在寻找可以分叉的记忆…</text></view></view>
+</view>

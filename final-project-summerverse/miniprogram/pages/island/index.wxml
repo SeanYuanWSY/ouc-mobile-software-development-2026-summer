@@ -1,0 +1,112 @@
+<view class="page island-page">
+  <view class="island-header">
+    <view class="brand-block">
+      <text class="brand">SummerVerse</text>
+      <text class="brand-sub">{{profile.nickname}} 的暑假星球</text>
+    </view>
+    <view class="header-actions">
+      <button class="nav-icon-button" bindtap="openReport">📊</button>
+      <button class="nav-icon-button" bindtap="openSettings">⚙️</button>
+    </view>
+  </view>
+
+  <view class="source-strip">
+    <text class="status-pill {{dataMode === 'cloud' ? '' : 'status-pill--muted'}}">{{dataMode === 'cloud' ? '云端真实数据' : '本机数据'}}</text>
+    <text class="stage-name">{{stageLabel}} · {{memories.length}} 颗记忆</text>
+  </view>
+
+  <view class="island-stage stage-{{stage}}">
+    <image class="island-image" src="{{stageAsset}}" mode="aspectFill" />
+    <view class="island-vignette"></view>
+
+    <button class="weather-note" bindtap="syncWeather">
+      <block wx:if="{{weather}}">
+        <text class="weather-temp">{{weather.temperature}}°</text>
+        <text class="weather-icon">{{weather.meta.icon}}</text>
+        <text class="weather-label">实时 · {{weather.meta.label}}</text>
+      </block>
+      <block wx:else>
+        <text class="weather-temp">--°</text>
+        <text class="weather-icon">📍</text>
+        <text class="weather-label">点此授权天气</text>
+      </block>
+    </button>
+
+    <button wx:if="{{stage === 0}}" class="first-memory" bindtap="startRecord">
+      <text class="first-memory__plus">＋</text>
+      <text class="first-memory__title">开始记录</text>
+      <text class="first-memory__copy">点亮你的第一块土地</text>
+    </button>
+
+    <block wx:else>
+      <button wx:for="{{categories}}" wx:key="key" wx:if="{{item.count > 0}}" class="island-hotspot hotspot-{{item.key}}" style="{{item.style}};--hotspot-color:{{item.color}};--hotspot-soft:{{item.soft}}" data-category="{{item.key}}" bindtap="openCategory">
+        <text class="hotspot-icon">{{item.emoji}}</text>
+        <view><text class="hotspot-name">{{item.name}}</text><text class="hotspot-count">{{item.count}} 颗记忆</text></view>
+      </button>
+    </block>
+
+    <view class="island-caption">
+      <text>{{stage === 0 ? '这座岛不会被模拟数字填满，只会因真实记录而生长。' : stage === 1 ? '每一次记录，都在小岛上留下新的建筑、道路与灯光。' : '你的暑假星球独一无二；每一盏灯都是一段真实记忆。'}}</text>
+    </view>
+  </view>
+
+  <view class="metric-grid">
+    <button class="metric paper-card" bindtap="syncStep">
+      <view class="paper-card__tape"></view>
+      <text class="metric-label">今日步数</text>
+      <view class="metric-main"><text class="metric-number">{{step ? step.steps : '--'}}</text><text class="metric-unit">步</text></view>
+      <text class="metric-hint">{{step ? '微信运动 · ' + step.date : '未授权，不显示模拟步数'}}</text>
+      <view class="progress"><view class="progress-fill" style="width:{{stepProgress}}%"></view></view>
+    </button>
+    <view class="metric paper-card mood-card">
+      <text class="metric-label">最近心情</text>
+      <view class="metric-main"><text class="metric-emoji">{{mood ? mood.emoji : '🌱'}}</text><text class="metric-number">{{summary.moodScore === null ? '--' : summary.moodScore}}</text><text class="metric-unit">分</text></view>
+      <text class="metric-hint">{{mood ? mood.name + ' · 来自真实记录' : '记录心情后生成'}}</text>
+    </view>
+  </view>
+
+  <view class="quick-grid">
+    <button class="quick-action" bindtap="startRecord"><text>✏️</text><view><text class="text-strong">记一件事</text><text class="text-small">文字、照片、语音、地点</text></view></button>
+    <button class="quick-action" bindtap="openMap"><text>🗺️</text><view><text class="text-strong">真实地图</text><text class="text-small">查看记忆地点与路线</text></view></button>
+    <button class="quick-action" bindtap="openTwin"><text>🌱</text><view><text class="text-strong">去花园</text><text class="text-small">和 SummerTwin 对话</text></view></button>
+    <button class="quick-action" bindtap="openReport"><text>📖</text><view><text class="text-strong">成长报告</text><text class="text-small">只统计已有真实数据</text></view></button>
+  </view>
+
+  <view class="section-title">
+    <text class="section-title__main">最近留下的记忆</text>
+    <text class="section-title__hint">{{latestMemories.length ? '点开即可回看' : '等待第一颗记忆'}}</text>
+  </view>
+
+  <paper-card wx:if="{{latestMemories.length}}" plain="{{true}}">
+    <view class="recent-list">
+      <button wx:for="{{latestMemories}}" wx:key="_id" class="recent-memory" data-id="{{item._id}}" bindtap="openMemory">
+        <view class="recent-icon" style="background:{{item.categoryMeta.soft}}">{{item.categoryMeta.emoji}}</view>
+        <view class="recent-copy"><text class="recent-title">{{item.title}}</text><text class="recent-meta">{{item.date}} · {{item.time}}{{item.location ? ' · ' + item.location.name : ''}}</text></view>
+        <text class="recent-arrow">›</text>
+      </button>
+    </view>
+  </paper-card>
+
+  <view wx:else class="paper-card no-memory-card">
+    <text class="no-memory-emoji">📷</text>
+    <text class="no-memory-title">没有示例数据冒充你的生活</text>
+    <text class="no-memory-copy">现在记录的第一件事，会成为这座岛真正的起点。</text>
+    <button class="primary-button button--small" bindtap="startRecord">记录第一颗记忆</button>
+  </view>
+
+  <ai-status ready="{{aiReady}}" label="{{aiReady ? '云函数已连接 · 点击设置' : '本地陪伴模式 · 点击设置'}}" bind:open="openSettings" />
+
+
+  <view wx:if="{{showOnboarding}}" class="onboarding-overlay">
+    <view class="onboarding-card paper-card">
+      <button class="onboarding-skip" bindtap="skipOnboarding">跳过</button>
+      <text class="onboarding-emoji">{{onboardingSlides[onboardingStep].emoji}}</text>
+      <text class="onboarding-title">{{onboardingSlides[onboardingStep].title}}</text>
+      <text class="onboarding-copy">{{onboardingSlides[onboardingStep].copy}}</text>
+      <view class="onboarding-dots"><view wx:for="{{onboardingSlides}}" wx:key="title" class="onboarding-dot {{index === onboardingStep ? 'is-active' : ''}}"></view></view>
+      <button class="primary-button" bindtap="nextOnboarding">{{onboardingStep === onboardingSlides.length - 1 ? '进入我的暑假小岛' : '继续'}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🌱</text><text class="loading-text">正在读取你的暑假小岛…</text></view></view>
+</view>

@@ -1,0 +1,19 @@
+<button class="memory-card {{compact ? 'is-compact' : ''}}" bindtap="open">
+  <view class="memory-time">
+    <text>{{memory.time}}</text>
+    <view class="timeline-dot" style="background:{{category.color}}"></view>
+  </view>
+  <view class="memory-body">
+    <view class="memory-topline">
+      <text class="memory-title">{{memory.title}}</text>
+      <text class="memory-mood">{{mood.emoji}}</text>
+    </view>
+    <text wx:if="{{!compact && memory.content}}" class="memory-copy">{{memory.content}}</text>
+    <view class="memory-meta">
+      <text class="memory-category" style="color:{{category.color}};background:{{category.soft}}">{{category.emoji}} {{category.short}}</text>
+      <text wx:if="{{memory.location && memory.location.name}}" class="memory-location">📍 {{memory.location.name}}</text>
+      <text wx:if="{{memory.source === 'demo'}}" class="demo-label">示例</text>
+    </view>
+  </view>
+  <image wx:if="{{cover}}" class="memory-cover" src="{{cover}}" mode="aspectFill" />
+</button>

@@ -1,0 +1,39 @@
+<view class="page timeline-page">
+  <view class="nav-header">
+    <view class="nav-title"><text class="nav-title__brand">时间轴</text><text class="nav-title__sub">每一条都来自你真正保存的记忆</text></view>
+    <button class="nav-icon-button" bindtap="openMap">🗺️</button>
+  </view>
+
+  <view class="search-paper">
+    <text class="search-icon">⌕</text>
+    <input class="search-input" value="{{keyword}}" placeholder="搜索标题、地点或标签" bindinput="onKeywordInput" />
+    <text class="search-count">{{resultCount}} 条</text>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view class="chip-row">
+      <button wx:for="{{categories}}" wx:key="key" class="chip {{activeCategory === item.key ? 'is-active' : ''}}" data-key="{{item.key}}" bindtap="selectCategory">{{item.emoji}} {{item.name}}</button>
+    </view>
+  </scroll-view>
+
+  <view class="heatmap-card paper-card">
+    <view class="heatmap-head"><view><text class="heatmap-title">最近 28 天</text><text class="heatmap-sub">颜色只由记录数量生成</text></view><text class="heatmap-legend">少 ▫︎ ▪︎ ▰ 多</text></view>
+    <view class="heatmap-grid">
+      <view wx:for="{{heatmap}}" wx:key="date" class="heat-cell level-{{item.level}}" title="{{item.date}} · {{item.count}} 条"></view>
+    </view>
+  </view>
+
+  <block wx:if="{{groups.length}}">
+    <view wx:for="{{groups}}" wx:key="date" class="day-group paper-card">
+      <view class="paper-card__tape"></view>
+      <view class="day-head"><text class="day-label">{{item.label}}</text><text class="day-count">{{item.items.length}} 颗记忆</text></view>
+      <view class="day-list">
+        <memory-card wx:for="{{item.items}}" wx:key="_id" wx:for-item="memory" memory="{{memory}}" bind:open="openMemory" />
+      </view>
+    </view>
+  </block>
+
+  <empty-state wx:else emoji="📒" title="还没有符合条件的记忆" copy="清除筛选，或者记录一件今天真正发生的事。" buttonText="去记录" bind:action="startRecord" />
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">📒</text><text class="loading-text">正在翻开时间轴…</text></view></view>
+</view>

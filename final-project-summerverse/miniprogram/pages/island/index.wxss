@@ -1,0 +1,65 @@
+.island-header { display:flex; align-items:center; justify-content:space-between; gap:18rpx; }
+.brand-block { display:grid; }
+.brand { font-family:"KaiTi","STKaiti",serif; font-size:47rpx; font-weight:700; line-height:1; }
+.brand-sub { margin-top:8rpx; color:var(--muted); font-size:22rpx; }
+.header-actions { display:flex; gap:12rpx; }
+.source-strip { display:flex; align-items:center; justify-content:space-between; gap:12rpx; margin:20rpx 2rpx 14rpx; }
+.stage-name { color:var(--muted); font-size:22rpx; }
+.island-stage { position:relative; height:710rpx; overflow:hidden; border:2rpx solid rgba(70,60,48,.18); border-radius:34rpx 28rpx 36rpx 26rpx; background:#dce9e6; box-shadow:0 24rpx 54rpx rgba(67,53,37,.17); }
+.island-image { position:absolute; inset:0; width:100%; height:100%; }
+.island-vignette { position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 45%,rgba(38,33,26,.17)); }
+.stage-2 .island-vignette { background:linear-gradient(180deg,rgba(19,25,64,.05),transparent 45%,rgba(7,16,43,.32)); }
+.weather-note { position:absolute; z-index:5; top:18rpx; right:18rpx; width:140rpx; min-height:116rpx; display:grid; grid-template-columns:1fr auto; align-items:center; padding:13rpx 15rpx; border:2rpx solid rgba(88,77,61,.15); border-radius:20rpx 16rpx 22rpx 17rpx; background:rgba(255,250,237,.94); box-shadow:0 8rpx 20rpx rgba(53,42,28,.1); }
+.weather-temp { font-family:"KaiTi","STKaiti",serif; font-size:39rpx; font-weight:700; }
+.weather-icon { font-size:29rpx; }
+.weather-label { grid-column:1/3; color:var(--muted); font-size:18rpx; }
+.first-memory { position:absolute; z-index:4; left:50%; top:50%; width:300rpx; min-height:210rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2rpx dashed rgba(105,82,49,.28); border-radius:30rpx 24rpx 31rpx 25rpx; background:rgba(255,248,228,.8); box-shadow:0 12rpx 30rpx rgba(74,56,34,.1); transform:translate(-50%,-47%) rotate(-1deg); backdrop-filter:blur(4rpx); }
+.first-memory__plus { color:#8f683b; font-size:72rpx; line-height:.8; }
+.first-memory__title { margin-top:15rpx; font-family:"KaiTi","STKaiti",serif; font-size:32rpx; font-weight:700; }
+.first-memory__copy { margin-top:8rpx; color:var(--muted); font-size:21rpx; }
+.island-hotspot { position:absolute; z-index:4; min-width:205rpx; display:flex; align-items:center; gap:10rpx; padding:13rpx 15rpx; border:2rpx solid rgba(75,90,70,.22); border-radius:22rpx 17rpx 24rpx 18rpx; background:rgba(255,252,244,.93); box-shadow:0 9rpx 24rpx rgba(50,39,24,.16); transform:translate(-50%,-50%) rotate(-1deg); }
+.hotspot-icon { width:42rpx; height:42rpx; display:grid; place-items:center; border-radius:15rpx; background:var(--hotspot-soft); font-size:25rpx; }
+.hotspot-name { display:block; color:var(--hotspot-color); font-size:22rpx; font-weight:700; }
+.hotspot-count { display:block; margin-top:3rpx; color:var(--muted); font-size:17rpx; }
+.hotspot-research,.hotspot-life { transform:translate(-50%,-50%) rotate(1deg); }
+.island-caption { position:absolute; z-index:4; left:22rpx; right:22rpx; bottom:18rpx; padding:17rpx 22rpx; border:2rpx solid rgba(85,69,48,.14); border-radius:20rpx 16rpx 22rpx 17rpx; color:#5f5547; background:rgba(255,249,235,.91); text-align:center; font-family:"KaiTi","STKaiti",serif; font-size:23rpx; line-height:1.45; }
+.stage-2 .island-caption { color:#f7e8c8; border-color:rgba(255,255,255,.18); background:rgba(24,31,61,.72); }
+.metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:16rpx; margin-top:18rpx; }
+.metric { min-height:210rpx; padding:25rpx 22rpx 20rpx; text-align:left; }
+.metric-label { display:block; color:var(--muted); font-size:23rpx; }
+.metric-main { display:flex; align-items:baseline; gap:6rpx; margin-top:18rpx; }
+.metric-number { font-family:"KaiTi","STKaiti",serif; font-size:49rpx; font-weight:700; }
+.metric-unit { color:var(--muted); font-size:21rpx; }
+.metric-emoji { margin-right:6rpx; font-size:42rpx; }
+.metric-hint { display:block; min-height:32rpx; margin-top:8rpx; color:var(--muted); font-size:19rpx; line-height:1.4; }
+.progress { height:10rpx; margin-top:16rpx; overflow:hidden; border-radius:999rpx; background:#e5ded1; }
+.progress-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,#77aa83,#3f7c58); }
+.mood-card { background:linear-gradient(145deg,rgba(255,252,244,.96),rgba(255,242,213,.92)); }
+.quick-grid { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; margin-top:18rpx; }
+.quick-action { min-height:112rpx; display:flex; align-items:center; gap:14rpx; padding:18rpx; text-align:left; border:2rpx solid var(--line); border-radius:24rpx 19rpx 26rpx 20rpx; background:rgba(255,252,244,.78); }
+.quick-action>text { width:50rpx; font-size:32rpx; text-align:center; }
+.quick-action .text-strong { display:block; font-size:24rpx; }
+.quick-action .text-small { display:block; margin-top:4rpx; color:var(--muted); font-size:18rpx; }
+.recent-list { padding:4rpx 22rpx; }
+.recent-memory { width:100%; display:flex; align-items:center; gap:14rpx; padding:18rpx 0; text-align:left; border-bottom:2rpx dashed rgba(83,74,61,.12); }
+.recent-memory:last-child { border-bottom:0; }
+.recent-icon { width:58rpx; height:58rpx; display:grid; place-items:center; flex:0 0 auto; border-radius:18rpx; font-size:28rpx; }
+.recent-copy { flex:1; min-width:0; }
+.recent-title { display:block; overflow:hidden; font-size:25rpx; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+.recent-meta { display:block; overflow:hidden; margin-top:6rpx; color:var(--muted); font-size:19rpx; text-overflow:ellipsis; white-space:nowrap; }
+.recent-arrow { color:var(--muted); font-size:38rpx; }
+.no-memory-card { display:flex; flex-direction:column; align-items:center; padding:42rpx 28rpx; text-align:center; }
+.no-memory-emoji { font-size:62rpx; }
+.no-memory-title { margin-top:14rpx; font-weight:700; }
+.no-memory-copy { margin:10rpx 0 22rpx; color:var(--muted); font-size:22rpx; line-height:1.55; }
+ai-status { display:block; margin-top:18rpx; }
+
+.onboarding-overlay { position:fixed; inset:0; z-index:180; display:grid; place-items:center; padding:40rpx 28rpx; background:rgba(40,37,31,.42); backdrop-filter:blur(12rpx); }
+.onboarding-card { width:100%; max-width:650rpx; padding:58rpx 34rpx 34rpx; text-align:center; overflow:visible; }
+.onboarding-skip { position:absolute; top:18rpx; right:20rpx; color:var(--muted); font-size:21rpx; }
+.onboarding-emoji { display:block; font-size:96rpx; }
+.onboarding-title { display:block; margin-top:20rpx; font-family:"KaiTi","STKaiti",serif; font-size:38rpx; font-weight:700; line-height:1.35; }
+.onboarding-copy { display:block; margin:16rpx auto 0; color:var(--muted); font-size:24rpx; line-height:1.7; }
+.onboarding-dots { display:flex; justify-content:center; gap:10rpx; margin:26rpx 0; }
+.onboarding-dot { width:12rpx; height:12rpx; border-radius:50%; background:#d8d0c2; }
+.onboarding-dot.is-active { width:34rpx; border-radius:999rpx; background:var(--green); }

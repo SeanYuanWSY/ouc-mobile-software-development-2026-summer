@@ -1,0 +1,26 @@
+.rule-card { padding:22rpx; border-style:dashed; }
+.rule-title { display:block; color:var(--green); font-family:"KaiTi","STKaiti",serif; font-size:27rpx; font-weight:700; }
+.rule-copy { display:block; margin-top:8rpx; color:var(--muted); font-size:21rpx; line-height:1.6; }
+.phone-stage { margin-top:18rpx; padding:28rpx 22rpx 24rpx; text-align:center; background:linear-gradient(145deg,#fffaf0,#f4ead7); }
+.phone-stage.is-calling { animation:ringStage .55s ease-in-out infinite alternate; }
+@keyframes ringStage { to { transform:rotate(.5deg) scale(.995); } }
+.phone-date { display:inline-flex; align-items:center; gap:12rpx; padding:10rpx 18rpx; border:2rpx solid var(--line); border-radius:999rpx; background:rgba(255,255,255,.55); font-size:22rpx; }
+.telephone { position:relative; width:400rpx; height:330rpx; margin:25rpx auto 5rpx; }
+.phone-handle { position:absolute; z-index:2; left:50%; top:0; width:330rpx; color:#927048; font-size:210rpx; line-height:.7; transform:translateX(-50%) rotate(-2deg); text-shadow:0 12rpx 16rpx rgba(78,55,29,.16); }
+.phone-body { position:absolute; left:50%; bottom:0; width:280rpx; height:220rpx; display:grid; place-items:center; border:5rpx solid #8f6d45; border-radius:70rpx 70rpx 38rpx 38rpx; background:#d9bd89; box-shadow:inset 0 0 0 10rpx rgba(255,245,220,.28),0 18rpx 30rpx rgba(79,57,32,.18); transform:translateX(-50%) rotate(1deg); }
+.dial { position:relative; width:165rpx; height:165rpx; border:12rpx solid #fff2d5; border-radius:50%; background:#9a784f; box-shadow:inset 0 0 0 9rpx #d5b57c; }
+.dial-center { position:absolute; left:50%; top:50%; width:72rpx; height:72rpx; display:grid; place-items:center; border-radius:50%; background:#fff5df; color:#72512f; font-size:28rpx; font-weight:700; transform:translate(-50%,-50%); }
+.dial-center .text-small { font-size:16rpx; }
+.dial-dot { position:absolute; width:34rpx; height:34rpx; display:grid; place-items:center; border-radius:50%; color:#6b4d2c; background:#fff6df; font-size:16rpx; }
+.dot-1{left:65rpx;top:4rpx}.dot-2{right:20rpx;top:27rpx}.dot-3{right:4rpx;top:67rpx}.dot-4{right:22rpx;bottom:24rpx}.dot-5{left:65rpx;bottom:5rpx}.dot-6{left:20rpx;bottom:24rpx}.dot-7{left:4rpx;top:67rpx}.dot-8{left:20rpx;top:27rpx}
+.phone-status { display:block; color:var(--muted); font-size:20rpx; line-height:1.5; }
+.question-card { margin-top:18rpx; padding:24rpx; }
+.question-label { display:block; font-family:"KaiTi","STKaiti",serif; font-size:29rpx; font-weight:700; }
+.question-input { width:100%; min-height:120rpx; margin:16rpx 0; padding:18rpx; border:2rpx dashed rgba(88,72,51,.2); border-radius:20rpx; background:rgba(255,255,255,.55); font-size:25rpx; line-height:1.6; }
+.call-button { margin-top:18rpx; }
+.answer-letter { margin-top:20rpx; padding:38rpx 28rpx 28rpx; overflow:visible; }
+.letter-stamp { position:absolute; top:18rpx; right:22rpx; padding:7rpx 12rpx; border:2rpx solid rgba(183,92,79,.45); color:#b25c50; font-size:17rpx; transform:rotate(5deg); }
+.letter-title { display:block; font-family:"KaiTi","STKaiti",serif; font-size:31rpx; font-weight:700; }
+.letter-content { display:block; margin-top:18rpx; color:#50493f; font-size:25rpx; line-height:1.85; white-space:pre-wrap; }
+.evidence-box { display:grid; gap:8rpx; margin-top:24rpx; padding:18rpx; border-radius:18rpx; background:#edf3e9; color:#607064; font-size:19rpx; line-height:1.5; }
+.evidence-title { color:#3d7a55; font-weight:700; }

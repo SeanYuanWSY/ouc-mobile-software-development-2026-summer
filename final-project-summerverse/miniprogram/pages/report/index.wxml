@@ -1,0 +1,49 @@
+<view class="page page--no-tab report-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">暑假成长报告</text><text class="nav-title__sub">事实统计与 AI 推断分开呈现</text></view>
+    <button class="nav-icon-button" open-type="share">↗</button>
+  </view>
+
+  <view class="report-cover paper-card">
+    <view class="paper-card__tape"></view>
+    <text class="report-kicker">SUMMERVERSE REPORT</text>
+    <text class="report-name">{{profile.nickname || '我的'}}暑假记忆报告</text>
+    <text class="report-sentence">{{reportSentence}}</text>
+    <button class="ghost-button button--small copy-button" bindtap="copySummary">复制这句话</button>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-card paper-card"><text class="stat-icon">📒</text><text class="stat-value">{{summary.memoryCount || 0}}</text><text class="stat-label">真实记忆</text></view>
+    <view class="stat-card paper-card"><text class="stat-icon">📚</text><text class="stat-value">{{summary.learningHours || 0}}h</text><text class="stat-label">学习与科研</text></view>
+    <view class="stat-card paper-card"><text class="stat-icon">🌿</text><text class="stat-value">{{summary.outdoorHours || 0}}h</text><text class="stat-label">户外与陪伴</text></view>
+    <view class="stat-card paper-card"><text class="stat-icon">🗺️</text><text class="stat-value">{{summary.routeDistance || 0}}km</text><text class="stat-label">地点连接距离</text></view>
+  </view>
+
+  <empty-state wx:if="{{!loading && !memories.length}}" emoji="📊" title="报告还没有数据" copy="我们没有自动填充假步数、假心情或假地点。记录后，这里才会计算。" buttonText="去记录第一件事" bind:action="startRecord" />
+
+  <block wx:if="{{memories.length}}">
+    <view class="section-title"><text class="section-title__main">六片土地的记忆分布</text><text class="section-title__hint">纯统计</text></view>
+    <view class="distribution-card paper-card">
+      <view wx:for="{{categoryBars}}" wx:key="key" class="distribution-row">
+        <view class="distribution-label"><text>{{item.emoji}} {{item.name}}</text><text class="text-strong">{{item.count}}</text></view>
+        <view class="distribution-track"><view class="distribution-fill" style="width:{{item.percent}}%;background:{{item.color}}"></view></view>
+      </view>
+    </view>
+
+    <view class="section-title"><text class="section-title__main">这个暑假的亮点</text><text class="section-title__hint">来自已有记录</text></view>
+    <view class="highlight-grid">
+      <view class="highlight-card paper-card"><text class="highlight-label">心情最高的记忆</text><text class="text-strong">{{happiest ? happiest.title : '暂无'}}</text><text class="text-small">{{happiest ? happiest.date + ' · ' + happiest.time : ''}}</text></view>
+      <view class="highlight-card paper-card"><text class="highlight-label">投入时间最长</text><text class="text-strong">{{longest ? longest.title : '暂无'}}</text><text class="text-small">{{longest ? longest.durationMinutes + ' 分钟' : ''}}</text></view>
+      <view class="highlight-card paper-card"><text class="highlight-label">已完成目标</text><text class="text-strong">{{completedGoals.length}} 个</text><text class="text-small">{{completedGoals.length ? completedGoals[0].title : '还在继续生长'}}</text></view>
+      <view class="highlight-card paper-card"><text class="highlight-label">平均心情指数</text><text class="text-strong">{{summary.moodScore === null ? '—' : summary.moodScore}}</text><text class="text-small">由记录时选择的心情换算</text></view>
+    </view>
+
+    <view class="section-title"><text class="section-title__main">行为成长画像</text><text class="section-title__hint">估算结果</text></view>
+    <view class="radar-card paper-card"><canvas canvas-id="radarCanvas" class="radar-canvas"></canvas><text class="radar-note">画像由分类比例、记忆数量、目标完成和情绪记录计算，不属于心理评估。</text></view>
+  </block>
+
+  <view class="data-source-note"><text>🧾</text><text>事实层：记录数量、日期、地点、时长、目标；推断层：成长画像、叙事总结。两层在界面中始终明确标注。</text></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">📊</text><text class="loading-text">正在整理真实数据…</text></view></view>
+</view>

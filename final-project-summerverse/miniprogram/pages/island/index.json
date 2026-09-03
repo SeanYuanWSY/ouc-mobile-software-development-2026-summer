@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "paper-card": "/components/paper-card/index",
+    "ai-status": "/components/ai-status/index"
+  },
+  "enablePullDownRefresh": true
+}

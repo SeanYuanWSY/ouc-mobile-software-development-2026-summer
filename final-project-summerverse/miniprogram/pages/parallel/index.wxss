@@ -1,0 +1,35 @@
+.explain-card { padding:22rpx; border-style:dashed; }
+.explain-title { display:block; color:#b66b53; font-family:"KaiTi","STKaiti",serif; font-size:28rpx; font-weight:700; }
+.explain-copy { display:block; margin-top:8rpx; color:var(--muted); font-size:21rpx; line-height:1.6; }
+.parallel-form { margin-top:18rpx; padding:28rpx 24rpx; }
+.selected-memory { display:flex; gap:14rpx; margin-bottom:22rpx; padding:18rpx; border:2rpx dashed rgba(80,71,59,.17); border-radius:20rpx; background:rgba(255,255,255,.48); }
+.selected-icon { width:58rpx; height:58rpx; display:grid; place-items:center; flex:0 0 auto; border-radius:18rpx; }
+.selected-memory>view:last-child { min-width:0; }
+.selected-memory .text-strong { display:block; font-size:25rpx; }
+.selected-memory .text-small { display:block; margin-top:4rpx; color:var(--muted); font-size:19rpx; }
+.selected-memory text { display:-webkit-box; overflow:hidden; margin-top:8rpx; color:#655e54; font-size:21rpx; line-height:1.5; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.generate-button { margin-top:20rpx; }
+.branch-canvas { padding:28rpx 22rpx; }
+.branch-origin { width:72%; margin:0 auto; padding:15rpx; border-radius:18rpx; text-align:center; background:#efe9db; }
+.branch-origin text { display:block; color:var(--muted); font-size:18rpx; }
+.branch-origin .text-strong { display:block; margin-top:4rpx; font-size:22rpx; }
+.branch-lines { position:relative; height:82rpx; }
+.branch-line { position:absolute; top:0; width:45%; height:80rpx; border-bottom:5rpx solid; }
+.branch-line.real { left:10%; border-left:5rpx solid #5b8bc3; border-color:#5b8bc3; border-radius:0 0 0 40rpx; transform:skewX(-18deg); }
+.branch-line.imagined { right:10%; border-right:5rpx solid #d88659; border-color:#d88659; border-radius:0 0 40rpx 0; transform:skewX(18deg); }
+.branch-columns { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; }
+.branch-card { min-height:250rpx; padding:20rpx; border:2rpx solid var(--line); border-radius:22rpx; }
+.real-card { background:#eef5fb; }
+.imagined-card { background:#fff1e8; }
+.branch-tag { display:inline-block; padding:6rpx 11rpx; border-radius:999rpx; font-size:19rpx; font-weight:700; }
+.real-card .branch-tag { color:#4778ae; background:#dceafa; }
+.imagined-card .branch-tag { color:#b8663f; background:#ffe1cf; }
+.branch-point { display:block; margin-top:14rpx; color:#5f5a52; font-size:21rpx; line-height:1.55; }
+.tradeoff-grid { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; margin-top:16rpx; }
+.tradeoff-card { padding:20rpx; }
+.tradeoff-card>text:not(.tradeoff-title) { display:block; margin-top:10rpx; color:var(--muted); font-size:20rpx; }
+.tradeoff-title { display:block; font-family:"KaiTi","STKaiti",serif; font-size:27rpx; font-weight:700; }
+.parallel-letter { margin-top:16rpx; padding:26rpx; }
+.parallel-letter-title { display:block; color:var(--green); font-family:"KaiTi","STKaiti",serif; font-size:28rpx; font-weight:700; }
+.parallel-letter-copy { display:block; margin-top:14rpx; color:#554e45; font-size:24rpx; line-height:1.75; }
+.save-reflection { margin-top:16rpx; width:100%; }

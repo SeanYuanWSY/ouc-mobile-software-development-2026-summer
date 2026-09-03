@@ -1,0 +1,6 @@
+<view class="empty-state">
+  <text class="empty-state__emoji">{{emoji}}</text>
+  <text class="empty-state__title">{{title}}</text>
+  <text class="empty-state__copy">{{copy}}</text>
+  <button wx:if="{{buttonText}}" class="primary-button button--small empty-action" bindtap="handleTap">{{buttonText}}</button>
+</view>

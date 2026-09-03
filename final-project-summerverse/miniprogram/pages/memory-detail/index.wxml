@@ -1,0 +1,44 @@
+<view class="page page--no-tab detail-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">一颗记忆</text><text class="nav-title__sub">{{dateLabel}} · {{memory.time}}</text></view>
+    <button class="nav-icon-button" bindtap="edit">✏️</button>
+  </view>
+
+  <view wx:if="{{memory}}" class="memory-paper paper-card">
+    <view class="paper-card__tape"></view>
+    <view class="detail-head">
+      <view class="detail-category" style="background:{{category.soft}};color:{{category.color}}">{{category.emoji}} {{category.name}}</view>
+      <text class="detail-mood">{{mood.emoji}} {{mood.name}}</text>
+    </view>
+    <text class="detail-title">{{memory.title}}</text>
+    <text wx:if="{{memory.content}}" class="detail-content">{{memory.content}}</text>
+    <view class="detail-facts">
+      <view><text>日期</text><text class="text-strong">{{memory.date}}</text></view>
+      <view><text>时间</text><text class="text-strong">{{memory.time}}</text></view>
+      <view><text>持续</text><text class="text-strong">{{memory.durationMinutes ? memory.durationMinutes + ' 分钟' : '未填写'}}</text></view>
+      <view><text>重要度</text><text class="text-strong">{{importanceStars}}</text></view>
+    </view>
+    <view wx:if="{{memory.source === 'demo'}}" class="demo-warning">⚠️ 这是一条明确标注的演示记录，不会冒充你的真实生活。</view>
+  </view>
+
+  <view wx:if="{{images.length}}" class="section-title"><text class="section-title__main">照片</text><text class="section-title__hint">{{images.length}} 张</text></view>
+  <scroll-view wx:if="{{images.length}}" class="photo-scroll" scroll-x enable-flex>
+    <view class="photo-row"><image wx:for="{{images}}" wx:key="id" class="detail-photo" src="{{item.url || item.fileID}}" mode="aspectFill" data-url="{{item.url || item.fileID}}" bindtap="previewImage" /></view>
+  </scroll-view>
+
+  <view wx:if="{{videos.length}}" class="section-title"><text class="section-title__main">视频</text><text class="section-title__hint">真实素材</text></view>
+  <video wx:for="{{videos}}" wx:key="id" class="detail-video" src="{{item.url || item.fileID}}" controls object-fit="cover" />
+
+  <view wx:if="{{audios.length}}" class="section-title"><text class="section-title__main">语音日记</text><text class="section-title__hint">{{audios.length}} 段</text></view>
+  <button wx:for="{{audios}}" wx:key="id" class="audio-card paper-card" data-url="{{item.url || item.fileID}}" bindtap="toggleAudio"><text>{{audioPlaying ? '⏹️' : '▶️'}}</text><view><text class="text-strong">{{audioPlaying ? '正在播放' : '播放这段语音'}}</text><text class="text-small">{{item.duration || 0}} 秒</text></view></button>
+
+  <view wx:if="{{memory && memory.location}}" class="section-title"><text class="section-title__main">发生地点</text><text class="section-title__hint">保存的真实坐标</text></view>
+  <button wx:if="{{memory && memory.location}}" class="location-paper paper-card" bindtap="openLocation"><text class="location-pin">📍</text><view><text class="text-strong">{{memory.location.name}}</text><text class="text-small">{{memory.location.address}}</text><text class="text-small">{{memory.location.latitude}}, {{memory.location.longitude}}</text></view><text class="location-arrow">›</text></button>
+
+  <view wx:if="{{memory && memory.tags && memory.tags.length}}" class="tag-row"><text wx:for="{{memory.tags}}" wx:key="*this" class="tag"># {{item}}</text></view>
+
+  <view class="detail-actions"><button class="secondary-button" bindtap="edit">编辑这条记忆</button><button class="danger-button" bindtap="remove">删除</button></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">📒</text><text class="loading-text">正在翻开这页手账…</text></view></view>
+</view>

@@ -1,0 +1,49 @@
+<view class="page page--no-tab phone-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">时间电话</text><text class="nav-title__sub">拨给过去某一天的自己</text></view>
+    <text class="status-pill {{connected ? '' : 'status-pill--muted'}}">{{connected ? '已接通' : '未拨号'}}</text>
+  </view>
+
+  <view class="rule-card paper-card">
+    <text class="rule-title">这通电话遵守一条硬规则</text>
+    <text class="rule-copy">选中 {{dateLabel}} 后，SummerTwin 只能看到这一天及以前的记忆；之后发生的事情会被隔离。</text>
+  </view>
+
+  <view class="phone-stage paper-card {{calling ? 'is-calling' : ''}}">
+    <view class="paper-card__tape"></view>
+    <picker mode="date" value="{{date}}" end="{{maxDate}}" bindchange="onDateChange"><view class="phone-date">拨号日期 · {{dateLabel}} <text>⌄</text></view></picker>
+    <view class="telephone">
+      <view class="phone-handle">☎</view>
+      <view class="phone-body">
+        <view class="dial">
+          <view class="dial-center">{{monthLabel}}<text class="text-small">月</text></view>
+          <text class="dial-dot dot-1">1</text><text class="dial-dot dot-2">2</text><text class="dial-dot dot-3">3</text><text class="dial-dot dot-4">4</text><text class="dial-dot dot-5">5</text><text class="dial-dot dot-6">6</text><text class="dial-dot dot-7">7</text><text class="dial-dot dot-8">8</text>
+        </view>
+      </view>
+    </view>
+    <text class="phone-status">{{calling ? '正在跨越时间检索记忆…' : connected ? modeLabel + ' · 只使用 ' + eligibleMemories.length + ' 条早期记忆' : eligibleMemories.length + ' 条记忆可以被这一版本的你看见'}}</text>
+  </view>
+
+  <view class="question-card paper-card">
+    <text class="question-label">你想问过去的自己什么？</text>
+    <textarea class="question-input" value="{{question}}" maxlength="300" auto-height placeholder="例如：你现在最担心什么？" bindinput="onQuestionInput" />
+    <scroll-view scroll-x enable-flex><view class="chip-row">
+      <button class="chip" data-question="你现在最担心什么？" bindtap="useQuestion">当时最担心什么？</button>
+      <button class="chip" data-question="你最希望未来的我记住什么？" bindtap="useQuestion">想让我记住什么？</button>
+      <button class="chip" data-question="如果能给未来的我一句话，你会说什么？" bindtap="useQuestion">给未来一句话</button>
+    </view></scroll-view>
+    <button class="primary-button call-button" loading="{{calling}}" bindtap="call">{{calling ? '正在拨号…' : '拨打时间电话'}}</button>
+  </view>
+
+  <view wx:if="{{answer}}" class="answer-letter paper-card">
+    <view class="letter-stamp">{{date}}</view>
+    <text class="letter-title">来自 {{dateLabel}} 的回答</text>
+    <text class="letter-content">{{answer}}</text>
+    <view class="evidence-box"><text class="evidence-title">这通电话可见的最近记忆</text><text wx:for="{{evidenceMemories}}" wx:key="_id">• {{item.date}} · {{item.title}}</text><text wx:if="{{!eligibleMemories.length}}">• 没有任何早期记忆，回答会明确说明信息不足</text></view>
+  </view>
+
+  <view class="data-source-note"><text>⏳</text><text>“过去的你”是受时间边界约束的生成式角色，不是真实录音或意识复刻。页面会明确标注模型模式与可见证据。</text></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">☎️</text><text class="loading-text">正在连接时间线路…</text></view></view>
+</view>

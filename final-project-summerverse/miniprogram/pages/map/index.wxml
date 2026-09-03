@@ -1,0 +1,32 @@
+<view class="page page--no-tab map-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">地图轨迹</text><text class="nav-title__sub">地图、标记和路线全部来自你保存的经纬度</text></view>
+    <button class="nav-icon-button" bindtap="locateMe">◎</button>
+  </view>
+
+  <view class="map-toolbar">
+    <picker mode="date" value="{{date || ''}}" bindchange="onDateChange"><view class="date-picker">📅 {{dateLabel}}</view></picker>
+    <button wx:if="{{date}}" class="ghost-button button--small" bindtap="clearDate">查看全部</button>
+    <text class="status-pill {{locatedMemories.length ? '' : 'status-pill--muted'}}">{{sourceLabel}}</text>
+  </view>
+
+  <view class="map-frame paper-card">
+    <view class="paper-card__tape"></view>
+    <map id="memoryMap" class="memory-map" latitude="{{latitude}}" longitude="{{longitude}}" scale="13" markers="{{markers}}" polyline="{{polyline}}" include-points="{{points}}" show-location enable-3D="{{false}}" bindmarkertap="onMarkerTap" />
+    <view class="map-stamp">真实地图</view>
+    <view class="map-summary"><view><text class="map-summary-value">{{routeKm}}</text><text class="map-summary-unit">km</text><text class="map-summary-label">记录地点直线连接距离</text></view><view><text class="map-summary-value">{{locatedMemories.length}}</text><text class="map-summary-unit">处</text><text class="map-summary-label">已保存地点</text></view></view>
+  </view>
+
+  <view wx:if="{{activeMemory}}" class="active-sheet paper-card">
+    <view class="active-head"><view class="active-icon" style="background:{{activeMemory.categoryMeta.soft}}">{{activeMemory.categoryMeta.emoji}}</view><view class="active-copy"><text class="active-title">{{activeMemory.title}}</text><text class="active-meta">{{activeMemory.date}} {{activeMemory.time}} · {{activeMemory.location.name}}</text></view></view>
+    <text wx:if="{{activeMemory.content}}" class="active-content">{{activeMemory.content}}</text>
+    <view class="active-actions"><button class="secondary-button button--small" bindtap="openActiveLocation">用微信地图打开</button><button class="primary-button button--small" bindtap="openActiveMemory">查看完整记忆</button></view>
+  </view>
+
+  <empty-state wx:if="{{!loading && !locatedMemories.length}}" emoji="📍" title="还没有真实地点" copy="记录时主动选择一个微信地图地点，这里才会出现标记和路线；我们不会用假坐标填充页面。" buttonText="去记录地点" bind:action="startRecord" />
+
+  <view class="data-source-note"><text>🧭</text><text>路线只是按时间连接已记录坐标，并不代表持续后台定位。这样既能展示足迹，也避免过度收集位置。</text></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🗺️</text><text class="loading-text">正在摆放真实地点…</text></view></view>
+</view>

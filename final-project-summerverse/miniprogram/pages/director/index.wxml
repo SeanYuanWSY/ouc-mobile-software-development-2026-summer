@@ -1,0 +1,49 @@
+<view class="page page--no-tab director-page">
+  <view class="nav-header">
+    <button class="nav-back" bindtap="goBack">‹</button>
+    <view class="nav-title"><text class="nav-title__brand">AI 夏日导演</text><text class="nav-title__sub">把真实素材重排成一部可播放的个人故事</text></view>
+  </view>
+
+  <view class="director-hero paper-card">
+    <image class="director-cover" src="/images/director-cover.jpg" mode="aspectFill" />
+    <view class="director-cover-shade"></view>
+    <view class="director-hero-copy"><text class="director-kicker">SUMMERVERSE FILM</text><text class="director-title">不是生成虚假视频，而是重新编排你真正留下的夏天。</text><text class="director-count">当前可用素材：{{memories.length}} 条记忆</text></view>
+  </view>
+
+  <view class="director-form paper-card">
+    <label class="field"><text class="field__label">选择叙事气质</text><picker mode="selector" range="{{themes}}" value="{{themeIndex}}" bindchange="onThemeChange"><view class="picker-field">🎞️ {{themes[themeIndex]}}</view></picker></label>
+    <button class="primary-button" loading="{{generating}}" bindtap="generate">{{generating ? '正在选择镜头与旁白…' : '根据真实记忆生成分镜'}}</button>
+    <view class="data-source-note"><text>🎬</text><text>AI 只负责章节标题、顺序与旁白；每个章节都会尽量绑定一条已有记忆和已有照片。</text></view>
+  </view>
+
+  <empty-state wx:if="{{!loading && !memories.length}}" emoji="🎞️" title="还没有可剪辑的素材" copy="先记录真实照片、地点或文字，导演模式才会开始。" buttonText="去记录素材" bind:action="startRecord" />
+
+  <view wx:if="{{storyboard}}" class="storyboard-section">
+    <view class="section-title"><view><text class="section-title__main">{{storyboard.title}}</text><text class="story-subtitle">{{storyboard.subtitle}}</text></view><text class="section-title__hint">{{storyboard.chapters.length}} 个章节</text></view>
+    <scroll-view class="film-scroll" scroll-x enable-flex>
+      <view class="film-strip">
+        <button wx:for="{{storyboard.chapters}}" wx:key="index" class="film-frame" data-id="{{item.memory ? item.memory._id : ''}}" bindtap="openMemory">
+          <view class="film-holes top"></view>
+          <image class="film-image" src="{{item.cover}}" mode="aspectFill" />
+          <text class="film-index">{{item.index}}</text>
+          <text class="film-title">{{item.title}}</text>
+          <view class="film-holes bottom"></view>
+        </button>
+      </view>
+    </scroll-view>
+    <view class="narration-paper paper-card"><text class="narration-label">片尾旁白</text><text class="narration-copy">{{storyboard.ending}}</text></view>
+    <view class="director-actions"><button class="secondary-button" loading="{{posterSaving}}" bindtap="savePoster">生成分享封面</button><button class="primary-button" bindtap="play">▶ 播放我的暑假</button></view>
+  </view>
+
+  <canvas canvas-id="posterCanvas" class="poster-canvas"></canvas>
+
+  <view wx:if="{{playing}}" class="cinema-overlay">
+    <image class="cinema-bg" src="{{currentChapter.cover}}" mode="aspectFill" />
+    <view class="cinema-shade"></view>
+    <button class="cinema-close" bindtap="stopPlayback">×</button>
+    <view class="cinema-counter">{{currentIndex + 1}} / {{storyboard.chapters.length}}</view>
+    <view class="cinema-copy"><text class="cinema-title">{{currentChapter.title}}</text><text class="cinema-narration">{{currentChapter.narration}}</text><view class="cinema-controls"><button bindtap="previousChapter">‹</button><button bindtap="nextChapter">›</button></view></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🎞️</text><text class="loading-text">正在整理可用素材…</text></view></view>
+</view>

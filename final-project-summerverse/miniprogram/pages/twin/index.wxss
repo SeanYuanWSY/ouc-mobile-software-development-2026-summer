@@ -1,0 +1,44 @@
+.twin-header { display:flex; align-items:center; justify-content:space-between; gap:18rpx; }
+.twin-brand { display:block; font-family:"KaiTi","STKaiti",serif; font-size:46rpx; font-weight:700; }
+.twin-sub { display:block; margin-top:7rpx; color:var(--muted); font-size:22rpx; }
+.status-row { display:flex; align-items:center; justify-content:space-between; gap:12rpx; margin:18rpx 2rpx 14rpx; }
+.evidence-note { color:var(--muted); font-size:19rpx; }
+.garden-stage { position:relative; height:530rpx; overflow:hidden; border:2rpx solid rgba(78,68,54,.17); border-radius:34rpx 27rpx 36rpx 28rpx; box-shadow:0 24rpx 54rpx rgba(67,53,37,.16); }
+.garden-image { position:absolute; inset:0; width:100%; height:100%; }
+.garden-shade { position:absolute; inset:0; background:linear-gradient(180deg,transparent 35%,rgba(35,30,24,.26)); }
+.stage-2 .garden-shade { background:linear-gradient(180deg,rgba(10,19,31,.04),rgba(9,16,25,.42)); }
+.twin-speech { position:absolute; z-index:3; right:20rpx; top:24rpx; width:310rpx; padding:20rpx; border:2rpx solid rgba(82,72,58,.17); border-radius:22rpx 17rpx 26rpx 18rpx; background:rgba(255,250,239,.94); box-shadow:0 10rpx 24rpx rgba(64,49,31,.14); transform:rotate(1deg); }
+.speech-label { display:block; color:var(--green); font-family:"KaiTi","STKaiti",serif; font-size:23rpx; font-weight:700; }
+.speech-copy { display:block; margin-top:8rpx; color:#4b443a; font-size:21rpx; line-height:1.55; }
+.garden-progress { position:absolute; z-index:3; left:20rpx; right:20rpx; bottom:18rpx; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12rpx; padding:14rpx 17rpx; border-radius:18rpx; color:#4e473d; background:rgba(255,249,235,.91); font-size:19rpx; }
+.garden-progress-track { height:10rpx; overflow:hidden; border-radius:999rpx; background:#ded6c7; }
+.garden-progress-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,#85ad79,#3d7a55); }
+.garden-progress .text-strong { font-size:22rpx; }
+.power-grid { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; margin-top:18rpx; }
+.power-card { min-height:126rpx; display:flex; align-items:center; gap:14rpx; padding:18rpx; text-align:left; border:2rpx solid var(--line); border-radius:24rpx 19rpx 26rpx 20rpx; background:rgba(255,252,244,.86); box-shadow:0 7rpx 20rpx rgba(65,50,31,.07); }
+.power-icon { width:54rpx; text-align:center; font-size:35rpx; }
+.power-card .text-strong { display:block; font-size:24rpx; }
+.power-card .text-small { display:block; margin-top:5rpx; color:var(--muted); font-size:18rpx; line-height:1.35; }
+.chat-card { overflow:hidden; }
+.chat-list { height:560rpx; padding:22rpx 20rpx; }
+.chat-message { display:flex; align-items:flex-start; gap:10rpx; margin-bottom:18rpx; }
+.chat-message.is-user { justify-content:flex-end; }
+.chat-avatar { width:54rpx; height:54rpx; flex:0 0 auto; border:4rpx solid #f7f0e1; border-radius:19rpx; }
+.chat-bubble { max-width:78%; padding:16rpx 18rpx; border:2rpx solid var(--line); border-radius:8rpx 22rpx 22rpx 22rpx; background:#fffaf0; font-size:23rpx; line-height:1.62; }
+.is-user .chat-bubble { color:#fff; border-color:#467a57; border-radius:22rpx 8rpx 22rpx 22rpx; background:#467a57; }
+.is-pending .chat-bubble { color:var(--muted); border-style:dashed; }
+.chat-source { display:block; margin-top:8rpx; color:#8b857a; font-size:17rpx; }
+.is-user .chat-source { color:rgba(255,255,255,.65); }
+.quick-question-scroll { width:100%; padding:0 18rpx 14rpx; }
+.chat-composer { display:flex; align-items:flex-end; gap:12rpx; padding:16rpx; border-top:2rpx dashed rgba(83,74,61,.14); background:rgba(248,242,231,.72); }
+.chat-input { flex:1; min-height:74rpx; max-height:180rpx; padding:18rpx; border:2rpx solid var(--line); border-radius:20rpx; background:#fffdf8; font-size:24rpx; line-height:1.5; }
+.chat-send { min-width:104rpx; height:74rpx; display:grid; place-items:center; border-radius:20rpx; color:#fff; background:var(--green); font-size:23rpx; font-weight:700; }
+.trait-card { padding:26rpx 22rpx; }
+.trait-row { display:grid; grid-template-columns:145rpx 1fr; align-items:center; gap:16rpx; margin-bottom:18rpx; }
+.trait-name { display:flex; align-items:center; justify-content:space-between; gap:8rpx; }
+.trait-name text { font-size:23rpx; font-weight:700; }
+.trait-name .text-small { color:var(--muted); font-size:19rpx; }
+.trait-track { height:13rpx; overflow:hidden; border-radius:999rpx; background:#e7e0d4; }
+.trait-fill { height:100%; border-radius:inherit; }
+.first-call { display:flex; align-items:center; justify-content:space-between; gap:18rpx; margin-top:18rpx; padding:20rpx; }
+.first-call>text { color:var(--muted); font-size:22rpx; }

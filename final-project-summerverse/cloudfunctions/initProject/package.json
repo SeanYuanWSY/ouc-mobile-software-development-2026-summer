@@ -1,0 +1,6 @@
+{
+  "name": "summerverse-init-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "^3.0.1" }
+}

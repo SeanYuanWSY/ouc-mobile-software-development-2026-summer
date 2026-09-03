@@ -1,0 +1,49 @@
+<view class="page twin-page">
+  <view class="twin-header">
+    <view><text class="twin-brand">SummerTwin</text><text class="twin-sub">你的暑假数字分身 · {{stageLabel}}</text></view>
+    <button class="nav-icon-button" bindtap="openSettings">⚙️</button>
+  </view>
+  <view class="status-row"><text class="status-pill {{aiReady ? '' : 'status-pill--warning'}}">{{aiReady ? '云函数已连接' : '本地陪伴模式'}}</text><text class="evidence-note">回答原则：事实、推测分开写</text></view>
+
+  <view class="garden-stage stage-{{stage}}">
+    <image class="garden-image" src="{{stageAsset}}" mode="aspectFill" />
+    <view class="garden-shade"></view>
+    <view class="twin-speech"><text class="speech-label">Twin 今天想说</text><text class="speech-copy">{{opening}}</text></view>
+    <view class="garden-progress"><text>花园成熟度</text><view class="garden-progress-track"><view class="garden-progress-fill" style="width:{{maturity}}%"></view></view><text class="text-strong">{{maturity}}%</text></view>
+  </view>
+
+  <view class="power-grid">
+    <button class="power-card" bindtap="openTimePhone"><text class="power-icon">☎️</text><view><text class="text-strong">时间电话</text><text class="text-small">与某一天的自己通话</text></view></button>
+    <button class="power-card" bindtap="openParallel"><text class="power-icon">🛤️</text><view><text class="text-strong">平行暑假</text><text class="text-small">改变一个选择，看另一条路</text></view></button>
+    <button class="power-card" bindtap="openDirector"><text class="power-icon">🎞️</text><view><text class="text-strong">AI 夏日导演</text><text class="text-small">把真实记录剪成故事</text></view></button>
+    <button class="power-card" bindtap="openReport"><text class="power-icon">📊</text><view><text class="text-strong">成长报告</text><text class="text-small">数据与推断明确区分</text></view></button>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">和 SummerTwin 聊天</text><text class="section-title__hint">已载入 {{memories.length}} 条记忆</text></view>
+  <view class="chat-card paper-card">
+    <scroll-view class="chat-list" scroll-y scroll-into-view="{{scrollIntoView}}" enable-back-to-top>
+      <view wx:for="{{chatMessages}}" wx:key="id" id="{{item.id}}" class="chat-message {{item.role === 'user' ? 'is-user' : 'is-twin'}} {{item.pending ? 'is-pending' : ''}}">
+        <image wx:if="{{item.role !== 'user'}}" class="chat-avatar" src="/images/twin-avatar.svg" mode="aspectFill" />
+        <view class="chat-bubble"><text>{{item.content}}</text><text wx:if="{{item.role !== 'user'}}" class="chat-source">{{item.pending ? '正在检索' : 'SummerTwin · 依据现有记忆'}}</text></view>
+      </view>
+    </scroll-view>
+    <scroll-view scroll-x class="quick-question-scroll" enable-flex>
+      <view class="chip-row">
+        <button class="chip" data-question="这个暑假，什么事情最让我开心？" bindtap="askQuick">什么最让我开心？</button>
+        <button class="chip" data-question="我最近在哪些事情上变得更有行动力？" bindtap="askQuick">我变得更主动了吗？</button>
+        <button class="chip" data-question="根据已有记录，给我一个下周能执行的小建议。" bindtap="askQuick">给我一个小建议</button>
+      </view>
+    </scroll-view>
+    <view class="chat-composer"><textarea class="chat-input" value="{{chatInput}}" placeholder="问一件只有你的暑假记忆才能回答的事…" maxlength="500" auto-height bindinput="onChatInput" /><button class="chat-send" loading="{{sending}}" bindtap="sendChat">发送</button></view>
+  </view>
+
+  <view class="section-title"><text class="section-title__main">行为成长画像</text><text class="section-title__hint">估算，不是人格诊断</text></view>
+  <view class="trait-card paper-card">
+    <view wx:for="{{traits}}" wx:key="key" class="trait-row"><view class="trait-name"><text>{{item.name}}</text><text class="text-small">{{item.value}}</text></view><view class="trait-track"><view class="trait-fill" style="width:{{item.value}}%;background:{{item.color}}"></view></view></view>
+    <view class="data-source-note"><text>🧾</text><text>画像只根据记忆分类、目标完成与互动次数计算，不会调用医疗或心理诊断结论。</text></view>
+  </view>
+
+  <view wx:if="{{!memories.length}}" class="first-call paper-card"><text>我还不认识你。</text><button class="primary-button button--small" bindtap="startRecord">先告诉我今天发生了什么</button></view>
+
+  <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🌿</text><text class="loading-text">正在打开记忆花园…</text></view></view>
+</view>

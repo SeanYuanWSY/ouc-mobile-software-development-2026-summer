@@ -1,0 +1,32 @@
+.director-hero { height:440rpx; }
+.director-cover { position:absolute; inset:0; width:100%; height:100%; }
+.director-cover-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(19,24,35,.06),rgba(17,22,31,.66)); }
+.director-hero-copy { position:absolute; left:28rpx; right:28rpx; bottom:30rpx; color:#fff; }
+.director-kicker { display:block; font-size:18rpx; letter-spacing:4rpx; opacity:.75; }
+.director-title { display:block; margin-top:10rpx; font-family:"KaiTi","STKaiti",serif; font-size:34rpx; font-weight:700; line-height:1.4; }
+.director-count { display:block; margin-top:12rpx; font-size:20rpx; opacity:.8; }
+.director-form { margin-top:18rpx; padding:26rpx 22rpx; }
+.story-subtitle { display:block; margin-top:5rpx; color:var(--muted); font-size:20rpx; }
+.film-scroll { width:100%; }
+.film-strip { display:flex; gap:12rpx; padding:5rpx 8rpx 20rpx; }
+.film-frame { position:relative; width:280rpx; min-height:330rpx; flex:0 0 auto; padding:30rpx 14rpx 26rpx; color:#f7f1e4; background:#2f302c; text-align:left; box-shadow:0 10rpx 24rpx rgba(32,28,22,.2); }
+.film-image { width:100%; height:195rpx; border:4rpx solid #eee3cf; }
+.film-index { position:absolute; top:36rpx; right:20rpx; width:42rpx; height:42rpx; display:grid; place-items:center; border-radius:50%; color:#2e2b26; background:#f6e7c4; font-size:19rpx; font-weight:700; }
+.film-title { display:block; margin-top:14rpx; font-family:"KaiTi","STKaiti",serif; font-size:23rpx; line-height:1.4; }
+.film-holes { position:absolute; left:8rpx; right:8rpx; height:12rpx; background:repeating-linear-gradient(90deg,transparent 0 8rpx,#eee3cf 8rpx 17rpx,transparent 17rpx 24rpx); }
+.film-holes.top { top:9rpx; }.film-holes.bottom { bottom:9rpx; }
+.narration-paper { margin-top:8rpx; padding:24rpx; }
+.narration-label { display:block; color:var(--green); font-family:"KaiTi","STKaiti",serif; font-size:27rpx; font-weight:700; }
+.narration-copy { display:block; margin-top:12rpx; color:#565046; font-size:24rpx; line-height:1.75; }
+.director-actions { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; margin-top:16rpx; }
+.poster-canvas { position:fixed; left:-9999px; top:-9999px; width:750px; height:1000px; }
+.cinema-overlay { position:fixed; inset:0; z-index:200; color:#fff; background:#111; }
+.cinema-bg { position:absolute; inset:0; width:100%; height:100%; }
+.cinema-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.12) 45%,rgba(0,0,0,.83)); }
+.cinema-close { position:absolute; top:calc(env(safe-area-inset-top) + 22rpx); right:22rpx; width:72rpx; height:72rpx; display:grid; place-items:center; border-radius:50%; color:#fff; background:rgba(0,0,0,.38); font-size:45rpx; }
+.cinema-counter { position:absolute; top:calc(env(safe-area-inset-top) + 40rpx); left:28rpx; padding:8rpx 14rpx; border-radius:999rpx; background:rgba(0,0,0,.34); font-size:20rpx; }
+.cinema-copy { position:absolute; left:32rpx; right:32rpx; bottom:calc(env(safe-area-inset-bottom) + 55rpx); }
+.cinema-title { display:block; font-family:"KaiTi","STKaiti",serif; font-size:44rpx; font-weight:700; line-height:1.3; }
+.cinema-narration { display:block; margin-top:16rpx; font-size:26rpx; line-height:1.75; opacity:.92; }
+.cinema-controls { display:flex; gap:14rpx; justify-content:flex-end; margin-top:24rpx; }
+.cinema-controls button { width:76rpx; height:76rpx; display:grid; place-items:center; border:2rpx solid rgba(255,255,255,.35); border-radius:50%; color:#fff; background:rgba(0,0,0,.3); font-size:46rpx; }
