@@ -1,4 +1,6 @@
-.memory-card { width:100%; display:grid; grid-template-columns:94rpx minmax(0,1fr) 122rpx; gap:14rpx; align-items:start; padding:22rpx 0; text-align:left; border-bottom:2rpx dashed rgba(83,74,61,.13); }
+:host { display: block; }
+
+.memory-card.memory-card { width:100%; margin:0; display:grid; grid-template-columns:94rpx minmax(0,1fr) 122rpx; gap:14rpx; align-items:start; padding:22rpx 0; text-align:left; border-bottom:2rpx dashed rgba(83,74,61,.13); }
 .memory-card:last-child { border-bottom:0; }
 .memory-card.is-compact { grid-template-columns:84rpx minmax(0,1fr); }
 .memory-time { position:relative; padding-right:20rpx; color:var(--muted); font-size:23rpx; text-align:right; }
@@ -12,5 +14,6 @@
 .memory-category { padding:6rpx 12rpx; border-radius:999rpx; font-size:20rpx; }
 .memory-location { max-width:220rpx; overflow:hidden; color:var(--muted); font-size:20rpx; text-overflow:ellipsis; white-space:nowrap; }
 .demo-label { padding:4rpx 10rpx; border-radius:999rpx; color:#976a2c; background:#fff0d7; font-size:18rpx; }
+.demo-label--reflection { color:#5b6fa8; background:#e8edfb; }
 .memory-cover { width:112rpx; height:112rpx; border:6rpx solid #fffaf0; border-radius:16rpx 12rpx 18rpx 13rpx; box-shadow:0 8rpx 18rpx rgba(65,50,31,.13); transform:rotate(1.5deg); }
 .is-compact .memory-cover { display:none; }

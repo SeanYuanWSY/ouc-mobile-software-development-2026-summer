@@ -39,9 +39,12 @@ Page({
       const res = await repository.listMemories();
       const memories = res.data || [];
       const firstDate = memories.length ? memories[memories.length - 1].date : formatDate();
+      const windowStart = new Date();
+      windowStart.setDate(windowStart.getDate() - 27);
+      const startDate = firstDate && firstDate < formatDate(windowStart) ? firstDate : formatDate(windowStart);
       this.setData({
         allMemories: memories,
-        heatmap: heatmap(memories, firstDate, formatDate()).slice(-28),
+        heatmap: heatmap(memories, startDate, formatDate()).slice(-28),
         loading: false
       });
       this.applyFilters();

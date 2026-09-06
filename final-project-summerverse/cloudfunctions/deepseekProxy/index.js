@@ -1,10 +1,11 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database({ throwOnNotFound: false });
+const { ACTION_CREDITS, reserveAiMinute, reserveAiQuota } = require('./quota');
+const { validateRequestPayload } = require('./request-policy');
+const { publicErrorForStatus, publicError } = require('./deepseek-errors');
 
-const DEFAULT_BASE_URL = 'https://api.deepseek.com';
-const ALLOWED_MODELS = new Set(['deepseek-v4-flash', 'deepseek-v4-pro']);
-const VISION_MODEL = 'deepseek-v4-flash-vision-exp';
-
+const { configFromEvent, DEEPSEEK_URL } = require('./config-policy');
 
 async function fetchWithTimeout(url, options = {}, timeout = 50000) {
   const controller = new AbortController();
@@ -18,6 +19,7 @@ function clean(value, max = 1000) {
 }
 
 function compactMemory(item = {}) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) item = {};
   return {
     id: clean(item._id || item.id, 100),
     date: clean(item.date, 10),
@@ -46,42 +48,27 @@ function parseJson(content) {
   }
 }
 
-function configFromEvent(event = {}) {
-  const client = event.config || {};
-  const allowOverride = String(process.env.ALLOW_CLIENT_API_KEY || '').toLowerCase() === 'true';
-  const override = allowOverride ? clean(client.apiKeyOverride, 300) : '';
-  const apiKey = override || clean(process.env.DEEPSEEK_API_KEY, 300);
-  const requestedModel = clean(client.model, 80);
-  const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : clean(process.env.DEEPSEEK_MODEL, 80) || 'deepseek-v4-flash';
-  const baseUrl = (clean(process.env.DEEPSEEK_BASE_URL, 300) || DEFAULT_BASE_URL).replace(/\/+$/, '');
-  return {
-    apiKey,
-    model,
-    baseUrl,
-    source: override ? 'temporary-session-key' : process.env.DEEPSEEK_API_KEY ? 'cloud-env' : 'missing-key',
-    visionModel: clean(process.env.DEEPSEEK_VISION_MODEL, 80) || VISION_MODEL
-  };
-}
-
 async function requestDeepSeek(config, messages, options = {}) {
-  if (!config.apiKey) throw new Error('未配置 DEEPSEEK_API_KEY；可在云函数环境变量中设置，或仅在开发阶段开启临时 Key。');
+  if (!config.apiKey) throw new Error('缺少用户 Key');
   const body = {
     model: options.model || config.model,
     messages,
     stream: false,
+    thinking: { type: 'disabled' },
     temperature: options.temperature ?? 0.65,
     max_tokens: options.maxTokens || 1800
   };
   if (options.json) body.response_format = { type: 'json_object' };
-  const response = await fetchWithTimeout(`${config.baseUrl}/chat/completions`, {
+  const response = await fetchWithTimeout(DEEPSEEK_URL, {
     method: 'POST',
+    redirect: 'error',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
     body: JSON.stringify(body)
   }, options.timeout || 50000);
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = payload?.error?.message || `DeepSeek HTTP ${response.status}`;
-    throw new Error(message);
+    throw publicErrorForStatus(response.status, message);
   }
   const content = payload?.choices?.[0]?.message?.content;
   if (!content) throw new Error('DeepSeek 返回内容为空');
@@ -190,14 +177,7 @@ async function handleInsight(config, payload) {
 }
 
 async function handleVision(config, payload) {
-  const fileID = clean(payload.fileID, 500);
-  if (!fileID.startsWith('cloud://')) throw new Error('AI 看图需要先把图片上传到微信云存储');
-  const download = await cloud.downloadFile({ fileID });
-  const buffer = download.fileContent;
-  if (!buffer || buffer.length > 8 * 1024 * 1024) throw new Error('图片为空或超过 8MB');
-  const base64 = buffer.toString('base64');
-  const ext = (fileID.match(/\.([a-z0-9]+)(?:\?|$)/i) || [])[1]?.toLowerCase();
-  const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const { base64, mime } = payload.__preparedVision;
   const note = clean(payload.note, 600);
   const messages = [
     {
@@ -216,11 +196,55 @@ async function handleVision(config, payload) {
   return { ok: true, data: parseJson(result.content), meta: { model: result.model, usage: result.usage, source: config.source } };
 }
 
+async function prepareVisionPayload(openid, payload) {
+  const fileID = clean(payload.fileID, 500);
+  const owned = await db.collection('media_assets').where({ _openid: openid, fileID }).limit(1).get();
+  if (!owned.data || !owned.data.length) {
+    const error = new Error('这张图片未经当前用户登记，不能发送给 AI');
+    error.code = 'MEDIA_NOT_OWNED';
+    throw error;
+  }
+  const download = await cloud.downloadFile({ fileID });
+  const buffer = download.fileContent;
+  if (!buffer || buffer.length > 8 * 1024 * 1024) throw new Error('图片为空或超过 8MB');
+  const ext = (fileID.match(/\.([a-z0-9]+)(?:\?|$)/i) || [])[1]?.toLowerCase();
+  const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  return { ...payload, __preparedVision: { base64: buffer.toString('base64'), mime } };
+}
+
 exports.main = async (event = {}) => {
   try {
     const action = clean(event.action, 60);
-    const payload = event.payload || {};
+    if (!ACTION_CREDITS[action]) return { ok: false, error: `未知 AI action：${action}`, code: 'BAD_REQUEST' };
+    const { OPENID, APPID } = cloud.getWXContext();
+    if (!OPENID) return { ok: false, error: '无法识别当前微信用户', code: 'NO_OPENID' };
     const config = configFromEvent(event);
+    if (!config.apiKey) {
+      const error = new Error('请在设置中填写你自己的 DeepSeek API Key。');
+      error.code = 'AI_KEY_MISSING';
+      throw error;
+    }
+    let payload = event.payload || {};
+    validateRequestPayload(action, payload);
+    const quotaModel = action === 'visionMemory' ? config.visionModel : config.model;
+    if (action === 'visionMemory') {
+      await reserveAiMinute(db, {
+        openid: OPENID,
+        appId: APPID,
+        action,
+        model: quotaModel,
+        includeGlobal: false
+      });
+      payload = await prepareVisionPayload(OPENID, payload);
+    }
+    await reserveAiQuota(db, {
+      openid: OPENID,
+      appId: APPID,
+      action,
+      model: quotaModel,
+      includeGlobal: false,
+      requestAlreadyReserved: action === 'visionMemory'
+    });
     switch (action) {
       case 'ping': return await handlePing(config);
       case 'parseMemory': return await handleParseMemory(config, payload);
@@ -230,10 +254,20 @@ exports.main = async (event = {}) => {
       case 'director': return await handleDirector(config, payload);
       case 'insight': return await handleInsight(config, payload);
       case 'visionMemory': return await handleVision(config, payload);
-      default: return { ok: false, error: `未知 AI action：${action}` };
+      default: return { ok: false, error: `未知 AI action：${action}`, code: 'BAD_REQUEST' };
     }
   } catch (error) {
-    console.error('[deepseekProxy]', error);
-    return { ok: false, error: error.message || 'DeepSeek 调用失败' };
+    const safeError = publicError(error);
+    console.error('[deepseekProxy]', {
+      code: safeError.code,
+      upstreamStatus: safeError.upstreamStatus
+    });
+    return {
+      ok: false,
+      error: safeError.message,
+      code: safeError.code || 'AI_REQUEST_FAILED',
+      scope: safeError.scope,
+      retryAfterSeconds: safeError.retryAfterSeconds
+    };
   }
 };

@@ -8,12 +8,14 @@
 | 记忆地图 | 原生 `<map>` | 无 | 空地图与空状态 | 已保存坐标 |
 | 路线 | `polyline` | 无 | 不绘制 | 按时间连接记录点，不是后台轨迹 |
 | 实时天气 | 位置 API | `weather` → Open-Meteo | 显示“点此授权天气” | 第三方实况/预报数据 |
-| 照片/视频 | `wx.chooseMedia` | 云存储 | 本机持久化 | 用户主动选择 |
-| 语音 | `wx.getRecorderManager` | 云存储 | 显示权限错误 | 用户主动录制 |
-| 记忆 CRUD | 页面表单 | `dataService` | 本机 Storage 回退 | 真实用户数据 |
-| 一句话记录 | 文本输入 | `deepseekProxy` | 本地规则解析 | AI 草稿，需用户确认 |
+| 照片/视频 | `wx.chooseMedia` | 云存储 + `media.prepare/register` | 本机持久化 | 用户主动选择，按 OPENID 校验所有权 |
+| 语音 | `wx.getRecorderManager` | 云存储 + `media.prepare/register` | 显示权限错误 | 用户主动录制，按 OPENID 校验所有权 |
+| 记忆 CRUD | 页面表单 | `dataService` | 启动探测失败时使用本机 Storage | 真实用户数据；云模式单次失败不静默回退 |
+| 一句话记录 | 文本输入 | `deepseekProxy` | 明确提示失败，不生成替代回复 | AI 草稿，需用户确认 |
 | AI 看图 | 用户照片 | DeepSeek 视觉模型 | 功能单独失败，不影响保存 | AI 推断 |
-| SummerTwin 对话 | 用户问题 | DeepSeek V4 | 本地证据式回答 | AI 生成，引用记忆 |
-| 时间电话 | 日期与问题 | DeepSeek V4 | 本地时间边界回答 | 受约束叙事生成 |
-| 平行暑假 | 真实记忆 + 替代选择 | DeepSeek V4 | 本地反事实模板 | 明确标注的生成故事 |
-| 夏日导演 | 真实记忆 ID | DeepSeek V4 | 本地章节编排 | AI 结构 + 真实素材 |
+| SummerTwin 对话 | 用户问题 | DeepSeek V4 | 明确提示失败，不生成替代回复 | AI 生成，引用记忆 |
+| 时间电话 | 日期与问题 | DeepSeek V4 | 明确提示失败，不生成替代回复 | 受约束叙事生成 |
+| 平行暑假 | 真实记忆 + 替代选择 | DeepSeek V4 | 明确提示失败，不生成替代回复 | 明确标注的生成故事 |
+| 夏日导演 | 真实记忆 ID | DeepSeek V4 | 明确提示失败，不生成替代回复 | AI 结构 + 真实素材 |
+
+`deepseekProxy` 按 APPID/OPENID 哈希使用事务检查分钟、每日和 credits 额度。严格使用用户会话 Key，不回退共享 Key；应用不记录请求内容或原始上游错误。

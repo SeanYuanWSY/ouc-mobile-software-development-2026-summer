@@ -52,8 +52,8 @@ Pages must preserve these distinctions visually and in stored records.
 
 ### AI safety and privacy
 
-- Production DeepSeek keys belong in cloud-function environment variables.
-- Temporary client keys are development-only and must not persist.
+- Strict BYOK: each user supplies a session-only key; never fall back to developer/shared/environment keys.
+- Only forward to the fixed official endpoint. Never log request arguments or raw upstream errors.
 - Send the minimum memory context needed for the selected feature.
 - Do not send raw media to AI without explicit user action.
 

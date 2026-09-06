@@ -1,6 +1,10 @@
-.explain-card { padding:22rpx; border-style:dashed; }
+.parallel-hero { position:relative; height:318rpx; overflow:hidden; border-radius:34rpx; box-shadow:0 18rpx 44rpx rgba(68,51,32,.15); }
+.parallel-hero>image,.parallel-hero__shade { position:absolute; inset:0; width:100%; height:100%; }
+.parallel-hero__shade { background:linear-gradient(180deg,transparent 45%,rgba(38,34,27,.64)); }
+.parallel-hero__copy { position:absolute; left:22rpx; right:22rpx; bottom:22rpx; color:#fff; font-family:"KaiTi","STKaiti",serif; font-size:29rpx; font-weight:700; line-height:1.4; text-shadow:0 3rpx 10rpx rgba(36,30,22,.3); }
+.explain-card { margin-top:14rpx; padding:18rpx 20rpx; border-radius:22rpx; background:#fff1e8; }
 .explain-title { display:block; color:#b66b53; font-family:"KaiTi","STKaiti",serif; font-size:28rpx; font-weight:700; }
-.explain-copy { display:block; margin-top:8rpx; color:var(--muted); font-size:21rpx; line-height:1.6; }
+.explain-copy { display:block; margin-top:6rpx; color:var(--muted); font-size:20rpx; line-height:1.55; }
 .parallel-form { margin-top:18rpx; padding:28rpx 24rpx; }
 .selected-memory { display:flex; gap:14rpx; margin-bottom:22rpx; padding:18rpx; border:2rpx dashed rgba(80,71,59,.17); border-radius:20rpx; background:rgba(255,255,255,.48); }
 .selected-icon { width:58rpx; height:58rpx; display:grid; place-items:center; flex:0 0 auto; border-radius:18rpx; }

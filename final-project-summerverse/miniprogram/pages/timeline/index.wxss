@@ -9,10 +9,10 @@
 .heatmap-sub { display:block; margin-top:4rpx; color:var(--muted); font-size:19rpx; }
 .heatmap-legend { color:var(--muted); font-size:18rpx; }
 .heatmap-grid { display:grid; grid-template-columns:repeat(14,1fr); gap:8rpx; margin-top:20rpx; }
-.heat-cell { height:28rpx; border-radius:7rpx 5rpx 8rpx 6rpx; background:#ebe5d8; }
-.heat-cell.level-1 { background:#c9dbc9; }
-.heat-cell.level-2 { background:#88b08f; }
-.heat-cell.level-3 { background:#3f7957; }
+.heat-cell { height:28rpx; border-radius:7rpx 5rpx 8rpx 6rpx; background:#e2dac6; border:2rpx solid #d6cbb2; }
+.heat-cell.level-1 { background:#c9dbc9; border-color:transparent; }
+.heat-cell.level-2 { background:#88b08f; border-color:transparent; }
+.heat-cell.level-3 { background:#3f7957; border-color:transparent; }
 .day-group { margin-top:20rpx; padding:26rpx 22rpx 8rpx; }
 .day-head { display:flex; align-items:center; justify-content:space-between; gap:12rpx; padding:0 4rpx 10rpx; }
 .day-label { font-family:"KaiTi","STKaiti",serif; font-size:32rpx; font-weight:700; }

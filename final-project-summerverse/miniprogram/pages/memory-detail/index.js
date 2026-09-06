@@ -2,6 +2,7 @@ const repository = require('../../services/repository');
 const { CATEGORIES, MOODS } = require('../../utils/constants');
 const { friendlyDate } = require('../../utils/date');
 const mediaService = require('../../services/media');
+const { backOrHome } = require('../../utils/navigation');
 
 Page({
   data: {
@@ -46,11 +47,11 @@ Page({
       });
     } catch (error) {
       this.setData({ loading: false });
-      wx.showModal({ title: '无法打开记忆', content: error.message, showCancel: false, success: () => wx.navigateBack() });
+      wx.showModal({ title: '无法打开记忆', content: error.message, showCancel: false, success: backOrHome });
     }
   },
 
-  goBack() { wx.navigateBack(); },
+  goBack() { backOrHome(); },
 
   previewImage(event) {
     const current = event.currentTarget.dataset.url;
@@ -105,10 +106,20 @@ Page({
     if (!modal.confirm) return;
     wx.showLoading({ title: '正在删除' });
     try {
-      await repository.deleteMemory(this.id);
+      const result = await repository.deleteMemory(this.id);
       wx.hideLoading();
+      const cleanup = result.data && result.data.mediaCleanup;
+      if (cleanup && cleanup.failed && cleanup.failed.length) {
+        wx.showModal({
+          title: '记忆已删除',
+          content: '部分附件没有清理成功。请稍后重试，或在云开发控制台中删除对应文件。',
+          showCancel: false,
+          success: backOrHome
+        });
+        return;
+      }
       wx.showToast({ title: '记忆已删除', icon: 'success' });
-      setTimeout(() => wx.navigateBack(), 500);
+      setTimeout(backOrHome, 500);
     } catch (error) {
       wx.hideLoading();
       wx.showModal({ title: '删除失败', content: error.message, showCancel: false });

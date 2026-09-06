@@ -21,7 +21,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.15.2",
-  "appid": "touristappid",
+  "appid": "wx7496879b949ceb28",
   "projectname": "summerverse-miniprogram",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",

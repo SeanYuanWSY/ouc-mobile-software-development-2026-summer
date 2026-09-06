@@ -4,9 +4,15 @@
     <view class="nav-title"><text class="nav-title__brand">平行暑假</text><text class="nav-title__sub">改变一个选择，看看另一条故事线</text></view>
   </view>
 
-  <view class="explain-card paper-card">
+  <view class="parallel-hero">
+    <image src="/images/feature-parallel-v2.jpg" mode="aspectFill" />
+    <view class="parallel-hero__shade"></view>
+    <view class="parallel-hero__copy"><text>同一段记忆，也可以照见另一种可能</text></view>
+  </view>
+
+  <view class="explain-card">
     <text class="explain-title">它不是预测未来</text>
-    <text class="explain-copy">系统会基于一条真实记忆生成“反事实故事”，帮助你看清选择中的价值与取舍，不会把生成结果当作真实发生过的事情。</text>
+    <text class="explain-copy">从一条真实记忆出发，生成的另一条路线会始终单独标记。</text>
   </view>
 
   <view wx:if="{{memories.length}}" class="parallel-form paper-card">

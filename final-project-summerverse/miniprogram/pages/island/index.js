@@ -1,3 +1,4 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
 const { CATEGORIES, CATEGORY_LIST, MOODS, ISLAND_ASSETS, DEFAULT_PROFILE, STORAGE_KEYS } = require('../../utils/constants');
@@ -78,8 +79,8 @@ Page({
         repository.listGoals(),
         repository.getProfile()
       ]);
-      const memories = memoryRes.data || [];
-      const goals = goalRes.data || [];
+      const memories = realMemories(memoryRes.data || []);
+      const goals = realGoals(goalRes.data || []);
       const profile = profileRes.data || DEFAULT_PROFILE;
       const step = repository.getStepSnapshot();
       const weather = repository.getWeatherSnapshot();
@@ -111,7 +112,7 @@ Page({
         weather: weather ? { ...weather, meta: weatherMeta(weather.weatherCode, weather.isDay !== false) } : null,
         mood: latestMoodMemory ? MOODS[latestMoodMemory.mood] : null,
         dataMode: memoryRes.mode,
-        aiReady: Boolean(getApp().globalData.cloudReady),
+        aiReady: Boolean(getApp().globalData.aiReady),
         loading: false
       });
     } catch (error) {

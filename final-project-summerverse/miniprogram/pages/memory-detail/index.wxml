@@ -20,6 +20,7 @@
       <view><text>重要度</text><text class="text-strong">{{importanceStars}}</text></view>
     </view>
     <view wx:if="{{memory.source === 'demo'}}" class="demo-warning">⚠️ 这是一条明确标注的演示记录，不会冒充你的真实生活。</view>
+    <view wx:if="{{memory.source === 'reflection'}}" class="demo-warning demo-warning--reflection">💭 这是平行暑假保存的反思记录，内容是生成式推演，不是真实发生的事。</view>
   </view>
 
   <view wx:if="{{images.length}}" class="section-title"><text class="section-title__main">照片</text><text class="section-title__hint">{{images.length}} 张</text></view>

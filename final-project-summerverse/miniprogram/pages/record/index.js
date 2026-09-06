@@ -5,6 +5,7 @@ const mediaService = require('../../services/media');
 const { CATEGORY_LIST, MOOD_LIST } = require('../../utils/constants');
 const { formatDate, formatTime } = require('../../utils/date');
 const { normalizeMemory } = require('../../utils/validate');
+const { backOrHome } = require('../../utils/navigation');
 
 function blankForm() {
   const now = new Date();
@@ -39,23 +40,34 @@ Page({
     editing: false,
     aiPhotoBusy: false,
     cloudReady: false,
+    showMore: false,
     importanceOptions: [1, 2, 3, 4, 5]
+  },
+
+  toggleMore() {
+    this.setData({ showMore: !this.data.showMore });
   },
 
   onLoad(options) {
     this.setupRecorder();
-    this.setData({ cloudReady: Boolean(getApp().globalData.cloudReady) });
+    this.refreshCloudStatus();
     if (options.id) this.loadMemory(options.id);
   },
 
   onShow() {
     this.getTabBar?.().setSelected(2);
-    this.setData({ cloudReady: Boolean(getApp().globalData.cloudReady) });
+    this.refreshCloudStatus();
     const pendingId = getApp().globalData.editMemoryId;
     if (pendingId && pendingId !== this.data.form._id) {
       getApp().globalData.editMemoryId = '';
       this.loadMemory(pendingId);
     }
+  },
+
+  async refreshCloudStatus() {
+    const app = getApp();
+    if (typeof app.awaitCloudReady === 'function') await app.awaitCloudReady();
+    this.setData({ cloudReady: Boolean(app.globalData.cloudReady) });
   },
 
   onUnload() {
@@ -68,6 +80,7 @@ Page({
     this.recorderManager = wx.getRecorderManager();
     this.recorderManager.onStop((result) => {
       clearInterval(this.recordTimer);
+      const nonAudioMedia = this.data.form.media.filter((item) => item.type !== 'audio').slice(0, 8);
       const audio = {
         id: `audio-${Date.now()}`,
         type: 'audio',
@@ -76,7 +89,7 @@ Page({
         duration: Math.round((result.duration || 0) / 1000)
       };
       this.setData({
-        'form.media': [...this.data.form.media.filter((item) => item.type !== 'audio'), audio],
+        'form.media': [...nonAudioMedia, audio],
         recording: false,
         recordSeconds: audio.duration
       });
@@ -94,9 +107,9 @@ Page({
     try {
       const res = await repository.getMemory(id);
       if (!res.data) throw new Error('没有找到这条记忆');
-      this.setData({ form: { ...blankForm(), ...res.data }, editing: true });
+      this.setData({ form: { ...blankForm(), ...res.data }, editing: true, showMore: true });
     } catch (error) {
-      wx.showModal({ title: '无法编辑', content: error.message, showCancel: false, success: () => wx.navigateBack() });
+      wx.showModal({ title: '无法编辑', content: error.message, showCancel: false, success: backOrHome });
     } finally {
       wx.hideLoading();
     }
@@ -150,8 +163,9 @@ Page({
           durationMinutes: parsed.durationMinutes || this.data.form.durationMinutes,
           importance: parsed.importance || this.data.form.importance,
           tags: parsed.tags || [],
-          source: 'ai-assisted'
-        }
+          source: ['reflection', 'demo'].includes(this.data.form.source) ? this.data.form.source : 'ai-assisted'
+        },
+        showMore: true
       });
       wx.showToast({ title: '已整理成记忆草稿', icon: 'success' });
     } catch (error) {
@@ -162,8 +176,13 @@ Page({
   },
 
   chooseMedia() {
+    const remaining = 9 - this.data.form.media.length;
+    if (remaining <= 0) {
+      wx.showToast({ title: '一条记忆最多保存 9 个附件', icon: 'none' });
+      return;
+    }
     wx.chooseMedia({
-      count: Math.max(1, 9 - this.data.form.media.filter((item) => item.type !== 'audio').length),
+      count: remaining,
       mediaType: ['image', 'video'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
@@ -200,7 +219,7 @@ Page({
     this.setData({ 'form.media': next });
   },
 
-  toggleRecording() {
+  async toggleRecording() {
     if (!this.recorderManager) {
       wx.showToast({ title: '当前基础库不支持录音', icon: 'none' });
       return;
@@ -209,9 +228,14 @@ Page({
       this.recorderManager.stop();
       return;
     }
-    this.setData({ recording: true, recordSeconds: 0 });
-    this.recorderManager.start({ duration: 60000, format: 'mp3', sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000 });
-    this.recordTimer = setInterval(() => this.setData({ recordSeconds: this.data.recordSeconds + 1 }), 1000);
+    try {
+      await wechatData.ensureScope('scope.record');
+      this.setData({ recording: true, recordSeconds: 0 });
+      this.recorderManager.start({ duration: 60000, format: 'mp3', sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000 });
+      this.recordTimer = setInterval(() => this.setData({ recordSeconds: this.data.recordSeconds + 1 }), 1000);
+    } catch (error) {
+      wx.showToast({ title: '未获得麦克风权限', icon: 'none' });
+    }
   },
 
   async chooseLocation() {
@@ -238,13 +262,14 @@ Page({
       wx.showModal({ title: '需要云开发', content: 'AI 看图会先把照片上传到你的云存储，再由 deepseekProxy 安全调用视觉模型。', showCancel: false });
       return;
     }
+    try { await ai.ensureConsent('photo'); }
+    catch (error) { wx.showModal({ title: '尚未开始看图', content: error.message, showCancel: false }); return; }
     this.setData({ aiPhotoBusy: true });
     wx.showLoading({ title: 'SummerTwin 正在看图' });
+    let uploadedForAnalysis = null;
     try {
       const item = await mediaService.persistItem(this.data.form.media[index]);
-      const media = [...this.data.form.media];
-      media[index] = item;
-      this.setData({ 'form.media': media });
+      uploadedForAnalysis = item;
       const parsed = await ai.analyzePhoto(item.fileID, this.data.form.content || this.data.aiDraft);
       this.setData({
         form: {
@@ -254,20 +279,23 @@ Page({
           category: parsed.category || this.data.form.category,
           mood: parsed.mood || this.data.form.mood,
           tags: parsed.tags || this.data.form.tags,
-          source: 'ai-assisted'
+          source: ['reflection', 'demo'].includes(this.data.form.source) ? this.data.form.source : 'ai-assisted'
         }
       });
       wx.showToast({ title: '照片已转成记忆草稿', icon: 'success' });
     } catch (error) {
       wx.showModal({ title: 'AI 看图失败', content: error.message || '请检查 DeepSeek 视觉模型配置', showCancel: false });
     } finally {
+      const cleanup = uploadedForAnalysis ? await mediaService.rollbackPersisted([uploadedForAnalysis]) : null;
       wx.hideLoading();
+      if (cleanup && cleanup.failed.length) wx.showModal({ title: '临时照片清理未完成', content: '分析请求已结束，但临时上传的照片未能清理，请稍后联系服务维护者。', showCancel: false });
       this.setData({ aiPhotoBusy: false });
     }
   },
 
   async save() {
     if (this.data.saving) return;
+    if (this.data.aiPhotoBusy || this.data.aiParsing) { wx.showToast({ title: '请等待 AI 整理结束', icon: 'none' }); return; }
     const form = this.data.form;
     if (!form.title.trim()) {
       wx.showToast({ title: '给这颗记忆起个名字', icon: 'none' });
@@ -275,16 +303,21 @@ Page({
     }
     this.setData({ saving: true, uploadProgress: '' });
     wx.showLoading({ title: '正在保存记忆' });
+    let persistedMedia = [];
     try {
-      const media = await mediaService.persistAll(form.media, (current, total) => {
+      persistedMedia = await mediaService.persistAll(form.media, (current, total) => {
         this.setData({ uploadProgress: total ? `正在保存附件 ${current}/${total}` : '' });
       });
+      const media = persistedMedia.map(mediaService.stripPersistenceMetadata);
       const memory = normalizeMemory({ ...form, media });
-      await repository.saveMemory(memory);
+      const saved = await repository.saveMemory(memory);
       wx.hideLoading();
+      const cleanup = saved.data && saved.data._mediaCleanup;
       await new Promise((resolve) => wx.showModal({
         title: this.data.editing ? '记忆已更新' : '小岛亮起了一盏新灯',
-        content: this.data.editing ? '修改已经保存。' : '这条真实记录已经进入时间轴、统计和 SummerTwin 的记忆中。',
+        content: cleanup && cleanup.failed && cleanup.failed.length
+          ? '修改已经保存，但部分旧附件未清理成功，请稍后在云开发控制台检查。'
+          : ['reflection', 'demo'].includes(form.source) ? '记录已保存，保留反思或示例标记，不计入真实统计。' : this.data.editing ? '修改已经保存。' : '这条真实记录已经进入时间轴、统计和 SummerTwin 的记忆中。',
         showCancel: false,
         confirmText: '回到小岛',
         success: resolve
@@ -292,8 +325,16 @@ Page({
       this.setData({ form: blankForm(), aiDraft: '', editing: false });
       wx.switchTab({ url: '/pages/island/index' });
     } catch (error) {
+      const rollback = persistedMedia.length ? await mediaService.rollbackPersisted(persistedMedia) : null;
+      const rollbackWarning = rollback && rollback.failed.length
+        ? '；部分新附件未能自动清理，请在云开发控制台检查'
+        : '';
       wx.hideLoading();
-      wx.showModal({ title: '保存失败', content: error.message || error.errMsg || '请稍后重试', showCancel: false });
+      wx.showModal({
+        title: '保存失败',
+        content: `${error.message || error.errMsg || '请稍后重试'}${rollbackWarning}`,
+        showCancel: false
+      });
     } finally {
       this.setData({ saving: false, uploadProgress: '' });
     }

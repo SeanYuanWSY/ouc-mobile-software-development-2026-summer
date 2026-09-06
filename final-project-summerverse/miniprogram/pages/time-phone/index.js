@@ -1,6 +1,8 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const { formatDate, friendlyDate } = require('../../utils/date');
+const { backOrHome } = require('../../utils/navigation');
 
 Page({
   data: {
@@ -13,7 +15,7 @@ Page({
     answer: '',
     calling: false,
     connected: false,
-    modeLabel: '本地时间分身',
+    modeLabel: 'AI 尚未接通',
     monthLabel: '',
     evidenceMemories: [],
     maxDate: formatDate()
@@ -28,7 +30,7 @@ Page({
   async load() {
     try {
       const res = await repository.listMemories();
-      this.setData({ memories: res.data || [], loading: false });
+      this.setData({ memories: realMemories(res.data || []), loading: false });
       this.updateEligible();
     } catch (error) {
       this.setData({ loading: false });
@@ -54,15 +56,15 @@ Page({
   async call() {
     const question = this.data.question.trim();
     if (!question || this.data.calling) return;
-    this.setData({ calling: true, answer: '', connected: false, modeLabel: getApp().globalData.cloudReady ? 'DeepSeek 时间分身' : '本地时间分身' });
+    this.setData({ calling: true, answer: '', connected: false, modeLabel: '正在连接 DeepSeek' });
     try {
       const answer = await ai.timePhone(this.data.date, question, this.data.memories);
-      this.setData({ answer: typeof answer === 'string' ? answer : answer.answer || JSON.stringify(answer), connected: true });
+      this.setData({ answer: typeof answer === 'string' ? answer : answer.answer || JSON.stringify(answer), connected: true, modeLabel: 'DeepSeek 生成 · 时间分身' });
     } catch (error) {
-      this.setData({ answer: `电话没有接通：${error.message || '未知错误'}`, connected: false });
+      this.setData({ answer: `电话没有接通：${error.message || '未知错误'}`, connected: false, modeLabel: 'AI 尚未接通' });
     } finally { this.setData({ calling: false }); }
   },
 
   useQuestion(event) { this.setData({ question: event.currentTarget.dataset.question }); },
-  goBack() { wx.navigateBack(); }
+  goBack() { backOrHome(); }
 });

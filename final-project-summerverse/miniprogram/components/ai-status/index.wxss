@@ -1,4 +1,6 @@
-.ai-status { display:flex; align-items:center; gap:12rpx; min-width:250rpx; padding:9rpx 12rpx; border:2rpx solid var(--line); border-radius:22rpx; background:rgba(255,252,244,.84); }
+:host { display: block; }
+
+.ai-status.ai-status { width:100%; margin:0; display:flex; align-items:center; gap:12rpx; min-width:250rpx; padding:9rpx 12rpx; border:2rpx solid var(--line); border-radius:22rpx; background:rgba(255,252,244,.84); }
 .ai-orb { width:52rpx; height:52rpx; display:grid; place-items:center; border-radius:19rpx; background:#edf4e9; }
 .ai-copy { display:grid; text-align:left; line-height:1.2; }
 .ai-title { font-family:"KaiTi","STKaiti",serif; font-size:24rpx; font-weight:700; }

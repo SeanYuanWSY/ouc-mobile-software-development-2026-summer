@@ -1,7 +1,9 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const { CATEGORIES } = require('../../utils/constants');
 const { formatDate, formatTime } = require('../../utils/date');
+const { backOrHome } = require('../../utils/navigation');
 
 Page({
   data: {
@@ -21,7 +23,7 @@ Page({
   async load() {
     try {
       const res = await repository.listMemories();
-      const memories = res.data || [];
+      const memories = realMemories(res.data || []);
       this.setData({
         memories,
         memoryTitles: memories.map((item) => `${item.date} · ${item.title}`),
@@ -86,5 +88,5 @@ Page({
   },
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
-  goBack() { wx.navigateBack(); }
+  goBack() { backOrHome(); }
 });

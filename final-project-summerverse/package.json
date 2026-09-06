@@ -1,12 +1,13 @@
 {
   "name": "summerverse-miniprogram",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "SummerVerse — 会成长的暑假小岛与 SummerTwin 数字分身微信小程序",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check-project.js",
     "verify": "npm run check && npm test",
+    "manifest": "node scripts/manifest.js",
     "zip": "node scripts/package.js"
   },
   "engines": {

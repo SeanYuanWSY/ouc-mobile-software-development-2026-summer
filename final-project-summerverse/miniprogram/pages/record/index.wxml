@@ -20,16 +20,21 @@
 
     <view class="field"><text class="field__label">当时的心情</text><view class="option-grid mood-grid"><button wx:for="{{moodList}}" wx:key="key" class="mood-option {{form.mood === item.key ? 'is-selected' : ''}}" data-key="{{item.key}}" bindtap="selectMood"><text>{{item.emoji}}</text><text class="text-small">{{item.name}}</text></button></view></view>
 
-    <view class="two-column">
-      <label class="field"><text class="field__label">日期</text><picker mode="date" value="{{form.date}}" bindchange="onDateChange"><view class="picker-field">📅 {{form.date}}</view></picker></label>
-      <label class="field"><text class="field__label">时间</text><picker mode="time" value="{{form.time}}" bindchange="onTimeChange"><view class="picker-field">🕰️ {{form.time}}</view></picker></label>
+    <button class="more-toggle" bindtap="toggleMore"><text>{{showMore ? '收起' : '展开'}} <text class="more-toggle__strong">更多细节</text></text><text class="more-toggle__hint">日期时间 · 重要度 · 照片语音 · 地点</text><text class="more-toggle__arrow">{{showMore ? '▴' : '▾'}}</text></button>
+
+    <view wx:if="{{showMore}}">
+      <view class="two-column">
+        <label class="field"><text class="field__label">日期</text><picker mode="date" value="{{form.date}}" bindchange="onDateChange"><view class="picker-field">📅 {{form.date}}</view></picker></label>
+        <label class="field"><text class="field__label">时间</text><picker mode="time" value="{{form.time}}" bindchange="onTimeChange"><view class="picker-field">🕰️ {{form.time}}</view></picker></label>
+      </view>
+
+      <label class="field"><text class="field__label">持续时间 <text class="field__hint">可选，单位分钟</text></text><input class="input" value="{{form.durationMinutes}}" data-field="durationMinutes" type="number" placeholder="例如 40" bindinput="onFieldInput" /></label>
+
+      <view class="field"><text class="field__label">这件事有多重要</text><view class="star-row"><button wx:for="{{importanceOptions}}" wx:key="*this" class="star {{form.importance >= item ? 'is-active' : ''}}" data-value="{{item}}" bindtap="selectImportance">★</button></view></view>
     </view>
-
-    <label class="field"><text class="field__label">持续时间 <text class="field__hint">可选，单位分钟</text></text><input class="input" value="{{form.durationMinutes}}" data-field="durationMinutes" type="number" placeholder="例如 40" bindinput="onFieldInput" /></label>
-
-    <view class="field"><text class="field__label">这件事有多重要</text><view class="star-row"><button wx:for="{{importanceOptions}}" wx:key="*this" class="star {{form.importance >= item ? 'is-active' : ''}}" data-value="{{item}}" bindtap="selectImportance">★</button></view></view>
   </view>
 
+  <block wx:if="{{showMore}}">
   <view class="section-title"><text class="section-title__main">照片、视频和语音</text><text class="section-title__hint">真实素材由你主动选择</text></view>
   <view class="media-card paper-card">
     <view wx:if="{{form.media.length}}" class="media-grid">
@@ -45,7 +50,7 @@
       <button class="media-action {{recording ? 'is-recording' : ''}}" bindtap="toggleRecording"><text>{{recording ? '⏹️' : '🎙️'}}</text><text class="text-small">{{recording ? recordSeconds + 's · 停止' : '录一段语音'}}</text></button>
       <button class="media-action" loading="{{aiPhotoBusy}}" bindtap="analyzeFirstPhoto"><text>✨</text><text class="text-small">AI 看图补全</text></button>
     </view>
-    <view class="data-source-note"><text>🔐</text><text>照片只有在你保存时才上传；AI 看图需要云开发和 DeepSeek 视觉模型。临时 API Key 不会写进项目源码。</text></view>
+    <view class="data-source-note"><text>🔐</text><text>保存记录时会保存照片；AI 看图在同意后先上传所选照片，再交给 DeepSeek 分析，费用由你自己的 API 账户承担。</text></view>
   </view>
 
   <view class="section-title"><text class="section-title__main">真实地点</text><text class="section-title__hint">不授权就保持为空</text></view>
@@ -54,6 +59,7 @@
     <button wx:else class="location-empty" bindtap="chooseLocation"><text>🗺️</text><view><text class="text-strong">从微信地图选择地点</text><text class="text-small">保存名称、地址与经纬度</text></view><text>›</text></button>
     <button wx:if="{{form.location}}" class="secondary-button button--small change-location" bindtap="chooseLocation">重新选择地点</button>
   </view>
+  </block>
 
   <view class="save-dock">
     <view class="save-note"><text>{{uploadProgress || (editing ? '修改会同步到所有页面' : '保存后，小岛和 SummerTwin 会一起变化')}}</text></view>

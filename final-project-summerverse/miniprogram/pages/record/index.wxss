@@ -7,16 +7,21 @@
 .form-card, .media-card, .location-card { padding:28rpx 24rpx; }
 .form-card .field:last-child { margin-bottom:0; }
 .option-grid { display:grid; gap:12rpx; }
+.option-grid button, .media-actions button { width:100%; margin:0; min-width:0; }
 .category-grid { grid-template-columns:repeat(3,1fr); }
 .option-card { min-height:100rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7rpx; border:2rpx solid var(--line); border-radius:20rpx 17rpx 22rpx 18rpx; background:rgba(255,255,255,.54); }
 .option-card.is-selected { border-color:#4d835f; background:#e6f0e4; box-shadow:0 0 0 5rpx rgba(61,122,85,.07); transform:translateY(-2rpx); }
 .option-emoji { font-size:32rpx; }
 .option-name { font-size:21rpx; }
-.mood-grid { grid-template-columns:repeat(6,1fr); }
-.mood-option { min-width:0; min-height:90rpx; display:grid; place-items:center; align-content:center; gap:4rpx; border:2rpx solid transparent; border-radius:18rpx; font-size:31rpx; }
-.mood-option .text-small { color:var(--muted); font-size:17rpx; }
+.mood-grid { grid-template-columns:repeat(3,1fr); }
+.mood-option { min-width:0; min-height:82rpx; display:flex; align-items:center; justify-content:center; gap:8rpx; border:1rpx solid transparent; border-radius:18rpx; font-size:29rpx; }
+.mood-option .text-small { color:var(--muted); font-size:19rpx; }
 .mood-option.is-selected { border-color:#d5aa62; background:#fff1d6; transform:rotate(-1deg); }
 .two-column { display:grid; grid-template-columns:1fr 1fr; gap:14rpx; }
+button.more-toggle { width:100%; display:flex; align-items:center; justify-content:center; gap:8rpx; margin-top:20rpx; padding:16rpx; border:1rpx dashed rgba(80,71,59,.25); border-radius:18rpx; background:rgba(255,252,244,.55); color:#7d7869; font-size:21rpx; }
+.more-toggle__strong { color:#57755f; font-weight:600; }
+.more-toggle__hint { color:#a39c8c; font-size:19rpx; }
+.more-toggle__arrow { color:#57755f; }
 .star-row { display:flex; gap:12rpx; }
 .star { width:64rpx; height:64rpx; display:grid; place-items:center; color:#d8d0c2; font-size:42rpx; }
 .star.is-active { color:#e2a44a; text-shadow:0 5rpx 12rpx rgba(205,142,53,.22); transform:rotate(-4deg); }
@@ -27,10 +32,11 @@
 .video-thumb>text,.audio-thumb>text { font-size:46rpx; }
 .video-thumb .text-small,.audio-thumb .text-small { margin-top:6rpx; font-size:19rpx; }
 .media-remove { position:absolute; top:-10rpx; right:-8rpx; width:46rpx; height:46rpx; display:grid; place-items:center; border-radius:50%; color:#fff; background:#bd6963; box-shadow:0 5rpx 12rpx rgba(111,48,44,.22); font-size:29rpx; }
-.media-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:12rpx; }
+.media-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:12rpx; }
 .media-action { min-height:104rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7rpx; border:2rpx solid var(--line); border-radius:20rpx; background:rgba(255,255,255,.55); }
 .media-action>text { font-size:35rpx; }
 .media-action .text-small { color:var(--muted); font-size:19rpx; }
+.media-action:last-child { grid-column:1 / -1; min-height:88rpx; flex-direction:row; }
 .media-action.is-recording { color:#b75550; border-color:#dc928d; background:#fff0ec; animation:recordPulse 1s ease-in-out infinite alternate; }
 @keyframes recordPulse { to { transform:scale(.97); } }
 .location-selected { display:flex; align-items:flex-start; gap:14rpx; }
@@ -39,7 +45,7 @@
 .location-name { display:block; font-size:28rpx; font-weight:700; }
 .location-address,.location-coord { display:block; margin-top:6rpx; color:var(--muted); font-size:20rpx; line-height:1.4; }
 .location-clear { width:52rpx; height:52rpx; display:grid; place-items:center; color:#a75852; font-size:34rpx; }
-.location-empty { width:100%; display:flex; align-items:center; gap:14rpx; text-align:left; }
+button.location-empty { width:100%; display:flex; align-items:center; gap:14rpx; text-align:left; }
 .location-empty>text:first-child { width:62rpx; height:62rpx; display:grid; place-items:center; border-radius:20rpx; background:#e5f0e4; font-size:31rpx; }
 .location-empty>view { flex:1; }
 .location-empty .text-strong { display:block; font-size:27rpx; }

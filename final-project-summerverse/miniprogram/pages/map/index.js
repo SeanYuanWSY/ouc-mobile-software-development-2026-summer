@@ -1,8 +1,10 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
 const { CATEGORIES } = require('../../utils/constants');
 const { routeDistance } = require('../../utils/stats');
 const { formatDate, friendlyDate } = require('../../utils/date');
+const { backOrHome } = require('../../utils/navigation');
 
 function markerIcon(category) {
   if (category === 'study' || category === 'research') return '/images/map-pin-blue.png';
@@ -37,7 +39,7 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await repository.listMemories();
-      const memories = res.data || [];
+      const memories = realMemories(res.data || []);
       this.setData({ memories, loading: false });
       this.buildMap();
     } catch (error) {
@@ -86,7 +88,7 @@ Page({
 
   onDateChange(event) {
     const date = event.detail.value;
-    this.setData({ date, dateLabel: friendlyDate(date) });
+    this.setData({ date, dateLabel: friendlyDate(date), activeMemory: null });
     this.buildMap();
   },
 
@@ -100,7 +102,7 @@ Page({
     try {
       const point = await wechatData.getCurrentLocation('gcj02');
       this.setData({ currentLocation: point, latitude: point.latitude, longitude: point.longitude });
-      this.mapContext?.moveToLocation();
+      this.mapContext?.moveToLocation({ latitude: point.latitude, longitude: point.longitude });
     } catch (error) {
       wx.showModal({ title: '定位失败', content: error.errMsg || error.message || '请检查位置授权', showCancel: false });
     } finally { wx.hideLoading(); }
@@ -134,5 +136,5 @@ Page({
   },
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
-  goBack() { wx.navigateBack(); }
+  goBack() { backOrHome(); }
 });

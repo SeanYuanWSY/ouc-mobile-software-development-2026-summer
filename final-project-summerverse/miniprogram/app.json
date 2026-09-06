@@ -35,7 +35,7 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "你的位置信息将用于记录暑假地点、绘制真实轨迹和获取当前位置天气。"
+      "desc": "用于记录地点、展示记忆地图和获取当前位置天气"
     }
   },
   "requiredPrivateInfos": ["getLocation", "chooseLocation"],

@@ -1,3 +1,4 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
 const ai = require('../../services/ai');
@@ -15,6 +16,7 @@ Page({
     step: null,
     moodSeries: [],
     addGoalOpen: false,
+    savingGoal: false,
     goalDraft: { title: '', category: 'life', target: 5, unit: '次' },
     categories: CATEGORY_LIST,
     syncingStep: false,
@@ -33,7 +35,7 @@ Page({
     if (showLoading) this.setData({ loading: true });
     try {
       const [memoryRes, goalRes] = await Promise.all([repository.listMemories(), repository.listGoals()]);
-      const memories = memoryRes.data || [];
+      const memories = realMemories(memoryRes.data || []);
       const goals = (goalRes.data || []).map((goal) => {
         const current = Number(goal.current) || 0;
         const target = Math.max(1, Number(goal.target) || 1);
@@ -70,11 +72,13 @@ Page({
   selectGoalCategory(event) { this.setData({ 'goalDraft.category': event.currentTarget.dataset.key }); },
 
   async saveGoal() {
+    if (this.data.savingGoal) return;
     const draft = this.data.goalDraft;
     if (!String(draft.title).trim()) {
       wx.showToast({ title: '先写下目标', icon: 'none' });
       return;
     }
+    this.setData({ savingGoal: true });
     wx.showLoading({ title: '种下目标' });
     try {
       await repository.saveGoal(normalizeGoal(draft));
@@ -83,7 +87,7 @@ Page({
       wx.showToast({ title: '目标已种下', icon: 'success' });
     } catch (error) {
       wx.showModal({ title: '保存失败', content: error.message, showCancel: false });
-    } finally { wx.hideLoading(); }
+    } finally { wx.hideLoading(); this.setData({ savingGoal: false }); }
   },
 
   async incrementGoal(event) {
@@ -104,8 +108,12 @@ Page({
     const id = event.currentTarget.dataset.id;
     const modal = await new Promise((resolve) => wx.showModal({ title: '移除这个目标？', content: '已完成的记录不会被删除。', success: resolve }));
     if (!modal.confirm) return;
-    await repository.deleteGoal(id);
-    this.refresh(false);
+    try {
+      await repository.deleteGoal(id);
+      await this.refresh(false);
+    } catch (error) {
+      wx.showModal({ title: '移除失败', content: error.message || '请检查网络后重试。', showCancel: false });
+    }
   },
 
   async syncStep() {

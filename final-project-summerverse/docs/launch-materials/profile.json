@@ -1,0 +1,15 @@
+{
+  "name": "SummerVerse",
+  "shortName": "Verse",
+  "alternateNames": [
+    "SummerVerse Journal",
+    "SummerVerse Moments"
+  ],
+  "description": "Capture moments, grow your goals, and revisit your summer. Optional AI features use your own API key.",
+  "avatar": "avatar.jpg",
+  "version": "1.0.3",
+  "homePage": "pages/island/index",
+  "status": "英文品牌准备稿；当前后台名称SuiyuanWang且只读，未改名或提交。英文候选未获准使用。",
+  "tagline": "A little world for your everyday.",
+  "platformCurrentName": "SuiyuanWang"
+}

@@ -10,7 +10,7 @@ This folder contains the final-course-project implementation of **SummerVerse**,
   - AI companion: **SummerTwin garden cottage**.
 - Product principle: never present demo, generated, or inferred data as real user data.
 - Real-data integrations: WeRun steps, location/map, weather, media, cloud database.
-- AI provider: DeepSeek through `cloudfunctions/deepseekProxy`; production keys stay server-side.
+- AI provider: DeepSeek through `cloudfunctions/deepseekProxy`; strict BYOK uses each user’s session-only Key, with no developer/shared/environment Key fallback.
 
 ## Start here
 

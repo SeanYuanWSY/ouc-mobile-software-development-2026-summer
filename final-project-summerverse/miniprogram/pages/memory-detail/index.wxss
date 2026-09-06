@@ -9,6 +9,7 @@
 .detail-facts text { display:block; color:var(--muted); font-size:18rpx; }
 .detail-facts .text-strong { display:block; margin-top:5rpx; font-size:22rpx; }
 .demo-warning { margin-top:22rpx; padding:16rpx; border-radius:18rpx; color:#976a2c; background:#fff0d7; font-size:20rpx; line-height:1.5; }
+.demo-warning--reflection { color:#5b6fa8; background:#e8edfb; }
 .photo-scroll { width:100%; }
 .photo-row { display:flex; gap:14rpx; padding:4rpx 6rpx 12rpx; }
 .detail-photo { width:310rpx; height:240rpx; flex:0 0 auto; border:9rpx solid #fffaf0; border-radius:20rpx 15rpx 23rpx 17rpx; box-shadow:0 10rpx 24rpx rgba(66,50,31,.14); }

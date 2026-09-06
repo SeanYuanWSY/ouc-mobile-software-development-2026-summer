@@ -1,6 +1,6 @@
 /**
  * 非敏感运行配置。
- * 这里绝不放 DeepSeek API Key；正式 Key 放在 deepseekProxy 云函数环境变量中。
+ * 这里绝不放 DeepSeek API Key；每位用户在设置页输入自己的会话 Key，不提供共享 Key。
  */
 module.exports = {
   CLOUD_ENV_ID: '',

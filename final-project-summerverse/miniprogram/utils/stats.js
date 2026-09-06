@@ -1,3 +1,4 @@
+const { realMemories, realGoals } = require('./memory-source');
 const { CATEGORIES, MOODS } = require('./constants');
 const { formatDate, enumerateDates } = require('./date');
 
@@ -19,6 +20,7 @@ function getTwinStage(memoryCount, chatCount = 0) {
 }
 
 function categoryCounts(memories = []) {
+  memories = realMemories(memories);
   const counts = Object.keys(CATEGORIES).reduce((acc, key) => {
     acc[key] = 0;
     return acc;
@@ -30,6 +32,7 @@ function categoryCounts(memories = []) {
 }
 
 function moodAverage(memories = []) {
+  memories = realMemories(memories);
   const scored = memories
     .map((memory) => MOODS[memory.mood]?.score)
     .filter((score) => Number.isFinite(score));
@@ -38,6 +41,7 @@ function moodAverage(memories = []) {
 }
 
 function totalDurationHours(memories = [], predicate = () => true) {
+  memories = realMemories(memories);
   const minutes = memories
     .filter(predicate)
     .reduce((sum, memory) => sum + clamp(memory.durationMinutes, 0, 1440), 0);
@@ -61,6 +65,7 @@ function haversineDistance(a, b) {
 }
 
 function routeDistance(memories = []) {
+  memories = realMemories(memories);
   const points = memories
     .filter((memory) => memory.location && Number.isFinite(Number(memory.location.latitude)))
     .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
@@ -72,6 +77,7 @@ function routeDistance(memories = []) {
 }
 
 function weeklyMoodSeries(memories = [], endDate = formatDate()) {
+  memories = realMemories(memories);
   const end = new Date(`${endDate}T00:00:00`);
   const start = new Date(end);
   start.setDate(start.getDate() - 6);
@@ -83,6 +89,7 @@ function weeklyMoodSeries(memories = [], endDate = formatDate()) {
 }
 
 function heatmap(memories = [], startDate, endDate) {
+  memories = realMemories(memories);
   return enumerateDates(startDate, endDate).map((date) => {
     const count = memories.filter((memory) => memory.date === date).length;
     return { date, count, level: count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : 3 };
@@ -90,9 +97,10 @@ function heatmap(memories = [], startDate, endDate) {
 }
 
 function buildSummary(memories = [], goals = [], step = null) {
+  memories = realMemories(memories);
   const counts = categoryCounts(memories);
   const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-  const completedGoals = goals.filter((goal) => Number(goal.current) >= Number(goal.target)).length;
+  const completedGoals = realGoals(goals).filter((goal) => Number(goal.current) >= Number(goal.target)).length;
   return {
     memoryCount: memories.length,
     categoryCounts: counts,

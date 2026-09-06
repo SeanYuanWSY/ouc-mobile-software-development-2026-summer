@@ -5,7 +5,7 @@
   </view>
 
   <view class="director-hero paper-card">
-    <image class="director-cover" src="/images/director-cover.jpg" mode="aspectFill" />
+    <image class="director-cover" src="/images/feature-director-v2.jpg" mode="aspectFill" />
     <view class="director-cover-shade"></view>
     <view class="director-hero-copy"><text class="director-kicker">SUMMERVERSE FILM</text><text class="director-title">不是生成虚假视频，而是重新编排你真正留下的夏天。</text><text class="director-count">当前可用素材：{{memories.length}} 条记忆</text></view>
   </view>
@@ -20,6 +20,7 @@
 
   <view wx:if="{{storyboard}}" class="storyboard-section">
     <view class="section-title"><view><text class="section-title__main">{{storyboard.title}}</text><text class="story-subtitle">{{storyboard.subtitle}}</text></view><text class="section-title__hint">{{storyboard.chapters.length}} 个章节</text></view>
+    <view wx:if="{{storyboard.validationNote}}" class="data-source-note"><text>🧷</text><text>{{storyboard.validationNote}}</text></view>
     <scroll-view class="film-scroll" scroll-x enable-flex>
       <view class="film-strip">
         <button wx:for="{{storyboard.chapters}}" wx:key="index" class="film-frame" data-id="{{item.memory ? item.memory._id : ''}}" bindtap="openMemory">
@@ -35,7 +36,7 @@
     <view class="director-actions"><button class="secondary-button" loading="{{posterSaving}}" bindtap="savePoster">生成分享封面</button><button class="primary-button" bindtap="play">▶ 播放我的暑假</button></view>
   </view>
 
-  <canvas canvas-id="posterCanvas" class="poster-canvas"></canvas>
+  <canvas type="2d" id="posterCanvas" class="poster-canvas"></canvas>
 
   <view wx:if="{{playing}}" class="cinema-overlay">
     <image class="cinema-bg" src="{{currentChapter.cover}}" mode="aspectFill" />

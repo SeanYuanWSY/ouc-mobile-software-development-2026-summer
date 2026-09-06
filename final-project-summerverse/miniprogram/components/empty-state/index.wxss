@@ -1,1 +1,3 @@
-.empty-action { width:280rpx; margin:24rpx auto 0; }
+:host { display: block; }
+
+.empty-action.empty-action { width:280rpx; margin:24rpx auto 0; }

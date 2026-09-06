@@ -7,10 +7,18 @@ function isCloudReady() {
   return Boolean(wx.cloud && app?.globalData?.cloudReady);
 }
 
-function callFunction(name, data = {}, options = {}) {
-  if (!isCloudReady()) {
-    return Promise.reject(new Error('CLOUD_NOT_READY'));
+async function waitForCloudReady() {
+  const app = getAppSafe();
+  if (!wx.cloud || !app) return false;
+  if (typeof app.awaitCloudReady === 'function') {
+    try { return Boolean(await app.awaitCloudReady()); }
+    catch (_) { return false; }
   }
+  return Boolean(app.globalData && app.globalData.cloudReady);
+}
+
+async function callFunction(name, data = {}, options = {}) {
+  if (!(await waitForCloudReady())) throw new Error('CLOUD_NOT_READY');
   return new Promise((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -27,7 +35,11 @@ function callFunction(name, data = {}, options = {}) {
         clearTimeout(timer);
         const result = res?.result;
         if (result?.ok === false) {
-          reject(new Error(result.error || result.message || '云函数执行失败'));
+          const error = new Error(result.error || result.message || '云函数执行失败');
+          error.code = result.code;
+          error.scope = result.scope;
+          error.retryAfterSeconds = result.retryAfterSeconds;
+          reject(error);
           return;
         }
         resolve(result);
@@ -42,4 +54,4 @@ function callFunction(name, data = {}, options = {}) {
   });
 }
 
-module.exports = { isCloudReady, callFunction };
+module.exports = { isCloudReady, waitForCloudReady, callFunction };

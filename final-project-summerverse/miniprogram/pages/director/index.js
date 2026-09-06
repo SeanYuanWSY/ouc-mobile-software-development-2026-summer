@@ -1,6 +1,9 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const { formatDate } = require('../../utils/date');
+const { enrichStoryboard } = require('../../utils/storyboard');
+const { backOrHome } = require('../../utils/navigation');
 
 Page({
   data: {
@@ -23,7 +26,7 @@ Page({
   async load() {
     try {
       const res = await repository.listMemories();
-      this.setData({ memories: res.data || [], loading: false });
+      this.setData({ memories: realMemories(res.data || []), loading: false });
     } catch (error) {
       this.setData({ loading: false });
       wx.showToast({ title: '记忆读取失败', icon: 'none' });
@@ -33,19 +36,7 @@ Page({
   onThemeChange(event) { this.setData({ themeIndex: Number(event.detail.value) }); },
 
   enrichStoryboard(raw) {
-    const memories = this.data.memories;
-    const chapters = (raw.chapters || []).slice(0, 10).map((chapter, index) => {
-      const id = (chapter.memoryIds || [])[0];
-      const memory = memories.find((item) => item._id === id) || memories[index] || null;
-      const cover = memory?.media?.find((item) => item.type === 'image');
-      return {
-        ...chapter,
-        memory,
-        cover: cover?.url || cover?.fileID || '/images/director-cover.jpg',
-        index: index + 1
-      };
-    });
-    return { ...raw, chapters };
+    return enrichStoryboard(raw, this.data.memories);
   },
 
   async generate() {
@@ -98,52 +89,83 @@ Page({
     if (id) wx.navigateTo({ url: `/pages/memory-detail/index?id=${id}` });
   },
 
-  savePoster() {
+  async savePoster() {
     if (!this.data.storyboard || this.data.posterSaving) return;
     this.setData({ posterSaving: true });
     wx.showLoading({ title: '绘制夏日封面' });
-    const context = wx.createCanvasContext('posterCanvas', this);
-    const title = this.data.storyboard.title || '我的 SummerVerse';
-    context.setFillStyle('#f7f1e4');
-    context.fillRect(0, 0, 750, 1000);
-    context.drawImage('/images/director-cover.jpg', 50, 70, 650, 455);
-    context.setFillStyle('rgba(255,250,239,.94)');
-    context.fillRect(50, 470, 650, 420);
-    context.setFillStyle('#2f2c27');
-    context.setFontSize(44);
-    context.fillText('SummerVerse', 85, 565);
-    context.setFontSize(34);
-    const lines = [title.slice(0, 18), title.slice(18, 36)].filter(Boolean);
-    lines.forEach((line, index) => context.fillText(line, 85, 635 + index * 48));
-    context.setFillStyle('#6f6a61');
-    context.setFontSize(22);
-    context.fillText(`${this.data.memories.length} 条真实记忆 · ${formatDate()}`, 85, 765);
-    context.fillText('让每一个可见的夏天，都成为值得珍藏的宇宙。', 85, 830);
-    context.draw(false, () => {
+    try {
+      const canvas = await this.getPosterCanvas();
+      canvas.width = 750;
+      canvas.height = 1000;
+      const context = canvas.getContext('2d');
+      const cover = await this.loadCanvasImage(canvas, '/images/feature-director-v2.jpg');
+      const title = this.data.storyboard.title || '我的 SummerVerse';
+      context.fillStyle = '#f7f1e4';
+      context.fillRect(0, 0, 750, 1000);
+      context.drawImage(cover, 50, 70, 650, 455);
+      context.fillStyle = 'rgba(255,250,239,.94)';
+      context.fillRect(50, 470, 650, 420);
+      context.fillStyle = '#2f2c27';
+      context.font = '44px sans-serif';
+      context.fillText('SummerVerse', 85, 565);
+      context.font = '34px sans-serif';
+      const lines = [title.slice(0, 18), title.slice(18, 36)].filter(Boolean);
+      lines.forEach((line, index) => context.fillText(line, 85, 635 + index * 48));
+      context.fillStyle = '#6f6a61';
+      context.font = '22px sans-serif';
+      context.fillText(`${this.data.memories.length} 条真实记忆 · ${formatDate()}`, 85, 765);
+      context.fillText('让每一个可见的夏天，都成为值得珍藏的宇宙。', 85, 830);
+      const tempFilePath = await this.exportPoster(canvas);
+      wx.previewImage({ urls: [tempFilePath], current: tempFilePath });
+    } catch (error) {
+      wx.showModal({ title: '封面生成失败', content: error.errMsg || error.message || '请稍后重试', showCancel: false });
+    } finally {
+      wx.hideLoading();
+      this.setData({ posterSaving: false });
+    }
+  },
+
+  getPosterCanvas() {
+    return new Promise((resolve, reject) => {
+      this.createSelectorQuery()
+        .select('#posterCanvas')
+        .fields({ node: true })
+        .exec(([result]) => {
+          if (result?.node) resolve(result.node);
+          else reject(new Error('没有找到封面画布'));
+        });
+    });
+  },
+
+  loadCanvasImage(canvas, src) {
+    return new Promise((resolve, reject) => {
+      const image = canvas.createImage();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('封面素材加载失败'));
+      image.src = src;
+    });
+  },
+
+  exportPoster(canvas) {
+    return new Promise((resolve, reject) => {
       wx.canvasToTempFilePath({
-        canvasId: 'posterCanvas',
+        canvas,
+        x: 0,
+        y: 0,
         width: 750,
         height: 1000,
         destWidth: 750,
         destHeight: 1000,
         fileType: 'jpg',
         quality: 0.9,
-        success: ({ tempFilePath }) => {
-          wx.hideLoading();
-          wx.previewImage({ urls: [tempFilePath], current: tempFilePath });
-          this.setData({ posterSaving: false });
-        },
-        fail: (error) => {
-          wx.hideLoading();
-          this.setData({ posterSaving: false });
-          wx.showModal({ title: '封面生成失败', content: error.errMsg || '请稍后重试', showCancel: false });
-        }
-      }, this);
+        success: ({ tempFilePath }) => resolve(tempFilePath),
+        fail: reject
+      });
     });
   },
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
-  goBack() { wx.navigateBack(); },
+  goBack() { backOrHome(); },
 
   onShareAppMessage() {
     return { title: this.data.storyboard?.title || '我的 SummerVerse 夏日故事', path: '/pages/director/index' };

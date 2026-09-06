@@ -40,7 +40,7 @@
     </view>
 
     <view class="section-title"><text class="section-title__main">行为成长画像</text><text class="section-title__hint">估算结果</text></view>
-    <view class="radar-card paper-card"><canvas canvas-id="radarCanvas" class="radar-canvas"></canvas><text class="radar-note">画像由分类比例、记忆数量、目标完成和情绪记录计算，不属于心理评估。</text></view>
+    <view class="radar-card paper-card"><canvas type="2d" id="radarCanvas" class="radar-canvas"></canvas><text class="radar-note">画像由分类比例、记忆数量、目标完成和情绪记录计算，不属于心理评估。</text></view>
   </block>
 
   <view class="data-source-note"><text>🧾</text><text>事实层：记录数量、日期、地点、时长、目标；推断层：成长画像、叙事总结。两层在界面中始终明确标注。</text></view>

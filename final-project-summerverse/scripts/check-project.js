@@ -1,11 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { buildManifest } = require('./manifest');
 
 const root = path.resolve(__dirname, '..');
 const mini = path.join(root, 'miniprogram');
 const errors = [];
 const notes = [];
+
+const manifestFile = path.join(root, 'MANIFEST.sha256');
+if (!fs.existsSync(manifestFile)) errors.push('缺少 MANIFEST.sha256 完整性清单');
+else if (fs.readFileSync(manifestFile, 'utf8') !== buildManifest()) errors.push('MANIFEST.sha256 已过期；请先运行 npm run manifest');
 
 function walk(dir, predicate = () => true) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -20,6 +25,10 @@ for (const file of walk(root, (value) => value.endsWith('.json'))) {
 }
 
 const app = JSON.parse(fs.readFileSync(path.join(mini, 'app.json'), 'utf8'));
+if (app.permission?.['scope.record']) errors.push('app.json 不应声明无效的 permission["scope.record"]');
+for (const [scope, permission] of Object.entries(app.permission || {})) {
+  if ([...String(permission.desc || '')].length > 30) errors.push(`权限用途说明超过 30 字：${scope}`);
+}
 for (const page of app.pages) {
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
     const file = path.join(mini, `${page}.${ext}`);
@@ -37,6 +46,27 @@ for (const file of walk(mini, (value) => value.endsWith('.wxml'))) {
   if (/\{\{[^}]*getApp\(/.test(content)) errors.push(`WXML 不能调用 getApp：${path.relative(root, file)}`);
   if (/\{\{[^}]*(?:\.slice\(|\.find\(|Math\.)/.test(content)) errors.push(`WXML 包含高风险方法调用：${path.relative(root, file)}`);
   if (/<\/?(?:strong|small|div|span|main|section)(?:\s|>)/.test(content)) errors.push(`WXML 包含 HTML 标签：${path.relative(root, file)}`);
+  for (const match of content.matchAll(/<canvas\b[^>]*>/g)) {
+    if (!/\btype=["']2d["']/.test(match[0])) errors.push(`Canvas 应使用 2D 接口：${path.relative(root, file)}`);
+  }
+
+  const jsFile = file.replace(/\.wxml$/, '.js');
+  if (fs.existsSync(jsFile)) {
+    const code = fs.readFileSync(jsFile, 'utf8');
+    const handlers = [...new Set([...content.matchAll(/(?:bind|catch)(?::?[a-zA-Z][\w-]*?)?=["']([A-Za-z_$][\w$]*)["']/g)].map((match) => match[1]))];
+    handlers.forEach((handler) => {
+      if (!code.includes(`${handler}(`)) errors.push(`WXML 事件缺少 JS 方法：${path.relative(root, file)} · ${handler}`);
+    });
+  }
+}
+
+const declaredPages = new Set(app.pages);
+for (const file of walk(mini, (value) => value.endsWith('.js'))) {
+  const content = fs.readFileSync(file, 'utf8');
+  if (/\bwx\.createCanvasContext\s*\(/.test(content)) errors.push(`JS 使用旧版 Canvas 接口：${path.relative(root, file)}`);
+  for (const match of content.matchAll(/["'`]\/(pages\/[^?"'`]+)(?:\?[^"'`]*)?["'`]/g)) {
+    if (!declaredPages.has(match[1])) errors.push(`页面跳转目标未在 app.json 注册：${path.relative(root, file)} · ${match[1]}`);
+  }
 }
 
 const secretPattern = /sk-[A-Za-z0-9_-]{20,}/g;

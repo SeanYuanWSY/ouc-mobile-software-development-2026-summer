@@ -2,8 +2,9 @@ const storage = require('../utils/storage');
 const { STORAGE_KEYS, DEFAULT_PROFILE } = require('../utils/constants');
 const { normalizeMemory, normalizeGoal } = require('../utils/validate');
 const { toTimestamp } = require('../utils/date');
-const { callFunction, isCloudReady } = require('./cloud');
+const { callFunction, isCloudReady, waitForCloudReady } = require('./cloud');
 const demoData = require('./demo-data');
+const mediaService = require('./media');
 
 function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -18,7 +19,7 @@ function getLocalMemories() {
 }
 
 function saveLocalMemories(items) {
-  storage.set(STORAGE_KEYS.MEMORIES, sortMemories(items));
+  if (!storage.set(STORAGE_KEYS.MEMORIES, sortMemories(items))) throw new Error('本机记忆写入失败，请检查存储空间');
 }
 
 function getLocalGoals() {
@@ -26,11 +27,29 @@ function getLocalGoals() {
 }
 
 function saveLocalGoals(items) {
-  storage.set(STORAGE_KEYS.GOALS, items);
+  if (!storage.set(STORAGE_KEYS.GOALS, items)) throw new Error('本机目标写入失败，请检查存储空间');
+}
+
+function mediaPath(item) {
+  return item && (item.localPath || item.url || item.fileID) || '';
+}
+
+function localReferences(memories, profile) {
+  const references = new Set();
+  memories.forEach((memory) => (memory.media || []).forEach((item) => {
+    const value = mediaPath(item);
+    if (value) references.add(value);
+  }));
+  if (profile && profile.avatarUrl) references.add(profile.avatarUrl);
+  return references;
+}
+
+function withCleanup(data, mediaCleanup) {
+  return mediaCleanup ? { ...data, _mediaCleanup: mediaCleanup } : data;
 }
 
 async function cloudOrLocal(cloudTask, localTask, options = {}) {
-  if (isCloudReady()) {
+  if (await waitForCloudReady()) {
     try {
       const result = await cloudTask();
       if (result !== undefined) return { data: result, mode: 'cloud' };
@@ -58,7 +77,8 @@ async function listMemories(filters = {}) {
         items = items.filter((item) => `${item.title} ${item.content} ${(item.tags || []).join(' ')}`.toLowerCase().includes(keyword));
       }
       return items.slice(0, filters.limit || 300);
-    }
+    },
+    { cloudOnly: true }
   );
 }
 
@@ -69,7 +89,8 @@ async function getMemory(id) {
       const res = await callFunction('dataService', { action: 'memory.get', payload: { id } });
       return res.data || null;
     },
-    async () => getLocalMemories().find((item) => item._id === id || item.id === id) || null
+    async () => getLocalMemories().find((item) => item._id === id || item.id === id) || null,
+    { cloudOnly: true }
   );
 }
 
@@ -80,29 +101,42 @@ async function saveMemory(input) {
     async () => {
       const action = input._id ? 'memory.update' : 'memory.create';
       const res = await callFunction('dataService', { action, payload: memory });
-      return res.data;
+      return withCleanup(res.data, res.mediaCleanup);
     },
     async () => {
       const items = getLocalMemories();
       const index = items.findIndex((item) => item._id === memory._id);
+      const previous = index >= 0 ? items[index] : null;
       if (index >= 0) items[index] = memory;
       else items.push(memory);
       saveLocalMemories(items);
-      return memory;
-    }
+      if (!previous) return memory;
+      const references = localReferences(items, storage.get(STORAGE_KEYS.PROFILE, DEFAULT_PROFILE));
+      const removed = (previous.media || []).filter((item) => !references.has(mediaPath(item)));
+      return withCleanup(memory, await mediaService.deleteLocalFiles(removed));
+    },
+    { cloudOnly: true }
   );
 }
 
 async function deleteMemory(id) {
   return cloudOrLocal(
     async () => {
-      await callFunction('dataService', { action: 'memory.delete', payload: { id } });
-      return true;
+      const res = await callFunction('dataService', { action: 'memory.delete', payload: { id } });
+      return { deleted: true, mediaCleanup: res.mediaCleanup || null };
     },
     async () => {
-      saveLocalMemories(getLocalMemories().filter((item) => item._id !== id));
-      return true;
-    }
+      const memories = getLocalMemories();
+      const memory = memories.find((item) => item._id === id || item.id === id);
+      const remaining = memories.filter((item) => item._id !== id && item.id !== id);
+      saveLocalMemories(remaining);
+      const references = localReferences(remaining, storage.get(STORAGE_KEYS.PROFILE, DEFAULT_PROFILE));
+      const candidates = (memory && memory.media || []).filter((item) => !references.has(mediaPath(item)));
+      const mediaCleanup = await mediaService.deleteLocalFiles(candidates);
+      mediaCleanup.retained = (memory && memory.media || []).map(mediaPath).filter((value) => value && references.has(value));
+      return { deleted: true, mediaCleanup };
+    },
+    { cloudOnly: true }
   );
 }
 
@@ -112,7 +146,8 @@ async function listGoals() {
       const res = await callFunction('dataService', { action: 'goal.list', payload: {} });
       return res.data || [];
     },
-    async () => getLocalGoals()
+    async () => getLocalGoals(),
+    { cloudOnly: true }
   );
 }
 
@@ -132,7 +167,8 @@ async function saveGoal(input) {
       else items.push(goal);
       saveLocalGoals(items);
       return goal;
-    }
+    },
+    { cloudOnly: true }
   );
 }
 
@@ -145,7 +181,8 @@ async function deleteGoal(id) {
     async () => {
       saveLocalGoals(getLocalGoals().filter((item) => item._id !== id));
       return true;
-    }
+    },
+    { cloudOnly: true }
   );
 }
 
@@ -155,7 +192,8 @@ async function getProfile() {
       const res = await callFunction('dataService', { action: 'profile.get', payload: {} });
       return res.data || DEFAULT_PROFILE;
     },
-    async () => ({ ...DEFAULT_PROFILE, ...storage.get(STORAGE_KEYS.PROFILE, {}) })
+    async () => ({ ...DEFAULT_PROFILE, ...storage.get(STORAGE_KEYS.PROFILE, {}) }),
+    { cloudOnly: true }
   );
 }
 
@@ -164,12 +202,18 @@ async function saveProfile(profile) {
   return cloudOrLocal(
     async () => {
       const res = await callFunction('dataService', { action: 'profile.save', payload: value });
-      return res.data;
+      return withCleanup(res.data, res.mediaCleanup);
     },
     async () => {
-      storage.set(STORAGE_KEYS.PROFILE, value);
-      return value;
-    }
+      const previous = storage.get(STORAGE_KEYS.PROFILE, DEFAULT_PROFILE);
+      if (!storage.set(STORAGE_KEYS.PROFILE, value)) throw new Error('本机个人信息写入失败，请检查存储空间');
+      const references = localReferences(getLocalMemories(), value);
+      const removedAvatar = previous.avatarUrl && previous.avatarUrl !== value.avatarUrl && !references.has(previous.avatarUrl)
+        ? [{ url: previous.avatarUrl }]
+        : [];
+      return withCleanup(value, await mediaService.deleteLocalFiles(removedAvatar));
+    },
+    { cloudOnly: true }
   );
 }
 
@@ -178,7 +222,7 @@ function getStepSnapshot() {
 }
 
 async function saveStepSnapshot(snapshot) {
-  storage.set(STORAGE_KEYS.STEP, snapshot);
+  if (!storage.set(STORAGE_KEYS.STEP, snapshot)) throw new Error('本机步数写入失败');
   if (isCloudReady()) {
     try { await callFunction('dataService', { action: 'step.save', payload: snapshot }); } catch (error) { console.warn(error); }
   }
@@ -190,7 +234,7 @@ function getWeatherSnapshot() {
 }
 
 function saveWeatherSnapshot(snapshot) {
-  storage.set(STORAGE_KEYS.WEATHER, snapshot);
+  if (!storage.set(STORAGE_KEYS.WEATHER, snapshot)) throw new Error('本机天气写入失败');
   return snapshot;
 }
 
@@ -203,10 +247,17 @@ function saveChatHistory(messages) {
 }
 
 async function importDemoData() {
-  saveLocalMemories(demoData.memories);
-  saveLocalGoals(demoData.goals);
+  if (await waitForCloudReady()) throw new Error('云模式不能导入示例');
+  const memories = getLocalMemories();
+  const goals = getLocalGoals();
+  const memoryIds = new Set(memories.map((item) => item._id));
+  const goalIds = new Set(goals.map((item) => item._id));
+  const newMemories = demoData.memories.filter((item) => !memoryIds.has(item._id));
+  const newGoals = demoData.goals.filter((item) => !goalIds.has(item._id));
+  saveLocalMemories([...memories, ...newMemories]);
+  saveLocalGoals([...goals, ...newGoals]);
   storage.set(STORAGE_KEYS.DEMO_IMPORTED, true);
-  return { memories: demoData.memories.length, goals: demoData.goals.length };
+  return { memories: newMemories.length, goals: newGoals.length };
 }
 
 function clearDemoData() {

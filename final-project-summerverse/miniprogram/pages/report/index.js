@@ -1,6 +1,8 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const { CATEGORY_LIST, CATEGORIES, MOODS, DEFAULT_PROFILE } = require('../../utils/constants');
 const { buildSummary, categoryCounts, moodAverage } = require('../../utils/stats');
+const { backOrHome } = require('../../utils/navigation');
 
 function findHighlight(memories, getter) {
   return memories.reduce((best, item) => (!best || getter(item) > getter(best) ? item : best), null);
@@ -26,8 +28,8 @@ Page({
   async load() {
     try {
       const [memoryRes, goalRes, profileRes] = await Promise.all([repository.listMemories(), repository.listGoals(), repository.getProfile()]);
-      const memories = memoryRes.data || [];
-      const goals = goalRes.data || [];
+      const memories = realMemories(memoryRes.data || []);
+      const goals = realGoals(goalRes.data || []);
       const step = repository.getStepSnapshot();
       const summary = buildSummary(memories, goals, step);
       const counts = categoryCounts(memories);
@@ -79,52 +81,63 @@ Page({
   },
 
   drawRadar() {
-    const values = this.data.radarValues;
-    const ctx = wx.createCanvasContext('radarCanvas', this);
-    const width = 600;
-    const height = 520;
-    const cx = width / 2;
-    const cy = 260;
-    const radius = 180;
-    const labels = ['好奇心', '行动力', '陪伴感', '韧性', '探索欲'];
-    const point = (index, ratio = 1) => {
-      const angle = -Math.PI / 2 + (Math.PI * 2 * index) / 5;
-      return { x: cx + Math.cos(angle) * radius * ratio, y: cy + Math.sin(angle) * radius * ratio };
-    };
-    ctx.setStrokeStyle('rgba(72,93,67,.20)');
-    ctx.setLineWidth(2);
-    for (let level = 1; level <= 4; level += 1) {
-      ctx.beginPath();
-      for (let i = 0; i < 5; i += 1) {
-        const p = point(i, level / 4);
-        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    }
-    ctx.setStrokeStyle('rgba(72,93,67,.15)');
-    for (let i = 0; i < 5; i += 1) {
-      const p = point(i, 1);
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke();
-    }
-    ctx.beginPath();
-    values.forEach((value, i) => {
-      const p = point(i, value / 100);
-      if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
-    });
-    ctx.closePath();
-    ctx.setFillStyle('rgba(79,139,92,.28)');
-    ctx.setStrokeStyle('#3d7a55');
-    ctx.setLineWidth(5);
-    ctx.fill(); ctx.stroke();
-    ctx.setFillStyle('#4f4a43');
-    ctx.setFontSize(24);
-    labels.forEach((label, i) => {
-      const p = point(i, 1.18);
-      ctx.setTextAlign(p.x < cx - 10 ? 'right' : p.x > cx + 10 ? 'left' : 'center');
-      ctx.fillText(label, p.x, p.y);
-    });
-    ctx.draw();
+    this.createSelectorQuery()
+      .select('#radarCanvas')
+      .fields({ node: true, size: true })
+      .exec(([result]) => {
+        if (!result?.node || !result.width || !result.height) return;
+        const canvas = result.node;
+        const pixelRatio = wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : wx.getSystemInfoSync().pixelRatio;
+        canvas.width = Math.round(result.width * pixelRatio);
+        canvas.height = Math.round(result.height * pixelRatio);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(pixelRatio, pixelRatio);
+        const values = this.data.radarValues;
+        const width = result.width;
+        const height = result.height;
+        const cx = width / 2;
+        const cy = height / 2;
+        const radius = Math.min(width, height) * 0.34;
+        const labels = ['好奇心', '行动力', '陪伴感', '韧性', '探索欲'];
+        const point = (index, ratio = 1) => {
+          const angle = -Math.PI / 2 + (Math.PI * 2 * index) / 5;
+          return { x: cx + Math.cos(angle) * radius * ratio, y: cy + Math.sin(angle) * radius * ratio };
+        };
+        ctx.strokeStyle = 'rgba(72,93,67,.20)';
+        ctx.lineWidth = 1;
+        for (let level = 1; level <= 4; level += 1) {
+          ctx.beginPath();
+          for (let i = 0; i < 5; i += 1) {
+            const p = point(i, level / 4);
+            if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(72,93,67,.15)';
+        for (let i = 0; i < 5; i += 1) {
+          const p = point(i, 1);
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(p.x, p.y); ctx.stroke();
+        }
+        ctx.beginPath();
+        values.forEach((value, i) => {
+          const p = point(i, value / 100);
+          if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(79,139,92,.28)';
+        ctx.strokeStyle = '#3d7a55';
+        ctx.lineWidth = 2.5;
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#4f4a43';
+        ctx.font = '12px sans-serif';
+        labels.forEach((label, i) => {
+          const p = point(i, 1.22);
+          ctx.textAlign = p.x < cx - 5 ? 'right' : p.x > cx + 5 ? 'left' : 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, p.x, p.y);
+        });
+      });
   },
 
   copySummary() {
@@ -132,7 +145,7 @@ Page({
   },
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
-  goBack() { wx.navigateBack(); },
+  goBack() { backOrHome(); },
 
   onShareAppMessage() {
     return { title: this.data.reportSentence || '我的 SummerVerse 成长报告', path: '/pages/report/index' };

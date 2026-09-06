@@ -3,27 +3,31 @@
     <view><text class="twin-brand">SummerTwin</text><text class="twin-sub">你的暑假数字分身 · {{stageLabel}}</text></view>
     <button class="nav-icon-button" bindtap="openSettings">⚙️</button>
   </view>
-  <view class="status-row"><text class="status-pill {{aiReady ? '' : 'status-pill--warning'}}">{{aiReady ? '云函数已连接' : '本地陪伴模式'}}</text><text class="evidence-note">回答原则：事实、推测分开写</text></view>
+  <view class="status-row"><text class="status-pill {{aiReady ? '' : 'status-pill--warning'}}">{{aiReady ? 'DeepSeek 本次已验证' : 'AI 未连接 · 设置你的 Key'}}</text><text class="evidence-note">事实与推测会分开显示</text></view>
 
   <view class="garden-stage stage-{{stage}}">
     <image class="garden-image" src="{{stageAsset}}" mode="aspectFill" />
     <view class="garden-shade"></view>
-    <view class="twin-speech"><text class="speech-label">Twin 今天想说</text><text class="speech-copy">{{opening}}</text></view>
-    <view class="garden-progress"><text>花园成熟度</text><view class="garden-progress-track"><view class="garden-progress-fill" style="width:{{maturity}}%"></view></view><text class="text-strong">{{maturity}}%</text></view>
+    <view class="garden-badge"><text>{{stageLabel}}</text><text>{{maturity}}%</text></view>
+    <view class="garden-progress"><view class="garden-progress-track"><view class="garden-progress-fill" style="width:{{maturity}}%"></view></view></view>
   </view>
 
-  <view class="power-grid">
-    <button class="power-card" bindtap="openTimePhone"><text class="power-icon">☎️</text><view><text class="text-strong">时间电话</text><text class="text-small">与某一天的自己通话</text></view></button>
-    <button class="power-card" bindtap="openParallel"><text class="power-icon">🛤️</text><view><text class="text-strong">平行暑假</text><text class="text-small">改变一个选择，看另一条路</text></view></button>
-    <button class="power-card" bindtap="openDirector"><text class="power-icon">🎞️</text><view><text class="text-strong">AI 夏日导演</text><text class="text-small">把真实记录剪成故事</text></view></button>
-    <button class="power-card" bindtap="openReport"><text class="power-icon">📊</text><view><text class="text-strong">成长报告</text><text class="text-small">数据与推断明确区分</text></view></button>
-  </view>
+  <view class="twin-speech"><image src="/images/twin-avatar-v2.jpg" mode="aspectFill" /><view><text class="speech-label">Twin 今天想说</text><text class="speech-copy">{{opening}}</text></view></view>
+
+  <view class="section-title"><text class="section-title__main">穿过记忆的三扇门</text><button class="section-link" bindtap="openReport">查看成长报告 ›</button></view>
+  <scroll-view class="feature-scroll" scroll-x enable-flex>
+    <view class="feature-row">
+      <button class="feature-card" bindtap="openTimePhone"><image src="/images/feature-time-phone-v2.jpg" mode="aspectFill" /><view><text class="feature-title">时间电话</text><text class="feature-copy">拨给过去某一天的自己</text></view></button>
+      <button class="feature-card" bindtap="openParallel"><image src="/images/feature-parallel-v2.jpg" mode="aspectFill" /><view><text class="feature-title">平行暑假</text><text class="feature-copy">看看另一种选择的故事</text></view></button>
+      <button class="feature-card" bindtap="openDirector"><image src="/images/feature-director-v2.jpg" mode="aspectFill" /><view><text class="feature-title">AI 夏日导演</text><text class="feature-copy">把真实记录剪成一部片</text></view></button>
+    </view>
+  </scroll-view>
 
   <view class="section-title"><text class="section-title__main">和 SummerTwin 聊天</text><text class="section-title__hint">已载入 {{memories.length}} 条记忆</text></view>
   <view class="chat-card paper-card">
     <scroll-view class="chat-list" scroll-y scroll-into-view="{{scrollIntoView}}" enable-back-to-top>
       <view wx:for="{{chatMessages}}" wx:key="id" id="{{item.id}}" class="chat-message {{item.role === 'user' ? 'is-user' : 'is-twin'}} {{item.pending ? 'is-pending' : ''}}">
-        <image wx:if="{{item.role !== 'user'}}" class="chat-avatar" src="/images/twin-avatar.svg" mode="aspectFill" />
+        <image wx:if="{{item.role !== 'user'}}" class="chat-avatar" src="/images/twin-avatar-v2.jpg" mode="aspectFill" />
         <view class="chat-bubble"><text>{{item.content}}</text><text wx:if="{{item.role !== 'user'}}" class="chat-source">{{item.pending ? '正在检索' : 'SummerTwin · 依据现有记忆'}}</text></view>
       </view>
     </scroll-view>

@@ -1,3 +1,4 @@
+const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const { TWIN_ASSETS, CATEGORIES, MOODS } = require('../../utils/constants');
@@ -9,10 +10,10 @@ function makeTraits(memories, goals) {
   const total = Math.max(1, memories.length);
   const completed = goals.filter((goal) => Number(goal.current) >= Number(goal.target)).length;
   return [
-    { key: 'curiosity', name: '好奇心', value: Math.min(96, 35 + Math.round(((counts.study + counts.research) / total) * 80)), color: '#6e91c8' },
-    { key: 'action', name: '行动力', value: Math.min(95, 28 + memories.length * 2 + completed * 8), color: '#d49a4e' },
-    { key: 'company', name: '陪伴感', value: Math.min(95, 30 + Math.round((counts.family / total) * 100)), color: '#d57a75' },
-    { key: 'explore', name: '探索欲', value: Math.min(95, 30 + Math.round(((counts.explore + counts.health) / total) * 90)), color: '#55a17f' }
+    { key: 'curiosity', name: '好奇心', value: Math.min(96, 35 + Math.round(((counts.study + counts.research) / total) * 80)), color: '#6a8fc4' },
+    { key: 'action', name: '行动力', value: Math.min(95, 28 + memories.length * 2 + completed * 8), color: '#d9a441' },
+    { key: 'company', name: '陪伴感', value: Math.min(95, 30 + Math.round((counts.family / total) * 100)), color: '#d77672' },
+    { key: 'explore', name: '探索欲', value: Math.min(95, 30 + Math.round(((counts.explore + counts.health) / total) * 90)), color: '#6a9a7b' }
   ];
 }
 
@@ -53,8 +54,8 @@ Page({
     if (showLoading) this.setData({ loading: true });
     try {
       const [memoryRes, goalRes] = await Promise.all([repository.listMemories(), repository.listGoals()]);
-      const memories = memoryRes.data || [];
-      const goals = goalRes.data || [];
+      const memories = realMemories(memoryRes.data || []);
+      const goals = realGoals(goalRes.data || []);
       let chatMessages = repository.getChatHistory();
       if (!chatMessages.length) {
         chatMessages = [{ id: 'welcome', role: 'twin', content: '我是 SummerTwin。我的回答会尽量引用你的真实记忆；没有证据的部分，我会明确说这是推测。' }];
@@ -72,7 +73,7 @@ Page({
         moodScore: moodAverage(memories),
         traits: makeTraits(memories, goals),
         chatMessages,
-        aiReady: Boolean(getApp().globalData.cloudReady),
+        aiReady: Boolean(getApp().globalData.aiReady),
         loading: false
       });
     } catch (error) {
@@ -96,13 +97,13 @@ Page({
       const finalMessages = messages.map((item) => item.id === pending.id
         ? { id: `twin-${Date.now()}`, role: 'twin', content: typeof answer === 'string' ? answer : answer.answer || JSON.stringify(answer) }
         : item);
-      this.setData({ chatMessages: finalMessages, sending: false, scrollIntoView: finalMessages[finalMessages.length - 1].id });
+      this.setData({ chatMessages: finalMessages, sending: false, aiReady: Boolean(getApp().globalData.aiReady), scrollIntoView: finalMessages[finalMessages.length - 1].id });
       repository.saveChatHistory(finalMessages);
     } catch (error) {
       const finalMessages = messages.map((item) => item.id === pending.id
         ? { id: `twin-${Date.now()}`, role: 'twin', content: `这次没有连接成功：${error.message || '未知错误'}。你的真实记忆没有丢失。` }
         : item);
-      this.setData({ chatMessages: finalMessages, sending: false });
+      this.setData({ chatMessages: finalMessages, sending: false, aiReady: Boolean(getApp().globalData.aiReady) });
       repository.saveChatHistory(finalMessages);
     }
   },
