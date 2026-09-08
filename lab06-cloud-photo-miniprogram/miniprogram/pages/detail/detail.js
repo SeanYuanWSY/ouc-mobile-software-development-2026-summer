@@ -1,7 +1,12 @@
 const photos=require('../../services/photos')
+const ai=require('../../services/ai')
 const { message,showError,callNative }=require('../../utils/ui')
 Page({
- data:{photo:null,error:'',loading:true,saving:false},
+ data:{photo:null,error:'',loading:true,saving:false,aiBusy:false,aiReady:false,aiText:'',aiError:'',aiStyle:'photo',aiStyles:ai.styles},
+ onShow(){this.setData({aiReady:ai.isReady()})},
+ chooseAiStyle(e){if(!this.data.aiBusy)this.setData({aiStyle:e.currentTarget.dataset.style,aiText:'',aiError:''})},
+ aiSettings(){wx.navigateTo({url:'/pages/ai-settings/ai-settings'})},
+ async review(){if(this.data.aiBusy)return;this.setData({aiBusy:true,aiError:''});try{const text=await ai.generate(this.id,this.data.aiStyle);if(text)this.setData({aiText:text})}catch(e){this.setData({aiError:e.message})}finally{this.setData({aiBusy:false,aiReady:ai.isReady()})}},
  onLoad(options){this.id=options.id;this.load()},
  async load(){this.setData({loading:true,error:''});try{this.setData({photo:await photos.detail(this.id)})}catch(e){this.setData({error:message(e)})}finally{this.setData({loading:false})}},
  async preview(){if(!this.data.photo || !this.data.photo.displayUrl)return;try{await callNative('previewImage',{current:this.data.photo.displayUrl,urls:[this.data.photo.displayUrl]})}catch(e){showError(e)}},

@@ -36,3 +36,11 @@
 ## 回归方法
 
 在实验目录运行 `npm test`。`photos.test.js` 检查身份、发布恢复、排序、签名访问范围；`native.test.js` 检查 DownloadTask 立即返回时仍等待成功回调，下载失败或非 200 不进入保存，权限拒绝及设置/弹窗失败不误报成功且释放按钮状态。
+
+## AI 扩展验证（2026-09-08）
+
+- 42 项本地测试通过；独立定点审查覆盖凭据流、过期截止时间、配额事务、图像字节、流上限、重定向和模型限制。
+- 模拟器设置页显示可选模型与密码输入框；切换 Pro 后 vision=false，再切回视觉模型，结果正确。截图：`screenshots/08-ai-settings.jpg`。
+- lab06_aiReview 已部署 Active，timeout=60，Nodejs16.13；真实云调用无 Key 返回 `{ok:false,code:"KEY"}`，假 Key 配文本模型返回 `{ok:false,code:"MODEL"}`，均不发往 DeepSeek。
+- lab06_ai_usage 权限界面 ADMINONLY 单选值为1；小程序查询被权限拒绝。云环境日志服务未启用。
+- 未输入真实 Key，未验证收费接口的成功识图或真机 AI 交互。原相册功能验证保持上述记录。

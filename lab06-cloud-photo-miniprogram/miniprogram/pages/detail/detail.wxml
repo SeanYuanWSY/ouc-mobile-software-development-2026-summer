@@ -22,6 +22,17 @@
 <button open-type="share">分享给好友 ↗</button>
 <button bindtap="preview">全屏预览 ⤢</button>
 </view>
+<view class="ai-panel card">
+<view class="eyebrow">AI CREATIVE COMPANION</view>
+<view class="section-title">让照片说更多</view>
+<view class="subtitle">仅为你自己的作品生成灵感草稿。</view>
+<view class="style-options"><button wx:for="{{aiStyles}}" wx:key="id" class="small {{aiStyle === item.id ? 'selected' : ''}}" data-style="{{item.id}}" bindtap="chooseAiStyle" disabled="{{aiBusy}}">{{item.label}}</button></view>
+<view wx:if="{{aiError}}" class="notice">{{aiError}}</view>
+<view wx:if="{{aiText}}" class="ai-result"><view class="ai-label">✦ AI 生成 · 仅供参考</view><text selectable>{{aiText}}</text></view>
+<button wx:if="{{aiReady}}" class="primary" loading="{{aiBusy}}" disabled="{{aiBusy}}" bindtap="review">{{aiBusy ? '正在认真看照片…' : '生成 AI 点评'}}</button>
+<button wx:else class="primary" bindtap="aiSettings">填写 API Key，启用点评</button>
+<button class="small" bindtap="aiSettings">AI 设置</button>
+</view>
 </block>
 <button class="small" bindtap="home">返回社区首页</button>
 </view>

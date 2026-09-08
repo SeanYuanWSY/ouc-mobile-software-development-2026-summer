@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/homepage/homepage",
     "pages/detail/detail",
-    "pages/add/add"
+    "pages/add/add",
+    "pages/ai-settings/ai-settings"
   ],
   "window": {
     "navigationBarTitleText": "海边相册",

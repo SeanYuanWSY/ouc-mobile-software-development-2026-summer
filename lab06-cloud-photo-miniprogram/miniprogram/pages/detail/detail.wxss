@@ -1,1 +1,3 @@
 /* Shared album styles live in app.wxss. */
+
+.ai-panel{padding:26rpx;margin-top:28rpx}.style-options{display:flex;flex-wrap:wrap;gap:12rpx;margin-top:24rpx}.style-options .selected{background:#355d48;color:white}.ai-result{background:#f1f6ed;border-radius:18rpx;padding:24rpx;margin-top:24rpx;white-space:pre-wrap;line-height:1.9;font-size:27rpx}.ai-label{font-size:23rpx;color:#617c68;margin-bottom:12rpx}

@@ -1,0 +1,26 @@
+<view class="page">
+<view class="eyebrow">YOUR KEY / YOUR CREATIVE SPACE</view>
+<view class="hero-title">给照片，<text class="green">多一点灵感。</text></view>
+<view class="subtitle">连接你自己的 DeepSeek，获得摄影建议、温暖短评与社交配文。</view>
+<view class="key-status {{ready ? 'connected' : ''}}">{{ready ? '● 本次会话已填写 Key' : '○ 尚未填写 API Key'}}</view>
+<view class="card form">
+<view class="section-title">选择模型</view>
+<picker range="{{models}}" range-key="label" value="{{modelIndex}}" bindchange="chooseModel"><view class="model-picker">{{model.label}}　⌄</view></picker>
+<view class="meta">{{model.id}}</view>
+<view class="notice" wx:if="{{!model.vision}}">此模型不支持图片，照片点评将暂停。请选择 Vision 视觉模型。</view>
+<view class="section-title key-title">DeepSeek API Key</view>
+<view class="meta">官方接口 · 使用你自己的账户额度</view>
+<input wx:if="{{showForm}}" class="key-input" password maxlength="200" placeholder="粘贴 sk- 开头的 API Key" bindinput="input"/>
+<view wx:if="{{error}}" class="notice">{{error}}</view>
+<button class="primary" bindtap="save">{{ready ? '替换本次会话的 Key' : '启用 AI 点评'}}</button>
+<button wx:if="{{ready}}" class="small" bindtap="clear">清除当前 Key</button>
+</view>
+<view class="info-card">
+<view class="section-title">这把钥匙如何使用</view>
+<view class="info-line">01　Key 仅保存在当前小程序会话内存，应用不主动写入本地存储或数据库；重新启动后需要填写。</view>
+<view class="info-line">02　生成时，Key 经实验云函数转发到 DeepSeek 官方接口。请仅在你信任的小程序中输入；开发平台可能留有运行诊断记录。</view>
+<view class="info-line">03　只点评你自己上传的照片，发送前再次确认。结果标注 AI 生成，不自动作为真人评论发布。</view>
+<view class="info-line">04　每分钟最多 3 次、每日最多 20 次尝试；API 费用由你的 DeepSeek 账户承担。</view>
+</view>
+<button class="small" bindtap="home">返回相册</button>
+</view>

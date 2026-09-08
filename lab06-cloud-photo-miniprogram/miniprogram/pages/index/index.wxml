@@ -3,6 +3,7 @@
 <view class="hero-title">把日常，<text class="green">留在这里。</text>
 </view>
 <view class="subtitle">一张照片，一段值得分享的时光。</view>
+<navigator class="ai-entry" url="/pages/ai-settings/ai-settings">✦ AI 点评 · 填写自己的 API Key <text>↗</text></navigator>
 <view class="row toolbar">
 <text class="section-title">最新分享</text>
 <button class="small" bindtap="minePage">我的主页 ↗</button>
