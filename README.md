@@ -71,16 +71,14 @@
   </tr>
 </table>
 
-
-
 ### 实验六：海边相册图片分享社区
 
-使用微信云数据库、云存储与云函数，实现照片发布、作者相册、上传历史、全屏预览和下载。已完成真实云端三张测试图的上传读取、原生选图、分享预览与模拟器保存验证。
+使用微信云开发实现照片发布、个人相册、预览、下载和分享，并加入可选择模型的 AI 照片点评与本人作品删除功能。
 
-<table><tr>
-<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/home.png" alt="海边相册社区首页" width="260"><br>社区首页</td>
-<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/upload.jpg" alt="海边相册原生选图" width="260"><br>上传照片</td>
-<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/detail.png" alt="海边相册图片详情" width="260"><br>图片详情</td>
-</tr></table>
-
-[查看实验六源码、云配置与全部截图](lab06-cloud-photo-miniprogram/) · [验证范围](lab06-cloud-photo-miniprogram/docs/VALIDATION.md)
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab06-home.png" alt="社区首页" width="260"><br>社区首页</td>
+    <td align="center"><img src="assets/public-lab-images/lab06-ai-settings.jpg" alt="AI 模型设置" width="260"><br>AI 模型设置</td>
+    <td align="center"><img src="assets/public-lab-images/lab06-ai-delete.jpg" alt="照片点评与删除" width="260"><br>照片点评与删除</td>
+  </tr>
+</table>
