@@ -44,3 +44,9 @@
 - lab06_aiReview 已部署 Active，timeout=60，Nodejs16.13；真实云调用无 Key 返回 `{ok:false,code:"KEY"}`，假 Key 配文本模型返回 `{ok:false,code:"MODEL"}`，均不发往 DeepSeek。
 - lab06_ai_usage 权限界面 ADMINONLY 单选值为1；小程序查询被权限拒绝。云环境日志服务未启用。
 - 未输入真实 Key，未验证收费接口的成功识图或真机 AI 交互。原相册功能验证保持上述记录。
+
+## 首次 AI 调用修复（2026-09-08）
+
+用户实测首次生成失败，随后显示60秒冷却。定位到 wx-server-sdk 2.6.3 默认对缺失文档抛错，旧测试将缺失用量记录模拟为空值，未覆盖真实SDK行为。现设置 `throwOnNotFound:false`，缺失记录可在事务中初始化，其他数据库错误仍拒绝；确认未触达模型的失败不再触发客户端冷却。
+
+43项测试通过，独立安全复核通过。修复部署后，使用固定测试假Key对本人现有照片实调，返回 `PROVIDER_AUTH` 且 `providerAttempted:true`，证明首次计数、图片读取及DeepSeek请求链路已走通，并按预期被官方拒绝假Key。未读取或使用用户真实Key，不等同于已验证真实识图输出。

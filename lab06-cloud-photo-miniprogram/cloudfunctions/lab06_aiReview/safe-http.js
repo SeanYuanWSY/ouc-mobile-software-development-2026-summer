@@ -3,10 +3,10 @@ function request(url,options,body,maxBytes,deadline){
  if(deadline<=Date.now())return Promise.reject(new Error('TRANSPORT'))
  return new Promise((resolve,reject)=>{
   let done=false, timer, req
-  const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);if(error){if(req)req.destroy();reject(new Error('TRANSPORT'))}else resolve(value)}
+  const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);if(error){if(req)req.destroy();const safe=new Error('TRANSPORT');if(Number.isInteger(error.status))safe.status=error.status;reject(safe)}else resolve(value)}
   timer=setTimeout(()=>finish(true),Math.max(1,deadline-Date.now()))
   req=https.request(url,options,res=>{
-   if(res.statusCode!==200){res.resume();finish(true);return}
+   if(res.statusCode!==200){res.resume();finish({status:res.statusCode});return}
    const chunks=[];let size=0
    res.on('data',chunk=>{size+=chunk.length;if(size>maxBytes){res.destroy();finish(true)}else chunks.push(chunk)})
    res.on('end',()=>finish(null,{body:Buffer.concat(chunks),type:String(res.headers['content-type']||'')}))
