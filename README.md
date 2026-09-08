@@ -71,7 +71,6 @@
   </tr>
 </table>
 
-[查看实验五全部 11 张截图、功能与运行说明](lab05-harmonyos-calculator/#运行效果) · [CSDN 实验文章](https://blog.csdn.net/2401_87150440/article/details/164508610)
 
 
 ### 实验六：海边相册图片分享社区
