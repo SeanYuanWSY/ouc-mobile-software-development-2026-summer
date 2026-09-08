@@ -6,6 +6,57 @@
 
 课程原文：[实验 5：鸿蒙开发入门及计算器开发](https://oucai.club/classes/Mobile/lab05)。在基础计算器的要求上增加日常学习可用的科学函数与计算工具。
 
+## 运行效果
+
+以下为本地 HarmonyOS 手机模拟器的真实运行截图。图片随源码保存在仓库中，点击可查看原图。
+
+### 科学计算与角度模式
+
+同一算式切换 DEG/RAD 后，选中按钮与当前结果同步更新。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab05-scientific.png" alt="科学计算：括号与四则运算" width="260"><br>科学计算：括号与四则运算</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-deg.png" alt="角度制：sin(30) = 0.5" width="260"><br>角度制：sin(30) = 0.5</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-rad.png" alt="弧度制：切换后立即重算" width="260"><br>弧度制：切换后立即重算</td>
+  </tr>
+</table>
+
+### 自选对数底数与实用工具
+
+对数分别填写底数与真数；容量换算区分 GiB 与 GB，方程工具直接展示实根。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab05-custom-log.png" alt="自选底数：log₂(8) = 3" width="260"><br>自选底数：log₂(8) = 3</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-unit-conversion.png" alt="数据容量：1 GiB 转为 GB" width="260"><br>数据容量：1 GiB 转为 GB</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-equation.png" alt="方程求解：两个实根" width="260"><br>方程求解：两个实根</td>
+  </tr>
+</table>
+
+### 输入函数，生成三维曲面
+
+输入 `z = f(x,y)` 后生成可旋转的彩色曲面；下面分别展示波纹函数和手动输入 `x^2-y^2` 得到的马鞍面。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab05-ripple-surface.png" alt="波纹：sin(sqrt(x²+y²))" width="260"><br>波纹：sin(sqrt(x²+y²))</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-saddle-surface.png" alt="输入 x²−y² 生成马鞍面" width="260"><br>输入 x²−y² 生成马鞍面</td>
+  </tr>
+</table>
+
+### 统计、几何与历史
+
+统计展示 8 项指标，几何体同步展示尺寸与计算结果，历史记录在重启应用后仍保留。
+
+<table>
+  <tr>
+    <td align="center"><img src="../assets/public-lab-images/lab05-statistics.png" alt="数据统计：平均数与标准差" width="260"><br>数据统计：平均数与标准差</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-geometry.png" alt="几何体：尺寸、体积与表面积" width="260"><br>几何体：尺寸、体积与表面积</td>
+    <td align="center"><img src="../assets/public-lab-images/lab05-history.png" alt="重启后仍保留的计算历史" width="260"><br>重启后仍保留的计算历史</td>
+  </tr>
+</table>
+
 ## 功能
 
 | 页面 | 已实现能力 |

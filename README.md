@@ -65,3 +65,17 @@
     <td align="center"><img src="assets/public-lab-images/lab04-score.jpg" alt="推箱子手动最优通关成绩" width="260"><br>100 分、S 级通关</td>
   </tr>
 </table>
+
+### 实验五：星算 Orbit 鸿蒙科学计算器
+
+使用浅色界面实现科学计算、单位换算、方程与统计，并支持输入函数生成可旋转的三维曲面。
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/public-lab-images/lab05-scientific.png" alt="科学计算：括号与四则运算" width="260"><br>科学计算：括号与四则运算</td>
+    <td align="center"><img src="assets/public-lab-images/lab05-custom-log.png" alt="自选底数：log₂(8) = 3" width="260"><br>自选底数：log₂(8) = 3</td>
+    <td align="center"><img src="assets/public-lab-images/lab05-saddle-surface.png" alt="输入 x²−y² 生成马鞍面" width="260"><br>输入 x²−y² 生成马鞍面</td>
+  </tr>
+</table>
+
+[查看实验五全部 11 张截图、功能与运行说明](lab05-harmonyos-calculator/#运行效果) · [CSDN 实验文章](https://blog.csdn.net/2401_87150440/article/details/164508610)
