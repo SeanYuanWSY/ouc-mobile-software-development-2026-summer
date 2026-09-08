@@ -1,6 +1,6 @@
 const photos = require('../../services/photos')
 const { validateImage } = require('../../utils/core')
-const { showError, message } = require('../../utils/ui')
+const { showError, message, callNative } = require('../../utils/ui')
 Page({
  data:{ file:null,nickName:'',title:'',location:'',busy:false,pending:false,history:[],error:'',hasMore:false },
  async onLoad() { try { const p=wx.getStorageSync('lab06.profile') || {}; this.setData({nickName:p.nickName||'',location:p.location||''}) } catch(_) {} await this.refresh() },
@@ -11,7 +11,7 @@ Page({
  async more() { if(this.loadingHistory) return; this.loadingHistory=true; try { const rows=await photos.list(this.owner,this.offset); this.offset+=rows.length; this.setData({history:require('../../utils/core').mergePhotos(this.data.history,rows),hasMore:rows.length===20}) }catch(e){showError(e)}finally{this.loadingHistory=false} },
  input(e) { const key=e.currentTarget.dataset.field; if(['nickName','title','location'].includes(key)) this.setData({[key]:e.detail.value}) },
  async choose() {
-  try { const result=await wx.chooseMedia({count:1,mediaType:['image'],sourceType:['album','camera'],sizeType:['compressed']}); this.setData({file:validateImage(result.tempFiles[0])}) }
+  try { const result=await callNative('chooseMedia',{count:1,mediaType:['image'],sourceType:['album','camera'],sizeType:['compressed']}); this.setData({file:validateImage(result.tempFiles[0])}) }
   catch(e) { showError(e) }
  },
  async publish() {

@@ -1,0 +1,25 @@
+{
+  "CreateIndexes": [
+    {
+      "IndexName": "lab06_feed_created_id",
+      "MgoKeySchema": {
+        "MgoIsUnique": false,
+        "MgoIndexKeys": [
+          { "Name": "createdAt", "Direction": "-1" },
+          { "Name": "_id", "Direction": "-1" }
+        ]
+      }
+    },
+    {
+      "IndexName": "lab06_owner_created_id",
+      "MgoKeySchema": {
+        "MgoIsUnique": false,
+        "MgoIndexKeys": [
+          { "Name": "_openid", "Direction": "1" },
+          { "Name": "createdAt", "Direction": "-1" },
+          { "Name": "_id", "Direction": "-1" }
+        ]
+      }
+    }
+  ]
+}

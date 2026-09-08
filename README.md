@@ -9,7 +9,7 @@
 - [实验五：星算 Orbit 鸿蒙科学计算器](lab05-harmonyos-calculator/)
 - [实验六：海边相册图片分享社区](lab06-cloud-photo-miniprogram/)
 
-实验一至四、实验六是独立微信小程序，使用微信开发者工具导入。实验六需配置自己的云开发环境，详见其使用说明。实验五是鸿蒙原生工程，使用 DevEco Studio，构建方式见其使用说明。
+实验一至四、实验六是独立微信小程序，使用微信开发者工具导入。实验六已完成真实云环境配置和模拟器联调，更换账号时按其使用说明替换云配置。实验五是鸿蒙原生工程，使用 DevEco Studio，构建方式见其使用说明。
 
 ## 实验效果
 
@@ -72,3 +72,16 @@
 </table>
 
 [查看实验五全部 11 张截图、功能与运行说明](lab05-harmonyos-calculator/#运行效果) · [CSDN 实验文章](https://blog.csdn.net/2401_87150440/article/details/164508610)
+
+
+### 实验六：海边相册图片分享社区
+
+使用微信云数据库、云存储与云函数，实现照片发布、作者相册、上传历史、全屏预览和下载。已完成真实云端三张测试图的上传读取、原生选图、分享预览与模拟器保存验证。
+
+<table><tr>
+<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/home.png" alt="海边相册社区首页" width="260"><br>社区首页</td>
+<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/upload.jpg" alt="海边相册原生选图" width="260"><br>上传照片</td>
+<td align="center"><img src="lab06-cloud-photo-miniprogram/docs/screenshots/detail.png" alt="海边相册图片详情" width="260"><br>图片详情</td>
+</tr></table>
+
+[查看实验六源码、云配置与全部截图](lab06-cloud-photo-miniprogram/) · [验证范围](lab06-cloud-photo-miniprogram/docs/VALIDATION.md)

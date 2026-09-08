@@ -24,7 +24,7 @@
 <text class="arrow">↗</text>
 </navigator>
 <navigator url="/pages/detail/detail?id={{item._id}}">
-<image class="photo" src="{{item.photoUrl}}" mode="widthFix" lazy-load/>
+<image class="photo" src="{{item.displayUrl}}" mode="widthFix" lazy-load/>
 <view class="caption">
 <view class="section-title">{{item.title}}</view>
 <view class="meta">{{item.dateLabel}}</view>

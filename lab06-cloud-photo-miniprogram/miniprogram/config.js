@@ -1,1 +1,1 @@
-module.exports = { envId: '', collection: 'lab06_photos', loginFunction: 'lab06_getOpenid' }
+module.exports = { envId: 'cloudbase-d5gdro8i30f1a4efd', collection: 'lab06_photos', loginFunction: 'lab06_getOpenid', accessFunction: 'lab06_photoAccess' }

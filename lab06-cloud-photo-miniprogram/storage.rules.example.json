@@ -1,4 +1,4 @@
 {
-  "read": true,
+  "read": "resource.openid == auth.openid",
   "write": "resource.openid == auth.openid"
 }

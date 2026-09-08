@@ -28,7 +28,7 @@
 <view class="section-title">已上传图片历史记录</view>
 <view class="grid">
 <navigator wx:for="{{history}}" wx:key="_id" url="/pages/detail/detail?id={{item._id}}">
-<image src="{{item.photoUrl}}" mode="aspectFill"/>
+<image src="{{item.displayUrl}}" mode="aspectFill"/>
 <text>{{item.title}}</text>
 </navigator>
 </view>

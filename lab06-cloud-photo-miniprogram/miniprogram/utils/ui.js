@@ -6,4 +6,8 @@ function message(error) {
  return text.slice(0,160)
 }
 function showError(error) { const content = message(error); if(content) wx.showModal({title:'暂时无法完成',content,showCancel:false}) }
-module.exports = { message, showError }
+// Task-returning wx APIs (for example downloadFile) require callback completion.
+function callNative(method, options = {}) {
+ return new Promise((resolve, reject) => wx[method](Object.assign({}, options, {success:resolve, fail:reject})))
+}
+module.exports = { message, showError, callNative }

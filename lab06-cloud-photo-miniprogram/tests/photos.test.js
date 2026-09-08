@@ -35,3 +35,15 @@ test('page conditions use WXML expressions, never truthy literal strings',()=>{
   for(const match of source.matchAll(/wx:(?:if|elif)="([^"]*)"/g))assert.match(match[1],/^\{\{.*\}\}$/)
  }
 })
+const policy=require('../cloudfunctions/lab06_photoAccess/policy')
+test('signed access binds exact environment, author, record and extension',()=>{
+ const base='cloud://cloudbase-d5gdro8i30f1a4efd.636c-cloudbase-d5gdro8i30f1a4efd-1481960851/lab06/photos/'
+ const record={_id:'p_test',_openid:'owner',photoUrl:base+'owner/p_test.jpg'}
+ assert.equal(policy.allowed(record),true)
+ for(const photoUrl of [base+'other/p_test.jpg',base+'owner/other.jpg',base+'owner/../p_test.jpg',base+'owner/p_test.jpg?x=1',base+'owner/p_test.svg',record.photoUrl.replace('cloudbase-d5','cloudbase-evil'),base+'owner%2fp_test.jpg'])assert.equal(policy.allowed({...record,photoUrl}),false)
+})
+test('signed access accepts bounded record IDs only',()=>{
+ for(const ids of [null,[],Array(21).fill('a'),['../../x'],[{id:'a'}]])assert.throws(()=>policy.idsOf(ids))
+ assert.deepEqual(policy.idsOf(['a','a','b']),['a','b'])
+})
+test('signed access rejects missing or non-string author',()=>{for(const owner of [undefined,null,42,{}])assert.equal(policy.allowed({_id:'p_test',_openid:owner,photoUrl:'invalid'}),false)})
