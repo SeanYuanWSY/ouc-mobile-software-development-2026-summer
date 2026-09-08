@@ -16,7 +16,7 @@
 <view class="meta">每次 1 张 · 最大 10 MB</view>
 </view>
 </button>
-<view class="label">你的昵称</view>
+<view class="label">你的昵称</view><view class="meta">发布后统一显示为此昵称；改昵称不会创建新账号。</view>
 <input type="nickname" value="{{nickName}}" data-field="nickName" bindinput="input" bindblur="input" maxlength="24" placeholder="给大家一个认识你的名字" disabled="{{busy || pending}}"/>
 <view class="label">图片标题</view>
 <input value="{{title}}" data-field="title" bindinput="input" maxlength="60" placeholder="为这一刻写一句话" disabled="{{busy || pending}}"/>
@@ -25,6 +25,8 @@
 <view wx:if="{{pending}}" class="notice">上次发布结果待确认。重试会沿用同一份照片，不重复上传。</view>
 <button class="primary" loading="{{busy}}" disabled="{{busy || (!pending && !file)}}" bindtap="publish">{{pending ? '重试发布' : '发布到相册 ↗'}}</button>
 </view>
+<view wx:if="{{cleanupError}}" class="notice">{{cleanupError}}<button class="small" bindtap="refresh">重试读取清理状态</button></view>
+<view wx:if="{{cleanup.length}}" class="notice">作品已移除，以下云端图片需要重试清理。<button wx:for="{{cleanup}}" wx:key="_id" class="small" data-id="{{item._id}}" disabled="{{cleaning}}" bindtap="retryCleanup">重试清理 {{index+1}}</button></view>
 <view class="section-title">已上传图片历史记录</view>
 <view class="grid">
 <navigator wx:for="{{history}}" wx:key="_id" url="/pages/detail/detail?id={{item._id}}">

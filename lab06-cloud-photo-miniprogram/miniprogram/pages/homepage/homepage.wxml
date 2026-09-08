@@ -1,5 +1,6 @@
 <view class="page">
 <view class="profile">
+<view class="meta">作品按微信账号归属，昵称仅用于展示。</view>
 <view class="avatar large">{{profile ? profile.initial : '我'}}</view>
 <view class="hero-title">{{profile ? profile.nickName : '我'}}的相册</view>
 <view class="subtitle">{{profile ? profile.location : '从第一张照片开始，记录你的日常。'}}</view>

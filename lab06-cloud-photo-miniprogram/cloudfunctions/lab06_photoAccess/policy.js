@@ -4,7 +4,7 @@ function idsOf(value) {
  return [...new Set(value)]
 }
 function allowed(record) {
- if (!record || typeof record._id !== 'string' || typeof record._openid !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(record._id) || !/^[A-Za-z0-9_-]{1,128}$/.test(record._openid)) return false
+ if (!record || record.deleted === true || typeof record._id !== 'string' || typeof record._openid !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(record._id) || !/^[A-Za-z0-9_-]{1,128}$/.test(record._openid)) return false
  const base = PREFIX + record._openid + '/' + record._id
  return ['jpg','jpeg','png','webp','gif'].some(ext=>record.photoUrl === base + '.' + ext)
 }

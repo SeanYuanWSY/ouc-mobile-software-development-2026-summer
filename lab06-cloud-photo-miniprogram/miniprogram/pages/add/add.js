@@ -2,9 +2,12 @@ const photos = require('../../services/photos')
 const { validateImage } = require('../../utils/core')
 const { showError, message, callNative } = require('../../utils/ui')
 Page({
- data:{ file:null,nickName:'',title:'',location:'',busy:false,pending:false,history:[],error:'',hasMore:false },
- async onLoad() { try { const p=wx.getStorageSync('lab06.profile') || {}; this.setData({nickName:p.nickName||'',location:p.location||''}) } catch(_) {} await this.refresh() },
+ data:{cleanupError:'',cleanup:[],cleaning:false,file:null,nickName:'',title:'',location:'',busy:false,pending:false,history:[],error:'',hasMore:false },
+ async onLoad() { try { const owner=await photos.identity(); const p=wx.getStorageSync('lab06.profile.'+owner) || {}; this.setData({nickName:p.nickName||'',location:p.location||''}) } catch(_) {} await this.refresh() },
+ onShow(){this.refresh()},
+ async retryCleanup(e){if(this.data.cleaning)return;this.setData({cleaning:true});try{await photos.remove(e.currentTarget.dataset.id);await this.refresh()}catch(e){showError(e)}finally{this.setData({cleaning:false})}},
  async refresh() {
+  try{this.setData({cleanup:await photos.cleanupPending(),cleanupError:''})}catch(e){this.setData({cleanupError:message(e)})}
   try { this.owner=await photos.identity(); this.setData({pending:!!(await photos.pending())}); const history=await photos.list(this.owner); this.offset=history.length; this.setData({history,pending:!!(await photos.pending()),error:'',hasMore:history.length===20}) }
   catch(e) { this.setData({error:message(e)}) }
  },
@@ -19,7 +22,7 @@ Page({
   this.setData({busy:true})
   try {
    const id=this.data.pending ? await photos.retry() : await photos.publish(this.data.file,this.data)
-   try{ wx.setStorageSync('lab06.profile',{nickName:this.data.nickName,location:this.data.location}) }catch(_){}
+   try{ wx.setStorageSync('lab06.profile.'+this.owner,{nickName:this.data.nickName,location:this.data.location}) }catch(_){}
    this.setData({file:null,title:'',pending:false})
    wx.showToast({title:'发布成功'})
    await this.refresh()

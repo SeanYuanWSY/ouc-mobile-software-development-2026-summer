@@ -33,6 +33,7 @@
 <button wx:else class="primary" bindtap="aiSettings">填写 API Key，启用点评</button>
 <button class="small" bindtap="aiSettings">AI 设置</button>
 </view>
+<button wx:if="{{isOwner}}" class="small" style="color:#b44336" loading="{{deleting}}" disabled="{{deleting || aiBusy}}" bindtap="remove">删除这张作品</button>
 </block>
 <button class="small" bindtap="home">返回社区首页</button>
 </view>

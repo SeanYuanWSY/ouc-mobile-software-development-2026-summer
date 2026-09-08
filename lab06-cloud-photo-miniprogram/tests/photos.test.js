@@ -6,11 +6,11 @@ const path=require('node:path')
 const core=require('../miniprogram/utils/core')
 function harness(options={}) {
  const storage=new Map(), docs=new Map(), calls=[]
- const db={serverDate:()=>({$date:'server'}),collection:name=>{
+ const db={command:{neq:v=>({neq:v})},serverDate:()=>({$date:'server'}),collection:name=>{
   calls.push(['collection',name]);
   const q={where:arg=>{calls.push(['where',arg]);return q},orderBy:(...a)=>{calls.push(['order',...a]);return q},skip:n=>{calls.push(['skip',n]);return q},limit:n=>{calls.push(['limit',n]);return q},get:async()=>({data:options.rows||[]}),doc:id=>({get:async()=>{if(options.readFail||!docs.has(id))throw Error('not found');return{data:docs.get(id)}}}),add:async({data})=>{calls.push(['add',data]);if(options.failBefore)throw Error('offline');if(docs.has(data._id))throw Error('duplicate');docs.set(data._id,{...data,_openid:'owner'});if(options.failAfter)throw Error('timeout');return{_id:data._id}}};return q
  }}
- const wx={cloud:{database:()=>db,callFunction:async()=>{calls.push(['identity']);if(options.identityFail)throw Error('login');return{result:{openid:'owner'}}},uploadFile:async args=>{calls.push(['upload',args]);if(options.uploadFail)throw Error('upload');return{fileID:'cloud://test/'+args.cloudPath}}},getStorageSync:k=>storage.get(k),setStorageSync:(k,v)=>{if(options.storageFail)throw Error('quota');storage.set(k,JSON.parse(JSON.stringify(v)))},removeStorageSync:k=>storage.delete(k)}
+ const wx={cloud:{database:()=>db,callFunction:async args=>{if(args.data&&args.data.ids)return{result:{photos:options.links||[]}};calls.push(['identity']);if(options.identityFail)throw Error('login');return{result:{openid:'owner'}}},uploadFile:async args=>{calls.push(['upload',args]);if(options.uploadFail)throw Error('upload');return{fileID:'cloud://test/'+args.cloudPath}}},getStorageSync:k=>storage.get(k),setStorageSync:(k,v)=>{if(options.storageFail)throw Error('quota');storage.set(k,JSON.parse(JSON.stringify(v)))},removeStorageSync:k=>storage.delete(k)}
  const mod={exports:{}}
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../miniprogram/services/photos.js'),'utf8'),{module:mod,require:p=>p==='../config'?{envId:'test',collection:'lab06_photos',loginFunction:'lab06_getOpenid'}:core,wx,getApp:()=>({globalData:{cloudReady:!options.notReady}}),Date,Math,Error})
  return {api:mod.exports,storage,docs,calls,options}
@@ -47,3 +47,7 @@ test('signed access accepts bounded record IDs only',()=>{
  assert.deepEqual(policy.idsOf(['a','a','b']),['a','b'])
 })
 test('signed access rejects missing or non-string author',()=>{for(const owner of [undefined,null,42,{}])assert.equal(policy.allowed({_id:'p_test',_openid:owner,photoUrl:'invalid'}),false)})
+
+test('canonical author name overrides historical nickname without merging identities',async()=>{const h=harness({rows:[{_id:'a',_openid:'one',nickName:'old'},{_id:'b',_openid:'two',nickName:'same'}],links:[{_id:'a',displayUrl:'https://example.com/a',nickName:'current'},{_id:'b',displayUrl:'https://example.com/b',nickName:'current'}]});const rows=await h.api.list();assert.equal(rows[0].nickName,'current');assert.equal(rows[1].nickName,'current');assert.notEqual(rows[0]._openid,rows[1]._openid)})
+test('missing image signature preserves page size and shows placeholder',async()=>{const rows=Array.from({length:20},(_,i)=>({_id:'p_'+i,nickName:'name'}));const h=harness({rows,links:[]});const actual=await h.api.list();assert.equal(actual.length,20);assert.equal(actual[0].imageError,true)})
+test('deleted details rejected and list excludes deleted records',async()=>{const h=harness();h.docs.set('p_deleted',{deleted:true,photoUrl:'cloud://test'});await assert.rejects(h.api.detail('p_deleted'),/移除/);await h.api.list();assert.ok(h.calls.some(c=>c[0]==='where'&&c[1].deleted.neq===true))})

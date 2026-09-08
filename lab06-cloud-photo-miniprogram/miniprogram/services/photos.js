@@ -16,23 +16,22 @@ async function identity() {
 function pendingKey(openid) { return 'lab06.pending.' + config.envId + '.' + openid }
 async function pending() { return wx.getStorageSync(pendingKey(await identity())) || null }
 async function list(owner, offset = 0) {
- let query = collection()
- if (owner) query = query.where({ _openid: owner })
+ let query = collection().where(Object.assign({deleted:wx.cloud.database().command.neq(true)},owner?{_openid:owner}:{}))
  const { data } = await query.orderBy('createdAt','desc').orderBy('_id','desc').skip(offset).limit(20).get()
  return hydrate(data.map(p => Object.assign({},p,{ initial: (p.nickName || "摄").slice(0,1), dateLabel: stamp(p.createdAt) })))
 }
 async function detail(id) {
  if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(id)) throw new Error('图片链接无效')
  const { data } = await collection().doc(id).get()
- if (!data || !data.photoUrl) throw new Error('图片不存在或已被移除')
+ if (!data || data.deleted === true || !data.photoUrl) throw new Error('图片不存在或已被移除')
  return (await hydrate([Object.assign({},data,{initial:(data.nickName || "摄").slice(0,1),dateLabel:stamp(data.createdAt)})]))[0]
 }
 async function hydrate(rows) {
  if (!rows.length) return rows
  const {result} = await wx.cloud.callFunction({name:config.accessFunction,data:{ids:rows.map(p=>p._id)}})
  if (!result || !Array.isArray(result.photos)) throw new Error('图片访问服务暂不可用')
- const links = new Map(result.photos.map(p=>[p._id,p.displayUrl]))
- return rows.map(p=>Object.assign({},p,{displayUrl:links.get(p._id)||'',imageError:!links.has(p._id)}))
+ const links = new Map(result.photos.map(p=>[p._id,p]))
+ return rows.map(p=>{const link=links.get(p._id)||{},nickName=link.nickName||p.nickName;return Object.assign({},p,{nickName,initial:(nickName||'摄').slice(0,1),displayUrl:link.displayUrl||'',imageError:!link.displayUrl})})
 }
 async function commit(record, openid) {
  try { await collection().add({ data: Object.assign({}, record, {createdAt:wx.cloud.database().serverDate()}) }) }
@@ -67,4 +66,6 @@ async function publish(file, input) {
  catch (_) { throw new Error('图片已上传，但本机无法保存重试记录；请在云存储 lab06/photos 中核对，尚未发布') }
  return commit(record, openid)
 }
-module.exports = { identity, list, detail, publish, retry, pending }
+async function remove(photoId){ready();const {result}=await wx.cloud.callFunction({name:config.deleteFunction,data:{photoId}});if(!result)throw new Error('删除结果未确认，请重试');if(!result.ok)throw new Error(result.code==='OWNER'?'只能删除自己发布的作品':result.removed?'作品已移除，图片清理待重试；可在上传页重试清理':'删除失败，请重试');return true}
+async function cleanupPending(){ready();const {result}=await wx.cloud.callFunction({name:config.deleteFunction,data:{action:'pending'}});if(!result||!result.ok)throw new Error('无法读取清理状态');return result.pending||[]}
+module.exports = { remove,cleanupPending, identity, list, detail, publish, retry, pending }
