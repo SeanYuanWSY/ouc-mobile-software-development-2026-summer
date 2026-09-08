@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/homepage/homepage",
+    "pages/detail/detail",
+    "pages/add/add"
+  ],
+  "window": {
+    "navigationBarTitleText": "海边相册",
+    "navigationBarBackgroundColor": "#f5f7f4",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f7f4"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

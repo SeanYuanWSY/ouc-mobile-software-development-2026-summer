@@ -15,8 +15,9 @@
 - [实验三：高校新闻网](lab03-campus-news-miniprogram/)
 - [实验四：推箱子游戏](lab04-sokoban-miniprogram/)
 - [实验五：星算 Orbit 鸿蒙科学计算器](lab05-harmonyos-calculator/)
+- [实验六：海边相册图片分享社区](lab06-cloud-photo-miniprogram/)
 
-实验一至四是独立微信小程序，使用微信开发者工具导入。实验五是鸿蒙原生工程，使用 DevEco Studio，构建方式见其使用说明。
+实验一至四、实验六是独立微信小程序，使用微信开发者工具导入。实验六需配置自己的云开发环境，详见其使用说明。实验五是鸿蒙原生工程，使用 DevEco Studio，构建方式见其使用说明。
 
 ## 实验效果
 

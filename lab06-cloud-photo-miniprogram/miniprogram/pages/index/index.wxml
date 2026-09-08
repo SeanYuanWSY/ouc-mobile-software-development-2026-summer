@@ -1,0 +1,41 @@
+<view class="page">
+<view class="eyebrow">COASTAL MOMENTS / 06</view>
+<view class="hero-title">把日常，<text class="green">留在这里。</text>
+</view>
+<view class="subtitle">一张照片，一段值得分享的时光。</view>
+<view class="row toolbar">
+<text class="section-title">最新分享</text>
+<button class="small" bindtap="minePage">我的主页 ↗</button>
+</view>
+<view wx:if="{{error}}" class="notice">
+<text>{{error}}</text>
+<button class="small" bindtap="retry">重新连接</button>
+</view>
+<view wx:if="{{!loading && !error && !photos.length}}" class="empty">
+<view class="empty-icon">＋</view>
+<view class="section-title">相册的第一页，等你开启</view>
+<view class="subtitle">分享一张照片，让美好被看见。</view>
+<button class="primary" bindtap="add">上传第一张图片</button>
+</view>
+<view class="card" wx:for="{{photos}}" wx:key="_id">
+<navigator class="row author" url="/pages/homepage/homepage?id={{item._openid}}">
+<view class="avatar">{{item.initial}}</view>
+<view>
+<view class="name">{{item.nickName}}</view>
+<view class="meta">{{item.location || '日常记录'}}</view>
+</view>
+<text class="arrow">↗</text>
+</navigator>
+<navigator url="/pages/detail/detail?id={{item._id}}">
+<image class="photo" src="{{item.photoUrl}}" mode="widthFix" lazy-load/>
+<view class="caption">
+<view class="section-title">{{item.title}}</view>
+<view class="meta">{{item.dateLabel}}</view>
+</view>
+</navigator>
+</view>
+<view class="footer" wx:if="{{loading}}">正在载入照片…</view>
+<button wx:elif="{{hasMore && photos.length}}" class="small" bindtap="more">加载更多</button>
+<view class="footer" wx:elif="{{photos.length}}">这一刻，已翻到最后。</view>
+<button class="floating" bindtap="add">＋ 上传图片</button>
+</view>

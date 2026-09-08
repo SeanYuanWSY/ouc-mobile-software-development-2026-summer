@@ -1,0 +1,37 @@
+<view class="page">
+<view class="eyebrow">CREATE A MOMENT</view>
+<view class="hero-title">分享你的<text class="green">这一刻。</text>
+</view>
+<view class="subtitle">照片与昵称会展示在社区中，请选择愿意公开的内容。</view>
+<view wx:if="{{error}}" class="notice">
+<text>{{error}}</text>
+<button class="small" bindtap="refresh">重新连接</button>
+</view>
+<view class="form card">
+<button class="picker" bindtap="choose" disabled="{{busy || pending}}">
+<image wx:if="{{file}}" src="{{file.tempFilePath}}" mode="aspectFill"/>
+<view wx:else>
+<view class="empty-icon">＋</view>
+<view>从相册选择 / 拍一张</view>
+<view class="meta">每次 1 张 · 最大 10 MB</view>
+</view>
+</button>
+<view class="label">你的昵称</view>
+<input type="nickname" value="{{nickName}}" data-field="nickName" bindinput="input" bindblur="input" maxlength="24" placeholder="给大家一个认识你的名字" disabled="{{busy || pending}}"/>
+<view class="label">图片标题</view>
+<input value="{{title}}" data-field="title" bindinput="input" maxlength="60" placeholder="为这一刻写一句话" disabled="{{busy || pending}}"/>
+<view class="label">地点 / 心情（选填）</view>
+<input value="{{location}}" data-field="location" bindinput="input" maxlength="40" placeholder="例如：青岛 · 海边的傍晚" disabled="{{busy || pending}}"/>
+<view wx:if="{{pending}}" class="notice">上次发布结果待确认。重试会沿用同一份照片，不重复上传。</view>
+<button class="primary" loading="{{busy}}" disabled="{{busy || (!pending && !file)}}" bindtap="publish">{{pending ? '重试发布' : '发布到相册 ↗'}}</button>
+</view>
+<view class="section-title">已上传图片历史记录</view>
+<view class="grid">
+<navigator wx:for="{{history}}" wx:key="_id" url="/pages/detail/detail?id={{item._id}}">
+<image src="{{item.photoUrl}}" mode="aspectFill"/>
+<text>{{item.title}}</text>
+</navigator>
+</view>
+<button wx:if="{{hasMore}}" class="small" bindtap="more">加载更多历史</button>
+<view wx:if="{{!history.length && !error}}" class="footer">成功发布的作品会出现在这里。</view>
+</view>

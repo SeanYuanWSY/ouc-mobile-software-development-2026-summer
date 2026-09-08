@@ -1,0 +1,4 @@
+{
+  "read": true,
+  "write": "resource.openid == auth.openid"
+}

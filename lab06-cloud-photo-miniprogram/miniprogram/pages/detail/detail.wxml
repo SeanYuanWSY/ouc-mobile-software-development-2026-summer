@@ -1,0 +1,26 @@
+<view class="page">
+<view wx:if="{{loading}}" class="empty">正在打开这一刻…</view>
+<view wx:if="{{error}}" class="notice">
+<text>{{error}}</text>
+<button class="small" bindtap="load">重新加载</button>
+</view>
+<block wx:if="{{photo}}">
+<view class="eyebrow">A MOMENT TO KEEP</view>
+<view class="hero-title">{{photo.title}}</view>
+<navigator class="row author" url="/pages/homepage/homepage?id={{photo._openid}}">
+<view class="avatar">{{photo.initial}}</view>
+<view>
+<view>{{photo.nickName}}</view>
+<view class="meta">{{photo.dateLabel}} · {{photo.location || '日常记录'}}</view>
+</view>
+<text class="arrow">↗</text>
+</navigator>
+<image class="detail-photo" src="{{photo.photoUrl}}" mode="widthFix" bindtap="preview"/>
+<button class="primary" bindtap="download" loading="{{saving}}" disabled="{{saving}}">下载到本地相册</button>
+<view class="row actions">
+<button open-type="share">分享给好友 ↗</button>
+<button bindtap="preview">全屏预览 ⤢</button>
+</view>
+</block>
+<button class="small" bindtap="home">返回社区首页</button>
+</view>
