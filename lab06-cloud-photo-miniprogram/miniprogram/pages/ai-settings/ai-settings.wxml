@@ -20,7 +20,7 @@
 <view class="info-line">01　Key 仅保存在当前小程序会话内存，应用不主动写入本地存储或数据库；重新启动后需要填写。</view>
 <view class="info-line">02　生成时，Key 经实验云函数转发到 DeepSeek 官方接口。请仅在你信任的小程序中输入；开发平台可能留有运行诊断记录。</view>
 <view class="info-line">03　只点评你自己上传的照片，发送前再次确认。结果标注 AI 生成，不自动作为真人评论发布。</view>
-<view class="info-line">04　每分钟最多 3 次、每日最多 20 次尝试；API 费用由你的 DeepSeek 账户承担。</view>
+<view class="info-line">04　无固定等待间隔；上一条请求结束后即可再次生成。API 费用由你的 DeepSeek 账户承担。</view>
 </view>
 <button class="small" bindtap="home">返回相册</button>
 </view>

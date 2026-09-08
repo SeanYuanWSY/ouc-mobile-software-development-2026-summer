@@ -1,5 +1,4 @@
 const cloud=require('wx-server-sdk')
-const crypto=require('crypto')
 const {allowed}=require('./policy')
 const {request,mime}=require('./safe-http')
 cloud.init({env:cloud.DYNAMIC_CURRENT_ENV})
@@ -16,17 +15,6 @@ exports.main=async(event={})=>{
   const db=cloud.database({throwOnNotFound:false})
   const {data:photo}=await db.collection('lab06_photos').doc(event.photoId).get()
   if(!allowed(photo)||photo._openid!==owner)return {ok:false,code:'OWNER'}
-  const now=Date.now(),day=Math.floor(now/86400000),minute=Math.floor(now/60000)
-  const id=crypto.createHash('sha256').update(owner+':'+day).digest('hex')
-  stage='QUOTA'
-  await db.runTransaction(async tx=>{
-   const ref=tx.collection('lab06_ai_usage').doc(id)
-   const {data}=await ref.get()
-   const count=data&&data.day===day?data.count:0
-   const recent=data&&data.minute===minute?data.recent:0
-   if(count>=20||recent>=3)throw new Error('LIMIT')
-   await ref.set({data:{day,minute,count:count+1,recent:recent+1}})
-  })
   stage='IMAGE'
   const {fileList}=await cloud.getTempFileURL({fileList:[photo.photoUrl]})
   const file=fileList&&fileList[0]
@@ -44,7 +32,7 @@ exports.main=async(event={})=>{
   if(typeof text!=='string'||!text.trim())throw new Error('MODEL')
   return {ok:true,text:text.slice(0,1200)}
  }catch(error){
-  let code=error&&error.message==='LIMIT'?'LIMIT':stage==='PROVIDER'?'UNAVAILABLE':stage
+  let code=stage==='PROVIDER'?'UNAVAILABLE':stage
   if(stage==='PROVIDER'&&error){const statuses={401:'PROVIDER_AUTH',402:'PROVIDER_BALANCE',429:'PROVIDER_RATE'};code=statuses[error.status]||code}
   return {ok:false,code,providerAttempted:stage==='PROVIDER'}
  }
