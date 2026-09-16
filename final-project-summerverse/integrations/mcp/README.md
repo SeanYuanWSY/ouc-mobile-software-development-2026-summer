@@ -49,7 +49,7 @@
 
 `TCB_SESSION_TOKEN` 仅在使用 CAM 临时密钥时填写。两种模式互斥：配置了 `SUMMERVERSE_URL` 时优先走公网网关。
 
-**建议使用最小权限子账号密钥**（腾讯云控制台 → 访问管理 → 用户 → 新建子用户，仅编程访问，生成密钥后关联自定义策略）：
+**建议使用最小权限子账号密钥**（腾讯云控制台 → 访问管理 → 用户 → 新建子用户，仅编程访问，生成密钥后关联自定义策略）。2026-09-16 实测：v2 Open API 鉴权按 `tcb:*` 校验，`tcb:InvokeFunction`（管理端 SDK 动作）会被拒绝并报 `SIGN_PARAM_INVALID`，因此策略需授予**仅限本环境**的 tcb 全操作；密钥保管得当即可接受：
 
 ```json
 {
@@ -57,8 +57,11 @@
   "statement": [
     {
       "effect": "allow",
-      "action": ["tcb:InvokeCloudFunction"],
-      "resource": ["qcs::tcb:::env/cloudbase-d5gdro8i30f1a4efd/*"]
+      "action": ["tcb:*"],
+      "resource": [
+        "qcs::tcb:::env/cloudbase-d5gdro8i30f1a4efd",
+        "qcs::tcb:ap-shanghai::env/cloudbase-d5gdro8i30f1a4efd"
+      ]
     }
   ]
 }

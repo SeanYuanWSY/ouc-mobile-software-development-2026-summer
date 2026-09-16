@@ -106,7 +106,7 @@ e3d332b4ffa634ccad206c19eabb3c6319e82cc423fa31b7c0ec7a2eb9aa9538  ./docs/screens
 da46bce9dedb5364108fcb2876f2557ada0270be75100f9e21c3ee8520d4e2ea  ./docs/screenshots/twin-redesign.png
 ba24fc5f8c1beb1b14f0af1da2ff06431526a259206867ef4d2cd643fca779be  ./integrations/cloudflare/README.md
 09c4428bbe2cff04567de6709d8fc96b058705869c618a4ae580f78866ae8c89  ./integrations/cloudflare/ingress.mjs
-eec296bab3aff4c11b5dfd2a1ced4a1e3f5c45b58122aa9c88816a1e906feff8  ./integrations/mcp/README.md
+abf754d384744a18c9f7927870f7fb98930bad9f728fe8734d7c0c6c305a7ad2  ./integrations/mcp/README.md
 d2b9de269016f47b1bebae0c64f1c427fde49b9f023ba1c297ec5ae81a65cbc6  ./integrations/mcp/server.cjs
 4e7ee7d86ff740bbaaa810d7e5010edff1fe84134339aaa61ccb160742f033dc  ./miniprogram/app.js
 6cce1f1061adf8cf8431c697b98498a0c3ba363a66186bd787c8c47f2537e6fa  ./miniprogram/app.json
