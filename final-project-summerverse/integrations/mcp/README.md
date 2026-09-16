@@ -26,6 +26,46 @@
 
 连接凭证放在用户自己的电脑私有环境中；小程序离开页面不再显示原文，服务器只存摘要。复制动作会经过系统剪贴板，请配置后清理剪贴板；我们不会自动覆盖你的剪贴板。
 
+### 模式二：免公网入口（CloudBase Open API 直调，2026-09-16 新增）
+
+不配置 `SUMMERVERSE_URL` 时，适配器改用腾讯云 CloudBase Open API 以管理员身份直接调用 `assistantGateway` 云函数。**无需开通任何公网网关路由**，认证使用你本机保存的腾讯云 CAM 密钥签名；网关函数按既有 HTTP 信封解析，云端零改动。该模式已通过含官方签名向量的单元测试（`tests/tcb-relay-transport.test.js`），真实联调验收后才能宣称跨设备可用。
+
+```json
+{
+  "mcpServers": {
+    "summerverse": {
+      "command": "node",
+      "args": ["/absolute/path/to/integrations/mcp/server.cjs"],
+      "env": {
+        "SUMMERVERSE_ENV": "cloudbase-d5gdro8i30f1a4efd",
+        "TCB_SECRET_ID": "YOUR_CAM_SECRET_ID",
+        "TCB_SECRET_KEY": "YOUR_CAM_SECRET_KEY",
+        "SUMMERVERSE_TOKEN": "YOUR_PRIVATE_CONNECTION_TOKEN"
+      }
+    }
+  }
+}
+```
+
+`TCB_SESSION_TOKEN` 仅在使用 CAM 临时密钥时填写。两种模式互斥：配置了 `SUMMERVERSE_URL` 时优先走公网网关。
+
+**建议使用最小权限子账号密钥**（腾讯云控制台 → 访问管理 → 用户 → 新建子用户，仅编程访问，生成密钥后关联自定义策略）：
+
+```json
+{
+  "version": "2.0",
+  "statement": [
+    {
+      "effect": "allow",
+      "action": ["tcb:InvokeCloudFunction"],
+      "resource": ["qcs::tcb:::env/cloudbase-d5gdro8i30f1a4efd/*"]
+    }
+  ]
+}
+```
+
+若控制台提示动作或资源描述不匹配，以 CAM 策略生成器中“云开发 TCB”的操作列表为准调整；不要为了省事直接给子账号 `AdministratorAccess`。密钥只保存在你自己电脑的 MCP 私有配置里，不提交 Git、不发给模型、不写入项目共享配置（与连接凭证同样的保管要求）。
+
 ## 演示用语
 
 “把我们今天完成的工作整理成一份记忆草稿，使用今天的日期，发到我的晞屿手记。我会在手机确认。”
