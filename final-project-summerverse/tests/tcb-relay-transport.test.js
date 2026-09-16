@@ -23,7 +23,7 @@ test('Open API 传输按网关信封调用并解包响应', async () => {
     requests.push({ url, options });
     const service = { ok: true, data: { drafts: [] } };
     const envelope = { statusCode: 200, headers: {}, body: JSON.stringify(service) };
-    const outer = { statusCode: 200, body: { requestId: 'fixture', data: { response_data: JSON.stringify(envelope) } } };
+    const outer = { requestId: 'fixture', stat: { funcExecTime: 1 }, data: { response_data: JSON.stringify(envelope) } };
     return { body: (async function* () { yield Buffer.from(JSON.stringify(outer)); })() };
   };
   const send = cloudBaseTransport({ envId: 'cloudbase-d5gdro8i30f1a4efd', secretId: 'AKID' + 'x'.repeat(20), secretKey: 'k'.repeat(36), token, fetchImpl });
@@ -48,7 +48,7 @@ test('临时密钥带会话令牌；业务错误码按网关状态透传', async
   const fetchImpl = async (url, options) => {
     requests.push(options);
     const envelope = { statusCode: 401, body: JSON.stringify({ ok: false, code: 'UNAUTHORIZED' }) };
-    const outer = { statusCode: 200, body: { data: { response_data: JSON.stringify(envelope) } } };
+    const outer = { data: { response_data: JSON.stringify(envelope) } };
     return { body: (async function* () { yield Buffer.from(JSON.stringify(outer)); })() };
   };
   const send = cloudBaseTransport({ envId: 'cloudbase-test', secretId: 'AKID' + 'x'.repeat(20), secretKey: 'k'.repeat(36), sessionToken: 'session-fixture', token, fetchImpl });
@@ -60,9 +60,9 @@ test('Open API 外层失败或畸形响应不伪装成业务结果', async () =>
   const token = 'd'.repeat(64);
   const make = (outer) => async () => ({ body: (async function* () { yield Buffer.from(JSON.stringify(outer)); })() });
   const base = { envId: 'cloudbase-test', secretId: 'AKID' + 'x'.repeat(20), secretKey: 'k'.repeat(36), token };
-  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ statusCode: 500, body: {} }) })({ action: 'draft.status', requestId: 'r3' }), /Invalid response/);
-  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ statusCode: 200, body: { data: {} } }) })({ action: 'draft.status', requestId: 'r4' }), /Invalid response/);
-  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ statusCode: 200, body: { data: { response_data: '{"statusCode":200,"body":"not-json"}' } } }) })({ action: 'draft.status', requestId: 'r5' }), SyntaxError);
+  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ code: 'SIGN_PARAM_INVALID', message: 'no auth' }) })({ action: 'draft.status', requestId: 'r3' }), /CloudBase API: SIGN_PARAM_INVALID/);
+  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ data: {} }) })({ action: 'draft.status', requestId: 'r4' }), /Invalid response/);
+  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ data: { response_data: '{"statusCode":200,"body":"not-json"}' } }) })({ action: 'draft.status', requestId: 'r5' }), SyntaxError);
   await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: async () => ({ body: (async function* () { yield Buffer.alloc(262145); })() }) })({ action: 'draft.status', requestId: 'r6' }), /Response too large/);
   await assert.rejects(cloudBaseTransport(base)({ action: 'draft.status', requestId: 'r7' + 'x'.repeat(16400) }), /Too large/);
 });

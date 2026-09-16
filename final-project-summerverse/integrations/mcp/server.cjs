@@ -106,8 +106,8 @@ function cloudBaseTransport({ envId, secretId, secretKey, sessionToken, token, f
     const chunks = []; let size = 0;
     for await (const chunk of response.body) { size += chunk.length; if (size > 262144) throw new Error('Response too large'); chunks.push(chunk); }
     const outer = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-    if (outer?.statusCode !== 200 || typeof outer?.body?.data?.response_data !== 'string') throw new Error('Invalid response');
-    const envelope = JSON.parse(outer.body.data.response_data);
+    if (typeof outer?.data?.response_data !== 'string') throw new Error(outer?.code ? `CloudBase API: ${outer.code} ${outer.message || ''}`.trim() : 'Invalid response');
+    const envelope = JSON.parse(outer.data.response_data);
     if (typeof envelope?.statusCode !== 'number' || typeof envelope.body !== 'string') throw new Error('Invalid response');
     const result = JSON.parse(envelope.body);
     if (typeof result.ok !== 'boolean') throw new Error('Invalid response');
