@@ -1,4 +1,4 @@
-<view class="page page--no-tab director-page">
+<view class="{{experienceClass}} page page--no-tab director-page">
   <view class="nav-header">
     <button class="nav-back" bindtap="goBack">‹</button>
     <view class="nav-title"><text class="nav-title__brand">AI 夏日导演</text><text class="nav-title__sub">把真实素材重排成一部可播放的个人故事</text></view>

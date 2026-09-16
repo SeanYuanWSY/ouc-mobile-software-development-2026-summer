@@ -1,0 +1,59 @@
+<view class="{{experienceClass}} page page--no-tab materials-page">
+  <view class="nav-header"><button class="nav-back" bindtap="goBack" aria-label="返回">‹</button><view class="nav-title"><text class="nav-title__brand">资料工作台</text><text class="nav-title__sub">读懂 · 行动 · 练习</text></view><button class="small-button" bindtap="toggleLibrary" disabled="{{busy}}">资料库</button></view>
+
+  <view wx:if="{{libraryOpen}}" class="paper-card section">
+    <view class="section-top"><text class="heading">保存过的资料</text><button class="small-button" bindtap="newWorkspace" disabled="{{busy}}">＋ 新建</button></view>
+    <text wx:if="{{!sessions.length}}" class="muted">导入后会保存在这里。</text>
+    <view wx:for="{{sessions}}" wx:key="id" class="library-row"><button class="library-title" data-id="{{item.id}}" bindtap="openWorkspace" disabled="{{busy}}"><text>{{item.title}}</text><text class="muted">{{item.sourceCount}}份资料 · {{item.taskCount}}个任务</text></button><button class="small-button" data-id="{{item.id}}" bindtap="deleteWorkspace" disabled="{{busy}}">删除</button></view>
+  </view>
+
+  <view class="paper-card section import-section">
+    <view class="section-top"><text class="eyebrow">01 · 收好资料</text><text class="muted">{{sourceViews.length}} / 6份</text></view>
+    <input class="workspace-title" value="{{workspace.title}}" maxlength="80" bindinput="onTitle" disabled="{{busy}}" aria-label="资料名称"/>
+    <view class="import-buttons"><button class="primary-button" bindtap="chooseFiles" disabled="{{busy}}">从微信聊天选文件</button><button class="secondary-button" bindtap="chooseImages" disabled="{{busy}}">图片</button><button class="secondary-button" bindtap="toggleText" disabled="{{busy}}">粘贴文字</button><button class="secondary-button" bindtap="toggleLink" disabled="{{busy}}">网页链接</button></view>
+    <text class="hint">PDF / DOCX / PPTX / TXT / MD / 图片 / 公开网页 · 单文件8MB</text>
+    <view wx:if="{{textOpen}}" class="text-editor"><input class="input" placeholder="资料名称，如：老师的补充通知" value="{{textName}}" maxlength="100" bindinput="onTextName" disabled="{{busy}}"/><textarea class="input text-area" placeholder="粘贴聊天文字或通知内容…" value="{{textDraft}}" maxlength="40000" bindinput="onText" disabled="{{busy}}"/><view class="pair"><button class="secondary-button" bindtap="pasteText" disabled="{{busy}}">读取剪贴板</button><button class="primary-button" bindtap="addText" disabled="{{busy}}">添加文字</button></view></view>
+    <view wx:if="{{linkOpen}}" class="link-editor"><input class="input" placeholder="粘贴公开网页链接" value="{{linkDraft}}" maxlength="1500" bindinput="onLink" disabled="{{busy}}"/><view class="pair"><button class="secondary-button" bindtap="pasteLink" disabled="{{busy}}">读取剪贴板</button><button class="primary-button" bindtap="addLink" disabled="{{busy}}">提取网页</button></view><text class="hint">需登录、验证码或依赖脚本显示的页面，请复制文字或截图导入。</text></view>
+    <view wx:if="{{!sourceViews.length && !textOpen && !linkOpen}}" class="empty-import"><text class="empty-symbol">✦</text><text class="heading">通知、课件、截图，都放在一起</text><text class="muted">只处理你选中的资料，不读取完整群聊。</text></view>
+    <view wx:for="{{sourceViews}}" wx:key="id" class="source-card"><view class="source-row"><view class="file-badge">{{item.badge}}</view><button class="source-name" data-id="{{item.id}}" bindtap="showSource"><text>{{item.name}}</text><text class="muted">{{item.meta}} · 查看提取内容</text></button><button class="remove-source" data-id="{{item.id}}" bindtap="removeSource" disabled="{{busy}}" aria-label="移除资料">×</button></view><text wx:if="{{item.warning}}" class="source-warning">{{item.warning}}</text></view>
+    <view class="save-row"><text class="muted">{{unsaved ? '有未保存修改' : saveState || (storageMode === 'cloud' ? '资料保存在你的云端账号' : '当前为本机模式')}}</text><button wx:if="{{unsaved}}" class="small-button" bindtap="retrySave" disabled="{{busy}}">保存</button></view>
+  </view>
+
+  <view class="paper-card section">
+    <button class="relay-entry" bindtap="openRelay" disabled="{{busy || !sourceViews.length}}"><view><text class="heading">让电脑助手接着做 ↗</text><text class="muted">指定资料与任务，通过 MCP 领取并回传结果。</text></view></button>
+  </view>
+
+  <view class="paper-card section">
+    <text class="eyebrow">02 · 让 AI 帮你整理</text>
+    <view class="mode-list"><button wx:for="{{modes}}" wx:key="id" wx:if="{{showAllModes || index < 4 || selectedMode === item.id}}" class="mode {{selectedMode === item.id ? 'selected' : ''}}" data-mode="{{item.id}}" bindtap="selectMode" disabled="{{busy}}">{{item.label}}</button></view>
+    <view class="mode-explanation"><text class="muted">{{modeInfo.hint}}</text><button class="small-button" bindtap="toggleModes">{{showAllModes ? '收起' : '更多场景'}}</button></view>
+    <textarea wx:if="{{selectedMode === 'ask'}}" class="input question-area" placeholder="例如：截止时间有没有调整？需要交哪些文件？" value="{{question}}" maxlength="600" bindinput="onQuestion" disabled="{{busy}}"/>
+    <button class="primary-button analyze-button" bindtap="analyze" loading="{{busy}}" disabled="{{busy || !sourceViews.length}}">{{busy ? '处理中' : modeInfo.action}}</button>
+    <view class="ai-note"><text class="muted">使用你自己的 AI 接口</text><button class="small-button" bindtap="openSettings" disabled="{{busy}}">设置 AI ›</button></view>
+    <text wx:if="{{progress}}" class="progress">{{progress}}</text>
+  </view>
+  <view wx:if="{{error || notice}}" class="message-box"><text wx:if="{{error}}">{{error}}</text><text wx:if="{{notice}}">{{notice}}</text><text wx:if="{{unsaved}}">当前内容仍在页面，可点击“保存”重试。</text></view>
+
+  <view wx:if="{{resultViews.length}}" class="results">
+    <view class="section-top"><text class="heading">{{workspace.analysis.mode === 'defense' ? '轮到你来回答' : '整理好了'}}</text><text class="ai-tag">AI 草稿 · 请核对</text></view>
+    <view wx:for="{{resultViews}}" wx:key="id" wx:for-item="finding" class="paper-card finding kind-{{finding.kind}}">
+      <text class="eyebrow">{{finding.label}}{{finding.kind === 'practice' ? ' · ' + (index + 1) : ''}}</text>
+      <text class="finding-title">{{finding.title}}</text>
+      <block wx:if="{{finding.kind === 'practice'}}">
+        <textarea class="input practice-answer" placeholder="先试着说一遍，或在这里写下你的回答…" value="{{finding.ownAnswer}}" data-id="{{finding.id}}" bindinput="onPracticeAnswer" maxlength="2000" aria-label="我的练习回答"/>
+        <text class="hint">练习输入只留在当前页面，不发给 AI。</text>
+        <button class="practice-reveal" data-id="{{finding.id}}" bindtap="togglePractice">{{finding.answerVisible ? '收起参考要点 ▴' : '我答好了，查看参考要点 ▾'}}</button>
+        <view wx:if="{{finding.answerVisible}}" class="practice-reference"><text class="eyebrow">参考要点 · 请结合原文判断</text><text class="finding-detail">{{finding.detail}}</text></view>
+      </block>
+      <text wx:elif="{{finding.detail}}" class="finding-detail">{{finding.detail}}</text>
+      <view class="citations"><button wx:for="{{finding.references}}" wx:key="index" class="citation" data-item="{{finding.id}}" data-ref="{{item.index}}" bindtap="showEvidence">↗ {{item.label}}</button></view>
+      <button wx:if="{{finding.kind === 'task' || finding.kind === 'check'}}" class="task-add" data-id="{{finding.id}}" bindtap="addTask" disabled="{{busy || finding.added}}">{{finding.added ? '已加入任务' : '＋ 确认加入我的任务'}}</button>
+    </view>
+    <view class="pair"><button class="secondary-button" bindtap="copyResult">复制结果</button><button class="secondary-button" bindtap="exportResult">导出 / 分享文字</button></view>
+    <text class="hint">出处展示提取片段；AI结论和图片转写仍需核对。</text>
+  </view>
+
+  <view wx:if="{{workspace.tasks.length}}" class="paper-card section"><view class="section-top"><text class="heading">我的下一步</text><text class="muted">已完成 {{completed}} / {{workspace.tasks.length}}</text></view><view wx:for="{{workspace.tasks}}" wx:key="id" class="task-row"><button class="task-check {{item.done ? 'done' : ''}}" data-id="{{item.id}}" bindtap="toggleTask" disabled="{{busy}}" aria-label="切换任务完成状态">{{item.done ? '✓' : '○'}}</button><view class="task-copy"><text>{{item.title}}</text><text class="muted">{{item.detail}}</text><button wx:if="{{!item.done}}" class="task-focus" data-id="{{item.id}}" bindtap="openFocus" disabled="{{busy}}">◷ 专注做这件事</button></view><button class="small-button" data-id="{{item.id}}" bindtap="removeTask" disabled="{{busy}}">移除</button></view><text class="hint">只有你手动勾选，才会记为完成。</text></view>
+
+  <view wx:if="{{evidenceOpen}}" class="evidence-overlay" catchtap="closeEvidence"><view class="evidence-sheet" catchtap="noop"><view class="section-top"><text class="heading">{{evidenceOpen.name}}</text><button class="small-button" bindtap="closeEvidence">关闭</button></view><text wx:if="{{evidenceOpen.warning}}" class="source-warning">{{evidenceOpen.warning}}</text><scroll-view scroll-y class="evidence-scroll"><view wx:if="{{evidenceOpen.quote}}" class="quote"><text>引用片段</text><text selectable>{{evidenceOpen.quote}}</text></view><view wx:for="{{evidenceOpen.chunks}}" wx:key="id" class="source-fragment"><text class="eyebrow">{{item.locator}}</text><text selectable class="source-text">{{item.text}}</text></view></scroll-view></view></view>
+</view>

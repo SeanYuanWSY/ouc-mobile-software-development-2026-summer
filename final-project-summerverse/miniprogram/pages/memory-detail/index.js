@@ -1,10 +1,11 @@
+const { withExperience } = require('../../utils/experience');
 const repository = require('../../services/repository');
 const { CATEGORIES, MOODS } = require('../../utils/constants');
 const { friendlyDate } = require('../../utils/date');
 const mediaService = require('../../services/media');
 const { backOrHome } = require('../../utils/navigation');
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memory: null,
@@ -130,4 +131,4 @@ Page({
     const memory = this.data.memory || {};
     return { title: `暑假记忆｜${memory.title || 'SummerVerse'}`, path: `/pages/memory-detail/index?id=${this.id}` };
   }
-});
+}));

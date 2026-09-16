@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const wechatData = require('../../services/wechat-data');
@@ -26,7 +27,7 @@ function blankForm() {
   };
 }
 
-Page({
+Page(withExperience({
   data: {
     form: blankForm(),
     categoryList: CATEGORY_LIST,
@@ -34,12 +35,14 @@ Page({
     aiDraft: '',
     aiParsing: false,
     saving: false,
+    pendingWrite: false,
     recording: false,
     recordSeconds: 0,
     uploadProgress: '',
     editing: false,
     aiPhotoBusy: false,
     cloudReady: false,
+    dataMode: 'cloud',
     showMore: false,
     importanceOptions: [1, 2, 3, 4, 5]
   },
@@ -58,7 +61,7 @@ Page({
     this.getTabBar?.().setSelected(2);
     this.refreshCloudStatus();
     const pendingId = getApp().globalData.editMemoryId;
-    if (pendingId && pendingId !== this.data.form._id) {
+    if (pendingId && pendingId !== this.data.form._id && !this._pendingSave && !this.data.saving) {
       getApp().globalData.editMemoryId = '';
       this.loadMemory(pendingId);
     }
@@ -67,7 +70,7 @@ Page({
   async refreshCloudStatus() {
     const app = getApp();
     if (typeof app.awaitCloudReady === 'function') await app.awaitCloudReady();
-    this.setData({ cloudReady: Boolean(app.globalData.cloudReady) });
+    this.setData({ cloudReady: Boolean(app.globalData.cloudReady), dataMode: app.globalData.dataMode });
   },
 
   onUnload() {
@@ -116,35 +119,43 @@ Page({
   },
 
   onFieldInput(event) {
+    if (this.data.saving || this._pendingSave) return;
     const field = event.currentTarget.dataset.field;
     this.setData({ [`form.${field}`]: event.detail.value });
   },
 
   onAiDraftInput(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ aiDraft: event.detail.value });
   },
 
   selectCategory(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.category': event.currentTarget.dataset.key });
   },
 
   selectMood(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.mood': event.currentTarget.dataset.key });
   },
 
   selectImportance(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.importance': Number(event.currentTarget.dataset.value) });
   },
 
   onDateChange(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.date': event.detail.value });
   },
 
   onTimeChange(event) {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.time': event.detail.value });
   },
 
   async parseWithAI() {
+    if (this.data.saving || this._pendingSave || this.data.aiParsing) return;
     const text = this.data.aiDraft.trim();
     if (!text) {
       wx.showToast({ title: '先说说发生了什么', icon: 'none' });
@@ -176,6 +187,7 @@ Page({
   },
 
   chooseMedia() {
+    if (this.data.saving || this._pendingSave) return;
     const remaining = 9 - this.data.form.media.length;
     if (remaining <= 0) {
       wx.showToast({ title: '一条记忆最多保存 9 个附件', icon: 'none' });
@@ -187,6 +199,7 @@ Page({
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: ({ tempFiles }) => {
+        if (this.data.saving || this._pendingSave) return;
         const added = tempFiles.map((file) => ({
           id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           type: file.fileType === 'video' ? 'video' : 'image',
@@ -213,6 +226,7 @@ Page({
   },
 
   removeMedia(event) {
+    if (this.data.saving || this._pendingSave) return;
     const index = Number(event.currentTarget.dataset.index);
     const next = [...this.data.form.media];
     next.splice(index, 1);
@@ -220,6 +234,7 @@ Page({
   },
 
   async toggleRecording() {
+    if (this.data.saving || this._pendingSave) return;
     if (!this.recorderManager) {
       wx.showToast({ title: '当前基础库不支持录音', icon: 'none' });
       return;
@@ -239,6 +254,7 @@ Page({
   },
 
   async chooseLocation() {
+    if (this.data.saving || this._pendingSave) return;
     try {
       const location = await wechatData.chooseLocation();
       this.setData({ 'form.location': location });
@@ -248,10 +264,12 @@ Page({
   },
 
   clearLocation() {
+    if (this.data.saving || this._pendingSave) return;
     this.setData({ 'form.location': null });
   },
 
   async analyzeFirstPhoto() {
+    if (this.data.saving || this._pendingSave) return;
     if (this.data.aiPhotoBusy) return;
     const index = this.data.form.media.findIndex((item) => item.type === 'image');
     if (index < 0) {
@@ -295,8 +313,10 @@ Page({
 
   async save() {
     if (this.data.saving) return;
+    if (this.data.recording) { wx.showToast({ title: '请先结束录音再保存', icon: 'none' }); return; }
     if (this.data.aiPhotoBusy || this.data.aiParsing) { wx.showToast({ title: '请等待 AI 整理结束', icon: 'none' }); return; }
-    const form = this.data.form;
+    const retryingPending = Boolean(this._pendingSave);
+    const form = this._pendingSave ? this._pendingSave.form : JSON.parse(JSON.stringify(this.data.form));
     if (!form.title.trim()) {
       wx.showToast({ title: '给这颗记忆起个名字', icon: 'none' });
       return;
@@ -305,12 +325,19 @@ Page({
     wx.showLoading({ title: '正在保存记忆' });
     let persistedMedia = [];
     try {
-      persistedMedia = await mediaService.persistAll(form.media, (current, total) => {
-        this.setData({ uploadProgress: total ? `正在保存附件 ${current}/${total}` : '' });
-      });
-      const media = persistedMedia.map(mediaService.stripPersistenceMetadata);
-      const memory = normalizeMemory({ ...form, media });
+      if (!this._pendingSave) {
+        persistedMedia = await mediaService.persistAll(form.media, (current, total) => {
+          this.setData({ uploadProgress: total ? `正在保存附件 ${current}/${total}` : '' });
+        });
+        const media = persistedMedia.map(mediaService.stripPersistenceMetadata);
+        const memory = { ...normalizeMemory({ ...form, media }), revision: form.revision || 0, requestId: repository.makeRequestId() };
+        this._pendingSave = { form, persistedMedia, memory };
+      }
+      persistedMedia = this._pendingSave.persistedMedia;
+      const memory = this._pendingSave.memory;
       const saved = await repository.saveMemory(memory);
+      this._pendingSave = null;
+      this.setData({ pendingWrite: false });
       wx.hideLoading();
       const cleanup = saved.data && saved.data._mediaCleanup;
       await new Promise((resolve) => wx.showModal({
@@ -325,6 +352,13 @@ Page({
       this.setData({ form: blankForm(), aiDraft: '', editing: false });
       wx.switchTab({ url: '/pages/island/index' });
     } catch (error) {
+      if ((retryingPending || error.outcomeUnknown || ['WRITE_CONFLICT', 'WRITE_EXPIRED'].includes(error.code)) && this._pendingSave) {
+        this.setData({ pendingWrite: true });
+        wx.hideLoading();
+        wx.showModal({ title: '保存结果待确认', content: error.code === 'WRITE_EXPIRED' || error.code === 'WRITE_CONFLICT' ? `${error.message}。请先到时间轴核对，确认后可放弃当前草稿。` : '网络中断，云端可能已经保存。再次点击保存会核对同一笔记录并复用附件，不会重新上传。请先确认这次保存再编辑。', showCancel: false });
+        return;
+      }
+      this._pendingSave = null;
       const rollback = persistedMedia.length ? await mediaService.rollbackPersisted(persistedMedia) : null;
       const rollbackWarning = rollback && rollback.failed.length
         ? '；部分新附件未能自动清理，请在云开发控制台检查'
@@ -338,5 +372,16 @@ Page({
     } finally {
       this.setData({ saving: false, uploadProgress: '' });
     }
+  },
+
+  async discardPendingSave() {
+    if (!this._pendingSave || this.data.saving) return;
+    const choice = await new Promise((resolve) => wx.showModal({ title: '已核对时间轴？', content: '放弃这次草稿不会撤销已经保存的云端记录。请先核对时间轴，避免重复创建。', confirmText: '放弃草稿', success: resolve }));
+    if (!choice.confirm) return;
+    const pending = this._pendingSave;
+    this._pendingSave = null;
+    this.setData({ pendingWrite: false, form: blankForm(), aiDraft: '', editing: false });
+    const cleanup = await mediaService.rollbackPersisted(pending.persistedMedia);
+    if (cleanup?.failed?.length) wx.showModal({ title: '草稿已放弃', content: '部分临时附件未清理完成，已保存的云端记录不会被删除。', showCancel: false });
   }
-});
+}));

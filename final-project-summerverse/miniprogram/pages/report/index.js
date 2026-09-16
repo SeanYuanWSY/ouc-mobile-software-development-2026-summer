@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const { CATEGORY_LIST, CATEGORIES, MOODS, DEFAULT_PROFILE } = require('../../utils/constants');
@@ -8,7 +9,7 @@ function findHighlight(memories, getter) {
   return memories.reduce((best, item) => (!best || getter(item) > getter(best) ? item : best), null);
 }
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memories: [],
@@ -150,4 +151,4 @@ Page({
   onShareAppMessage() {
     return { title: this.data.reportSentence || '我的 SummerVerse 成长报告', path: '/pages/report/index' };
   }
-});
+}));

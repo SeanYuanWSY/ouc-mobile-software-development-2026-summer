@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "cloudCall": false,
+  "modelCall": false,
+  "scope": "native WeChat simulator, real parser and UI handlers; fixture AI response, isolated in-memory storage",
+  "checks": [
+    "text-entry-binding",
+    "DOCX-parsing",
+    "comparison-citations",
+    "source-drawer",
+    "manual-task-confirmation",
+    "duplicate-prevention",
+    "manual-completion",
+    "workspace-reopen",
+    "homepage-entry"
+  ],
+  "runtimeErrors": []
+}

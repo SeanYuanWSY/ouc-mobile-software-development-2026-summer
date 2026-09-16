@@ -1,3 +1,5 @@
+const { withExperience } = require('../../utils/experience');
+const { PROVIDERS, providerFor, defaults } = require('../../config/ai-providers');
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
 const ai = require('../../services/ai');
@@ -6,17 +8,18 @@ const storage = require('../../utils/storage');
 const { STORAGE_KEYS, DEFAULT_PROFILE } = require('../../utils/constants');
 const { backOrHome } = require('../../utils/navigation');
 
-Page({
+Page(withExperience({
   data: {
     profile: DEFAULT_PROFILE,
     cloudReady: false,
     cloudError: '',
     cloudErrorSummary: '',
     dataMode: 'local',
-    models: [
-      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', note: '默认，速度与成本更适合日常交互' },
-      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', note: '复杂平行推演和长报告可选' }
-    ],
+    providers: PROVIDERS,
+    providerIndex: 0, providerId: 'deepseek',
+    models: PROVIDERS[0].models, visionModels: PROVIDERS[0].visionModels,
+    visionIndex: 0, endpoint: '', customModel: '', customVisionModel: '',
+    showAdvanced: false, showAiHelp: false,
     modelIndex: 0,
     tempApiKey: '',
     showKey: false,
@@ -26,28 +29,50 @@ Page({
     syncingStep: false,
     locationStatus: '未检查',
     demoImported: false,
-    savingProfile: false
+    savingProfile: false,
+    loadError: '',
+    reconnectingCloud: false
   },
 
-  onLoad() { this.load(); },
-  onShow() { this.setData({ tempApiKey: getApp().globalData.aiSessionKey || '', showKey: false }); },
-  onHide() { this.setData({ tempApiKey: '', showKey: false }); },
+  onLoad() { this._alive = true; this.load(); },
+  onShow() { this._hidden = false; this.refreshAiFields(); },
+  onHide() { this._hidden = true; this.setData({ tempApiKey: '', showKey: false }); },
+  onUnload() { this._alive = false; this._hidden = true; },
 
-  async load() {
+  async load(options = {}) {
     const app = getApp();
-    const profileRes = await repository.getProfile();
-    const modelIndex = Math.max(0, this.data.models.findIndex((item) => item.id === app.globalData.aiModel));
+    try {
+    const profileRes = await repository.getProfile(options);
+    if (this._alive === false) return;
     this.setData({
+      loadError: '',
       profile: profileRes.data || DEFAULT_PROFILE,
       cloudReady: Boolean(app.globalData.cloudReady),
       cloudError: app.globalData.cloudError || '',
       cloudErrorSummary: this.summarizeCloudError(app.globalData.cloudError),
       dataMode: app.globalData.dataMode || 'local',
-      modelIndex,
-      tempApiKey: app.globalData.aiSessionKey || '',
       demoImported: Boolean(storage.get(STORAGE_KEYS.DEMO_IMPORTED, false))
     });
+    if (!this._hidden) this.refreshAiFields();
     this.refreshPermissionStatus();
+    } catch (error) {
+      if (this._alive === false) return;
+      this.setData({ loadError: error.message || '个人信息暂未读取，请重新连接', cloudReady: Boolean(app.globalData.cloudReady),
+        cloudErrorSummary: '云端暂未连接，已保存的内容仍在云端。', dataMode: app.globalData.dataMode || 'cloud' });
+    }
+  },
+
+  async reconnectCloud() {
+    if (this.data.reconnectingCloud) return;
+    this.setData({ reconnectingCloud: true });
+    try {
+      const ready = await getApp().reconnectCloud();
+      if (!ready) throw new Error('暂时无法连接，请检查网络后重试');
+      await this.load({ forceRefresh: true });
+      if (this._alive !== false) wx.showToast({ title: '云端已连接', icon: 'success' });
+    } catch (error) {
+      if (this._alive !== false) this.setData({ loadError: error.message || '连接失败，请重试' });
+    } finally { if (this._alive !== false) this.setData({ reconnectingCloud: false }); }
   },
 
   summarizeCloudError(error) {
@@ -64,6 +89,15 @@ Page({
   },
 
   goBack() { backOrHome(); },
+  changeExperience(event) {
+    try { this.setExperienceOptions({ mode: event.currentTarget.dataset.mode }); }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
+  },
+  changeMotion(event) {
+    try { this.setExperienceOptions({ reduceMotion: event.detail.value === true }); }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
+  },
+  openInbox() { wx.navigateTo({ url: '/pages/inbox/index' }); },
 
   onProfileInput(event) { this.setData({ [`profile.${event.currentTarget.dataset.field}`]: event.detail.value }); },
 
@@ -73,6 +107,7 @@ Page({
   },
 
   async saveProfile() {
+    if (this.data.savingProfile) return;
     this.setData({ savingProfile: true });
     let persistedAvatar = null;
     try {
@@ -100,13 +135,34 @@ Page({
     } finally { this.setData({ savingProfile: false }); }
   },
 
-  onModelChange(event) {
-    const modelIndex = Number(event.detail.value);
-    const model = this.data.models[modelIndex];
-    getApp().globalData.aiModel = model.id;
-    getApp().resetAiConnection();
-    this.setData({ modelIndex, connection: null });
+  refreshAiFields() {
+    const d = getApp().globalData;
+    const p = providerFor(d.aiProvider);
+    this.setData({
+      providerId: p.id, providerIndex: PROVIDERS.findIndex((item) => item.id === p.id),
+      models: p.models, visionModels: p.visionModels,
+      modelIndex: Math.max(0, p.models.indexOf(d.aiModel)),
+      visionIndex: Math.max(0, p.visionModels.indexOf(d.visionModel)),
+      endpoint: d.aiEndpoint || '', customModel: d.aiModel || '',
+      customVisionModel: d.visionModel || '', tempApiKey: d.aiSessionKey || '', showKey: false
+    });
   },
+  saveAiFields(change) {
+    const d = getApp().globalData;
+    const saved = getApp().updateAiPreferences({
+      provider: d.aiProvider, endpoint: d.aiEndpoint,
+      model: d.aiModel, visionModel: d.visionModel, ...change
+    });
+    this.refreshAiFields();
+    this.setData({ connection: null });
+    if (!saved) wx.showToast({ title: '设置未能保存到本机', icon: 'none' });
+  },
+  onProviderChange(event) { this.saveAiFields(defaults(PROVIDERS[Number(event.detail.value)].id)); },
+  onModelChange(event) { this.saveAiFields({ model: this.data.models[Number(event.detail.value)] }); },
+  onVisionChange(event) { this.saveAiFields({ visionModel: this.data.visionModels[Number(event.detail.value)] }); },
+  onCustomInput(event) { this.saveAiFields({ [event.currentTarget.dataset.field]: event.detail.value }); },
+  toggleAdvanced() { this.setData({ showAdvanced: !this.data.showAdvanced }); },
+  toggleAiHelp() { this.setData({ showAiHelp: !this.data.showAiHelp }); },
 
   onApiKeyInput(event) {
     const tempApiKey = event.detail.value.trim();
@@ -122,14 +178,15 @@ Page({
   },
 
   async testAI() {
+    if (this.data.testingAI) return;
     if (!this.data.cloudReady) {
       wx.showModal({ title: '云函数未连接', content: 'AI 服务尚未就绪，请稍后重试。无需提供开发者的 Key；服务就绪后只使用你在本页填写的个人 Key。', showCancel: false });
       return;
     }
-    this.setData({ testingAI: true, connection: { type: 'pending', text: '正在通过云函数连接 DeepSeek…' } });
+    this.setData({ testingAI: true, connection: { type: 'pending', text: '正在连接…' } });
     try {
       const result = await ai.ping();
-      this.setData({ connection: { type: 'success', text: `连接成功 · ${result.model || this.data.models[this.data.modelIndex].id} · 使用你的个人 Key` } });
+      this.setData({ connection: { type: 'success', text: `连接成功 · ${result.model || getApp().globalData.aiModel}` } });
     } catch (error) {
       this.setData({ connection: { type: 'error', text: this.friendlyAiError(error) } });
     } finally { this.setData({ testingAI: false }); }
@@ -138,12 +195,12 @@ Page({
   friendlyAiError(error = {}) {
     const tips = {
       AI_AUTH_FAILED: 'API Key 无效或已失效，请重新填写你自己的 Key。',
-      AI_BALANCE_INSUFFICIENT: 'DeepSeek 账户额度不可用，请先在开放平台充值或检查余额。',
-      AI_UPSTREAM_RATE_LIMITED: 'DeepSeek 请求较多，请稍后再试。',
-      AI_QUOTA_UNAVAILABLE: '暂时无法校验使用额度，本次未请求 DeepSeek，请稍后重试。',
-      AI_TIMEOUT: 'DeepSeek 响应超时，请稍后再试。',
-      AI_UPSTREAM_UNAVAILABLE: 'DeepSeek 服务暂时不可用，请稍后再试。',
-      AI_KEY_MISSING: '请先填写你自己的 DeepSeek API Key。',
+      AI_BALANCE_INSUFFICIENT: 'AI 账户额度不可用，请先在开放平台充值或检查余额。',
+      AI_UPSTREAM_RATE_LIMITED: 'AI 请求较多，请稍后再试。',
+      AI_QUOTA_UNAVAILABLE: '暂时无法校验使用额度，本次未请求 AI，请稍后重试。',
+      AI_TIMEOUT: 'AI 响应超时，请稍后再试。',
+      AI_UPSTREAM_UNAVAILABLE: 'AI 服务暂时不可用，请稍后再试。',
+      AI_KEY_MISSING: '请先填写你自己的 AI API Key。',
       FUNCTION_NOT_FOUND: 'deepseekProxy 尚未部署。'
     };
     return tips[error.code] || error.message || '连接失败，请检查云函数与网络。';
@@ -254,8 +311,8 @@ Page({
   openPrivacy() {
     wx.showModal({
       title: '隐私原则',
-      content: '位置、微信步数、照片和麦克风只在你主动操作时请求。AI 功能会在同意后将相关记忆或照片经腾讯云发送给 DeepSeek，费用由你自己的 API 账户承担。Key 仅在本次运行内使用，可随时清除；基础记录无需 Key。',
+      content: '位置、微信步数、照片和麦克风只在你主动操作时请求。AI 功能会在同意后将相关记忆或照片经腾讯云发送给你选择的 AI 服务商，费用由你自己的 API 账户承担。Key 仅在本次运行内使用，可随时清除；基础记录无需 Key。',
       showCancel: false
     });
   }
-});
+}));

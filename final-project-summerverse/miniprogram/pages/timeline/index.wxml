@@ -1,4 +1,4 @@
-<view class="page timeline-page">
+<view class="{{experienceClass}} page timeline-page">
   <view class="nav-header">
     <view class="nav-title"><text class="nav-title__brand">时间轴</text><text class="nav-title__sub">每一条都来自你真正保存的记忆</text></view>
     <button class="nav-icon-button" bindtap="openMap">🗺️</button>
@@ -33,7 +33,8 @@
     </view>
   </block>
 
-  <empty-state wx:else emoji="📒" title="还没有符合条件的记忆" copy="清除筛选，或者记录一件今天真正发生的事。" buttonText="去记录" bind:action="startRecord" />
+  <text wx:if="{{hasMore}}" class="timeline-more">已显示 {{visibleCount}} / {{resultCount}} 条，继续向下翻</text>
+  <empty-state wx:if="{{!groups.length && !loading}}" emoji="📒" title="还没有符合条件的记忆" copy="清除筛选，或者记录一件今天真正发生的事。" buttonText="去记录" bind:action="startRecord" />
 
   <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">📒</text><text class="loading-text">正在翻开时间轴…</text></view></view>
 </view>

@@ -40,7 +40,10 @@ function aiHarness({ key = 'test-only-user-key', ready = true, confirm = true, r
   global.getApp = () => app;
   global.wx = {
     showModal: ({ success }) => success({ confirm }),
-    cloud: { callFunction: (args) => { calls.push(args); if (error) args.fail(error); else args.success({ result: result || { ok: true, data: '真实上游回复' } }); } }
+    cloud: { callFunction: (args) => {
+      if (args.data.action === 'capabilities') return args.success({ result: { ok: true, data: { protocol: 'multi-provider-v1' } } });
+      calls.push(args); if (error) args.fail(error); else args.success({ result: result || { ok: true, data: '真实上游回复' } });
+    } }
   };
   delete require.cache[require.resolve('../miniprogram/services/ai')];
   return { ai: require('../miniprogram/services/ai'), app, calls };
@@ -78,10 +81,47 @@ test('上游失败不返回本地模板且清除连接状态', async () => {
 test('旧 Key 的异步结果不能更新新 Key 的连接状态', async () => {
   const { ai, app, calls } = aiHarness();
   global.wx.cloud.callFunction = (args) => {
+    if (args.data.action === 'capabilities') return args.success({ result: { ok: true, data: { protocol: 'multi-provider-v1' } } });
     calls.push(args);
     app.globalData.aiConfigRevision += 1;
     args.success({ result: { ok: true, data: '旧结果' } });
   };
   await assert.rejects(() => ai.ping(), { code: 'AI_CONFIG_CHANGED' });
   assert.equal(app.globalData.aiReady, false);
+});
+
+test('旧云函数只收到无Key能力探测，不会收到其他服务商Key', async () => {
+  const { ai, app } = aiHarness();
+  app.globalData.aiProvider = 'kimi';
+  const payloads = [];
+  global.wx.cloud.callFunction = (args) => {
+    payloads.push(args.data);
+    args.success({ result: { ok: true, data: {} } });
+  };
+  await assert.rejects(ai.ping(), { code: 'AI_BACKEND_OUTDATED' });
+  assert.deepEqual(payloads, [{ action: 'capabilities' }]);
+});
+
+test('授权弹窗期间切换服务商不会把旧 Key 发给新地址', async () => {
+  const { ai, app, calls } = aiHarness();
+  global.wx.showModal = ({ success }) => {
+    app.globalData.aiProvider = 'kimi';
+    app.globalData.aiConfigRevision += 1;
+    success({ confirm: true });
+  };
+  await assert.rejects(ai.ping(), { code: 'AI_CONFIG_CHANGED' });
+  assert.equal(calls.length, 0);
+  assert.deepEqual(app.globalData.aiConsent, {});
+});
+
+test('等待云连接期间清除Key后不能继续派发旧请求', async () => {
+  const { ai, app, calls } = aiHarness();
+  let waits = 0;
+  app.awaitCloudReady = async () => {
+    waits++;
+    if (waits === 2) { app.globalData.aiSessionKey = ''; app.globalData.aiConfigRevision++; }
+    return true;
+  };
+  await assert.rejects(ai.ping(), { code: 'AI_CONFIG_CHANGED' });
+  assert.equal(calls.length, 0);
 });

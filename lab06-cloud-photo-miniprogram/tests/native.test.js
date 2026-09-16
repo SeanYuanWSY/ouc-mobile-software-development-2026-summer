@@ -1,8 +1,7 @@
 const {test}=require('node:test')
 const assert=require('node:assert/strict')
-const fs=require('node:fs')
-const vm=require('node:vm')
-function native(wx){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../miniprogram/utils/ui'),'utf8'),{module,wx});return module.exports}
+const {prepareSubject}=require('./helpers/subject-load')
+function native(wx){prepareSubject({subject:'../miniprogram/utils/ui',globals:{wx}});return require('../miniprogram/utils/ui')}
 test('download waits for callback instead of returning the DownloadTask',async()=>{
  let options,done=false
  const api=native({downloadFile:o=>{options=o;return{abort(){}}}})
@@ -17,9 +16,12 @@ test('native failure rejects with permission error instead of claiming success',
 })
 function detail(wx){
  const ui=native(wx);let page
- vm.runInNewContext(fs.readFileSync(require.resolve('../miniprogram/pages/detail/detail'),'utf8'),{
-  Page:p=>{page=p},wx,require:p=>p.includes('/ui')?ui:{},
+ prepareSubject({
+  subject:'../miniprogram/pages/detail/detail',
+  mocks:[{spec:'../../services/photos',value:{}},{spec:'../../services/ai',value:{}},{spec:'../../utils/ui',value:ui}],
+  globals:{Page:p=>{page=p},wx}
  })
+ require('../miniprogram/pages/detail/detail')
  page.data={photo:{displayUrl:'https://example.com/photo.jpg'},saving:false}
  page.setData=patch=>Object.assign(page.data,patch)
  return page

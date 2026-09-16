@@ -1,3 +1,4 @@
+const experience = require('../utils/experience');
 Component({
   data: {
     selected: 0,
@@ -9,13 +10,15 @@ Component({
       { pagePath: '/pages/twin/index', text: '我的', icon: '🌿' }
     ]
   },
+  lifetimes: { attached() { this.refreshExperience(); } },
   methods: {
+    refreshExperience() { this.setData(experience.view()); },
     switchTab(event) {
       const index = Number(event.currentTarget.dataset.index);
       const item = this.data.list[index];
       if (!item) return;
       wx.switchTab({ url: item.pagePath });
     },
-    setSelected(index) { this.setData({ selected: index }); }
+    setSelected(index) { this.setData({ selected: index }); this.refreshExperience(); }
   }
 });

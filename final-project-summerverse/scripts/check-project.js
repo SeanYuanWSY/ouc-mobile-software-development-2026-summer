@@ -14,6 +14,7 @@ else if (fs.readFileSync(manifestFile, 'utf8') !== buildManifest()) errors.push(
 
 function walk(dir, predicate = () => true) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isDirectory() && ['node_modules', 'dist', '.git'].includes(entry.name)) return [];
     const value = path.join(dir, entry.name);
     return entry.isDirectory() ? walk(value, predicate) : predicate(value) ? [value] : [];
   });
@@ -44,6 +45,7 @@ for (const file of walk(root, (value) => value.endsWith('.js'))) {
 for (const file of walk(mini, (value) => value.endsWith('.wxml'))) {
   const content = fs.readFileSync(file, 'utf8');
   if (/\{\{[^}]*getApp\(/.test(content)) errors.push(`WXML 不能调用 getApp：${path.relative(root, file)}`);
+  if (/\{\{[^}]*&(?:amp|lt|gt);/.test(content)) errors.push(`WXML 表达式不能用 HTML 实体代替运算符：${path.relative(root, file)}`);
   if (/\{\{[^}]*(?:\.slice\(|\.find\(|Math\.)/.test(content)) errors.push(`WXML 包含高风险方法调用：${path.relative(root, file)}`);
   if (/<\/?(?:strong|small|div|span|main|section)(?:\s|>)/.test(content)) errors.push(`WXML 包含 HTML 标签：${path.relative(root, file)}`);
   for (const match of content.matchAll(/<canvas\b[^>]*>/g)) {

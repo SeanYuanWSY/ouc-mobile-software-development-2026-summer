@@ -21,7 +21,7 @@
 
 ## 3. 严格 BYOK 配置
 
-每位用户在设置页填写自己的 DeepSeek API Key，由其 API 账户承担费用。开发者不提供共享 Key；不读取 `DEEPSEEK_API_KEY`、`ALLOW_CLIENT_API_KEY` 或自定义上游地址。不要配置这些旧变量。
+每位用户在设置页填写所选服务商的 API Key，由其 API 账户承担费用。开发者不提供共享 Key；不读取 `DEEPSEEK_API_KEY`、`ALLOW_CLIENT_API_KEY` 等旧环境变量。不要配置这些旧变量。
 
 环境变量只需使用限额项（见 `cloudfunctions/deepseekProxy/env.example`）：
 
@@ -34,10 +34,10 @@ AI_QUOTA_TIMEZONE=Asia/Shanghai
 
 - Key 仅本次运行存于应用内存与输入框；清除或进程结束后需重新填写。切到后台不一定结束进程。
 - 首次文字与图片调用分别说明数据发送和费用。看图同意发生在上传前；分析新上传的照片请求结束后尝试清理，原表单附件保留用于正常保存。
-- 固定请求地址为 `https://api.deepseek.com/chat/completions`，禁止重定向；正文模型只允许 `deepseek-v4-flash`、`deepseek-v4-pro`，视觉固定 `deepseek-v4-flash-vision-exp`。
+- 预设服务商地址由服务端固定；自定义支持公网 HTTPS OpenAI Chat Completions 接口，拒绝内网、重定向和 URL 凭据。模型目录见 cloudfunctions/deepseekProxy/providers.js。
 - 显式设置 `thinking: { type: 'disabled' }`，避免短回复额度被默认思考消耗。官方参数：https://api-docs.deepseek.com/guides/thinking_mode/ 。
 - 测试连接也会真实扣费；成功才显示本次 AI 已验证。改 Key 或模型重置状态，失败不使用本地模板替代。
-- 按 APPID/OPENID 哈希分别限额。缺少 Key 或无效参数在限额前拒绝，额度数据库不可用时不请求 DeepSeek。BYOK 不使用共享 Key 全局池；微信云资源仍由应用维护者承担，需设预算告警。
+- 按 APPID/OPENID 哈希分别限额。缺少 Key 或无效参数在限额前拒绝，额度数据库不可用时不请求上游 AI 服务。BYOK 不使用共享 Key 全局池；微信云资源仍由应用维护者承担，需设预算告警。
 - 上游文字超时 50 秒、视觉 55 秒；部署时配置足够的云函数总超时，并根据鉴权、下载、冷启动耗时调整前端等待（当前文字 60 秒、图片 65 秒）。必须实测，不能仅凭这些参数宣称已接通。
 - 应用仅记公共错误码与 HTTP 状态，不记 Key、原始上游错误或请求内容。但平台调用追踪可能另行采集参数，部署时必须核对 APM、调用详情和日志权限，避免保存含真实 Key 的测试事件。
 - API 账户说明：https://api-docs.deepseek.com/ ；模型与费用：https://api-docs.deepseek.com/quick_start/pricing/ 。
@@ -121,3 +121,22 @@ summerverse/<当前用户哈希>/voice/YYYY-MM-DD/...
 - 完成隐私保护指引与用户信息用途声明。
 - 真机测试相机、相册、麦克风、位置、微信运动、云存储。
 - 对删除账号/数据、内容安全和异常重试做最终审核。
+
+## 9. 资料分析部署（2026-09-12已部署，真实微信联调待完成）
+
+当前环境已完成下列集合、权限、精确authority和两个函数部署，实际云包已下载核对；公众平台确认1.0.7为体验版、备案和认证完成。不要重复创建集合或改动已有用户数据。隐私指引提交后显示审核中，但待审正文回读异常、保存完整性尚未确认；真实微信身份及模型调用仍待验收，详细证据见 `ACCEPTANCE_STATUS.md` 最新节。以下步骤保留供复现与剩余验收使用。
+
+此功能复用 `dataService` 和 `deepseekProxy`，无需 HTTP 网关。按以下顺序执行：
+
+1. 在同一云环境新增 `material_workspaces` 集合，客户端读写均关闭（ADMINONLY）。也可由管理员运行更新后的 `initProject` 创建，再逐项核对权限；创建函数不会替你配置安全规则。不要自动开放客户端权限。
+2. 核对 `media_assets`、`ai_usage` 仍为 ADMINONLY，云存储仍为仅创建者/管理员读写。
+3. 给 **dataService 和 deepseekProxy 两者** 添加非敏感环境变量 `MATERIAL_STORAGE_AUTHORITY`，值为本环境原生云文件 ID 中 `cloud://` 与第一个 `/` 之间的完整 `环境ID.桶标识`。必须从实际云存储文件 ID 读取，不能只填环境ID、猜桶名或带URL路径。此值不是 Key。缺少配置时文档/图片导入明确失败；粘贴文字与分析不依赖它。
+4. `node scripts/sync-material-policy.js` 后，部署新的 dataService；将 `deepseekProxy` 连同 `package.json`、锁文件和全部解析代码部署，使用云端安装依赖。依赖为 wx-server-sdk、固定版本 unpdf1.7.0/yauzl3.4.0。运行环境 Node.js20.19；执行超时90秒。Worker 文件须包含在部署包内。内存先用实际最大允许文件测量，不把96MB JS堆限制等同于函数总内存上限。
+5. 回读能力：dataService `material.capabilities` 的 protocol=materials-v1/storageConfigured=true；deepseekProxy `capabilities` 的 materialsProtocol=materials-v1/materialStorageConfigured=true。然后测试实际解析及保存往返；布尔配置检测不能替代真实文件 ID 匹配。
+6. 核对函数日志与平台追踪不采集 Key、原文件内容、提取文字和临时下载URL。解析占用额度在下载前预留，失败也计数；默认 credits：解析1、识图8、分析4。BYOK 模型费由用户承担，云资源仍由应用方承担。
+7. 用测试资料核验临时文件删除结果、另一微信账号的访问隔离、资料恢复和版本冲突，再用用户自行输入的 Key 做真实识图与分析。不在云函数测试事件中保存 Key。
+8. 更新公众平台隐私说明，上传新版前端并设置体验版。`supportedMaterials` 正式文件打开入口需审核与发布；体验版入口可独立配置。普通首页入口不依赖外部助手网关。
+
+2026-09-12公开网页导入已更新两个目标函数，25个云端源码及配置文件SHA-256与干净部署副本匹配，含 `text/html` 声明的1.0.7前端已成为体验版。云端启动测试只验证缺身份拒绝；真实微信调用仍需确认 `webMaterials=true` 并完成提取/保存/恢复。发布前更新隐私保护指引，明确“用户提供的公开URL由腾讯云访问，保存标题、域名和提取文字”，并在真机验证聊天网页入口和手动粘贴入口。网页补充说明已准备，尚未覆盖当前待审材料。
+
+2026-09-11 两函数保留 wx-server-sdk3.0.4，并以 overrides 固定 form-data2.5.6；两个锁文件均随部署包交付。依赖审计仍有11项（0 critical、6 high、5 moderate），来自 SDK 旧依赖链，unpdf/yauzl未被列入。定点审查未发现本次资料入口调用 JWT 验签、realtime.watch 或服务端 multipart 上传的路径；这不是对全部依赖的无漏洞保证。云端安装后仍需回读实际版本和完成文件往返验收；不运行自动降级/强制 audit fix。

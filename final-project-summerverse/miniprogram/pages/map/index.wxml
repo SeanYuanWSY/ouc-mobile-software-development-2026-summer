@@ -1,4 +1,4 @@
-<view class="page page--no-tab map-page">
+<view class="{{experienceClass}} page page--no-tab map-page">
   <view class="nav-header">
     <button class="nav-back" bindtap="goBack">‹</button>
     <view class="nav-title"><text class="nav-title__brand">地图轨迹</text><text class="nav-title__sub">地图、标记和路线全部来自你保存的经纬度</text></view>

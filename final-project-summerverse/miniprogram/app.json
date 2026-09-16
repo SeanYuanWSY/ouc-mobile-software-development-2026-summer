@@ -11,7 +11,11 @@
     "pages/parallel/index",
     "pages/director/index",
     "pages/report/index",
-    "pages/settings/index"
+    "pages/settings/index",
+    "pages/inbox/index",
+    "pages/materials/index",
+    "pages/focus/index",
+    "pages/relay/index"
   ],
   "window": {
     "navigationStyle": "custom",
@@ -40,6 +44,17 @@
   },
   "requiredPrivateInfos": ["getLocation", "chooseLocation"],
   "requiredBackgroundModes": [],
+  "supportedMaterials": [
+    { "materialType": "text/html", "name": "用${nickname}分析", "desc": "提取公开网页中的要求和任务", "path": "pages/materials/index" },
+    { "materialType": "application/pdf", "name": "用${nickname}分析", "desc": "从资料中提取要求和任务", "path": "pages/materials/index" },
+    { "materialType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "name": "用${nickname}分析", "desc": "从资料中提取要求和任务", "path": "pages/materials/index" },
+    { "materialType": "application/vnd.openxmlformats-officedocument.presentationml.presentation", "name": "用${nickname}分析", "desc": "从资料中提取要求和任务", "path": "pages/materials/index" },
+    { "materialType": "text/plain", "name": "用${nickname}分析", "desc": "整理文字中的要求和任务", "path": "pages/materials/index" },
+    { "materialType": "text/markdown", "name": "用${nickname}分析", "desc": "整理文字中的要求和任务", "path": "pages/materials/index" },
+    { "materialType": "image/jpeg", "name": "用${nickname}分析", "desc": "识别截图文字并整理要求", "path": "pages/materials/index" },
+    { "materialType": "image/png", "name": "用${nickname}分析", "desc": "识别截图文字并整理要求", "path": "pages/materials/index" },
+    { "materialType": "image/webp", "name": "用${nickname}分析", "desc": "识别截图文字并整理要求", "path": "pages/materials/index" }
+  ],
   "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json"

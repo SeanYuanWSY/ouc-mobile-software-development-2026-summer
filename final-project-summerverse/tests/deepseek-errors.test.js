@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { publicErrorForStatus, publicError } = require('../cloudfunctions/deepseekProxy/deepseek-errors');
 
-test('DeepSeek 上游错误只向客户端暴露稳定短提示', () => {
+test('AI 上游错误只向客户端暴露稳定短提示', () => {
   const auth = publicErrorForStatus(401, 'upstream detail with request id');
   assert.equal(auth.code, 'AI_AUTH_FAILED');
-  assert.equal(auth.message, 'DeepSeek 身份验证失败，请检查你填写的 API Key。');
+  assert.equal(auth.message, 'AI 身份验证失败，请检查你填写的 API Key。');
   assert.equal(auth.message.includes('request id'), false);
   assert.equal(auth.internalMessage, 'upstream detail with request id');
 
@@ -23,6 +23,6 @@ test('网络和超时错误转换为可操作的公共错误码', () => {
 
 
 test('额度数据库不可用保持准确错误码', () => {
-  const error = Object.assign(new Error('暂时无法校验 AI 使用额度，本次未请求 DeepSeek'), { code: 'AI_QUOTA_UNAVAILABLE' });
+  const error = Object.assign(new Error('暂时无法校验 AI 使用额度，本次未请求 AI'), { code: 'AI_QUOTA_UNAVAILABLE' });
   assert.equal(publicError(error).code, 'AI_QUOTA_UNAVAILABLE');
 });

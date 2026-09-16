@@ -5,14 +5,11 @@ const { ACTION_CREDITS, reserveAiMinute, reserveAiQuota } = require('./quota');
 const { validateRequestPayload } = require('./request-policy');
 const { publicErrorForStatus, publicError } = require('./deepseek-errors');
 
-const { configFromEvent, DEEPSEEK_URL } = require('./config-policy');
-
-async function fetchWithTimeout(url, options = {}, timeout = 50000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try { return await fetch(url, { ...options, signal: controller.signal }); }
-  finally { clearTimeout(timer); }
-}
+const { configFromEvent } = require('./config-policy');
+const { requestBody } = require('./providers');
+const { postJson } = require('./safe-http');
+const materials = require('./material-ai');
+const materialPolicy = require('./material-policy');
 
 function clean(value, max = 1000) {
   return String(value || '').trim().slice(0, max);
@@ -50,29 +47,12 @@ function parseJson(content) {
 
 async function requestDeepSeek(config, messages, options = {}) {
   if (!config.apiKey) throw new Error('缺少用户 Key');
-  const body = {
-    model: options.model || config.model,
-    messages,
-    stream: false,
-    thinking: { type: 'disabled' },
-    temperature: options.temperature ?? 0.65,
-    max_tokens: options.maxTokens || 1800
-  };
-  if (options.json) body.response_format = { type: 'json_object' };
-  const response = await fetchWithTimeout(DEEPSEEK_URL, {
-    method: 'POST',
-    redirect: 'error',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
-    body: JSON.stringify(body)
-  }, options.timeout || 50000);
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = payload?.error?.message || `DeepSeek HTTP ${response.status}`;
-    throw publicErrorForStatus(response.status, message);
-  }
+  const body = requestBody(config, messages, options);
+  const { status, payload } = await postJson(config.endpoint, config.apiKey, body, options.timeout || 50000);
+  if (status < 200 || status >= 300) throw publicErrorForStatus(status);
   const content = payload?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('DeepSeek 返回内容为空');
-  return { content, usage: payload.usage || null, model: payload.model || body.model };
+  if (typeof content !== 'string' || !content.trim() || content.length > 100000) throw new Error('AI 返回内容无效');
+  return { content, usage: null, model: body.model };
 }
 
 async function jsonTask(config, system, user, options = {}) {
@@ -215,9 +195,24 @@ async function prepareVisionPayload(openid, payload) {
 exports.main = async (event = {}) => {
   try {
     const action = clean(event.action, 60);
-    if (!ACTION_CREDITS[action]) return { ok: false, error: `未知 AI action：${action}`, code: 'BAD_REQUEST' };
     const { OPENID, APPID } = cloud.getWXContext();
     if (!OPENID) return { ok: false, error: '无法识别当前微信用户', code: 'NO_OPENID' };
+    if (action === 'capabilities') return { ok: true, data: { protocol: 'multi-provider-v1', materialsProtocol: 'materials-v1', materialModes: materialPolicy.MODES, materialStorageConfigured: Boolean(process.env.MATERIAL_STORAGE_AUTHORITY), webMaterials: true } };
+    if (!ACTION_CREDITS[action]) return { ok: false, error: '未知 AI 操作', code: 'BAD_REQUEST' };
+    if (['materialExtract', 'materialWebExtract', 'materialVision', 'materialsAnalyze'].includes(action)) {
+      if (event.httpMethod || event.headers || event.body) throw Object.assign(new Error('资料分析仅支持微信内使用'), { code: 'NO_OPENID' });
+      const payload = event.payload || {};
+      materials.validate(action, payload);
+      // Parsing has no model charge or Key, but invalid documents still consume backend quota.
+      const config = ['materialExtract', 'materialWebExtract'].includes(action) ? null : configFromEvent(event);
+      if (action === 'materialVision' && !config.visionModel) throw Object.assign(new Error('请先设置识图模型'), { code: 'BAD_REQUEST' });
+      await reserveAiQuota(db, { openid: OPENID, appId: APPID, action, model: config?.model || '', includeGlobal: false });
+      const data = action === 'materialExtract' ? await materials.extract(cloud, db, OPENID, payload)
+        : action === 'materialWebExtract' ? await materials.web(payload)
+        : action === 'materialVision' ? await materials.vision(cloud, db, OPENID, payload, config, requestDeepSeek)
+          : await materials.analyze(payload, config, requestDeepSeek);
+      return { ok: true, data };
+    }
     const config = configFromEvent(event);
     if (!config.apiKey) {
       const error = new Error('请在设置中填写你自己的 DeepSeek API Key。');
@@ -227,6 +222,9 @@ exports.main = async (event = {}) => {
     let payload = event.payload || {};
     validateRequestPayload(action, payload);
     const quotaModel = action === 'visionMemory' ? config.visionModel : config.model;
+    if (action === 'visionMemory' && !config.visionModel) {
+      throw Object.assign(new Error('请先在设置中填写识图模型。'), { code: 'BAD_REQUEST' });
+    }
     if (action === 'visionMemory') {
       await reserveAiMinute(db, {
         openid: OPENID,

@@ -3,7 +3,7 @@
  * 这里绝不放 DeepSeek API Key；每位用户在设置页输入自己的会话 Key，不提供共享 Key。
  */
 module.exports = {
-  CLOUD_ENV_ID: '',
+  CLOUD_ENV_ID: 'cloudbase-d5gdro8i30f1a4efd',
   ENABLE_CLOUD: true,
   DEFAULT_AI_PROVIDER: 'deepseek',
   DEFAULT_AI_MODEL: 'deepseek-v4-flash',

@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
@@ -5,7 +6,7 @@ const { CATEGORIES } = require('../../utils/constants');
 const { formatDate, formatTime } = require('../../utils/date');
 const { backOrHome } = require('../../utils/navigation');
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memories: [],
@@ -89,4 +90,4 @@ Page({
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
   goBack() { backOrHome(); }
-});
+}));

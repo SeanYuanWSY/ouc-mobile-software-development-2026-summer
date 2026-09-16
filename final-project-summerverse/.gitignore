@@ -6,3 +6,4 @@ cloudfunctions/**/node_modules/
 cloudfunctions/**/.env
 *.log
 /dist/
+.mimosa/

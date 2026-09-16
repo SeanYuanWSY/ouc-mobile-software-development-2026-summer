@@ -2,13 +2,15 @@ const storage = require('../utils/storage');
 const { STORAGE_KEYS, DEFAULT_PROFILE } = require('../utils/constants');
 const { normalizeMemory, normalizeGoal } = require('../utils/validate');
 const { toTimestamp } = require('../utils/date');
-const { callFunction, isCloudReady, waitForCloudReady } = require('./cloud');
+const { callFunction, isCloudReady, waitForCloudReady, dataMode, cachedRead, invalidateReads } = require('./cloud');
 const demoData = require('./demo-data');
 const mediaService = require('./media');
 
 function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+function makeRequestId() { return `op-${Date.now()}-${Math.random().toString(36).slice(2, 12).padEnd(10, '0')}`; }
 
 function sortMemories(items) {
   return [...items].sort((a, b) => toTimestamp(b) - toTimestamp(a));
@@ -48,24 +50,52 @@ function withCleanup(data, mediaCleanup) {
   return mediaCleanup ? { ...data, _mediaCleanup: mediaCleanup } : data;
 }
 
+function savedDocument(response) {
+  const value = response?.data;
+  if (!value || typeof value !== 'object' || Array.isArray(value) || typeof value._id !== 'string' || !value._id.trim()) {
+    throw Object.assign(new Error('云端返回了不完整的数据，保存结果尚未确认'), { code: 'CLOUD_INVALID_RESPONSE', outcomeUnknown: true });
+  }
+  return value;
+}
+
 async function cloudOrLocal(cloudTask, localTask, options = {}) {
-  if (await waitForCloudReady()) {
+  if (await dataMode() === 'cloud') {
     try {
       const result = await cloudTask();
       if (result !== undefined) return { data: result, mode: 'cloud' };
+      throw Object.assign(new Error('云端返回了不完整的数据，请重试或更新小程序'), { outcomeUnknown: true });
     } catch (error) {
-      console.warn('[repository] cloud fallback:', error);
-      if (options.cloudOnly) throw error;
+      console.warn('[repository] cloud request failed:', error);
+      throw error;
     }
   }
   return { data: await localTask(), mode: 'local' };
 }
 
-async function listMemories(filters = {}) {
+function listMemories(filters = {}, options = {}) {
+  return cachedRead('memories', JSON.stringify(filters), () => readMemories(filters), options);
+}
+
+async function readMemories(filters = {}) {
   return cloudOrLocal(
     async () => {
-      const res = await callFunction('dataService', { action: 'memory.list', payload: filters });
-      return res.data || [];
+      const items = [];
+      const seen = new Set();
+      let offset = 0;
+      do {
+        const res = await callFunction('dataService', {
+          action: 'memory.list', payload: { ...filters, offset, limit: 100 }
+        });
+        if (!Object.prototype.hasOwnProperty.call(res, 'nextOffset')) throw new Error('云端数据服务需要更新，请联系开发者');
+        for (const item of res.data || []) {
+          if (!seen.has(item._id)) { items.push(item); seen.add(item._id); }
+        }
+        if (filters.limit > 0 && items.length >= filters.limit) return items.slice(0, filters.limit);
+        if (res.nextOffset == null) break;
+        if (!Number.isSafeInteger(res.nextOffset) || res.nextOffset <= offset) throw new Error('记录分页异常，请重试');
+        offset = res.nextOffset;
+      } while (true);
+      return items;
     },
     async () => {
       let items = getLocalMemories();
@@ -76,7 +106,7 @@ async function listMemories(filters = {}) {
         const keyword = String(filters.keyword).toLowerCase();
         items = items.filter((item) => `${item.title} ${item.content} ${(item.tags || []).join(' ')}`.toLowerCase().includes(keyword));
       }
-      return items.slice(0, filters.limit || 300);
+      return filters.limit > 0 ? items.slice(0, filters.limit) : items;
     },
     { cloudOnly: true }
   );
@@ -100,8 +130,8 @@ async function saveMemory(input) {
   return cloudOrLocal(
     async () => {
       const action = input._id ? 'memory.update' : 'memory.create';
-      const res = await callFunction('dataService', { action, payload: memory });
-      return withCleanup(res.data, res.mediaCleanup);
+      const res = await callFunction('dataService', { action, payload: { ...memory, requestId: input.requestId || '', revision: input.revision || 0 } });
+      return withCleanup(savedDocument(res), res.mediaCleanup);
     },
     async () => {
       const items = getLocalMemories();
@@ -140,11 +170,21 @@ async function deleteMemory(id) {
   );
 }
 
-async function listGoals() {
+function listGoals(options = {}) { return cachedRead('goals', 'list', readGoals, options); }
+
+async function readGoals() {
   return cloudOrLocal(
     async () => {
-      const res = await callFunction('dataService', { action: 'goal.list', payload: {} });
-      return res.data || [];
+      const items = [], seen = new Set();
+      let offset = 0;
+      do {
+        const res = await callFunction('dataService', { action: 'goal.list', payload: { offset, limit: 100 } });
+        for (const goal of res.data || []) if (!seen.has(goal._id)) { seen.add(goal._id); items.push(goal); }
+        if (res.nextOffset == null) break;
+        if (!Number.isSafeInteger(res.nextOffset) || res.nextOffset <= offset) throw new Error('目标分页异常，请重试');
+        offset = res.nextOffset;
+      } while (true);
+      return items;
     },
     async () => getLocalGoals(),
     { cloudOnly: true }
@@ -157,8 +197,8 @@ async function saveGoal(input) {
   return cloudOrLocal(
     async () => {
       const action = input._id ? 'goal.update' : 'goal.create';
-      const res = await callFunction('dataService', { action, payload: goal });
-      return res.data;
+      const res = await callFunction('dataService', { action, payload: { ...goal, requestId: input.requestId || '', revision: input.revision || 0 } });
+      return savedDocument(res);
     },
     async () => {
       const items = getLocalGoals();
@@ -170,6 +210,20 @@ async function saveGoal(input) {
     },
     { cloudOnly: true }
   );
+}
+
+async function incrementGoal(id, requestId) {
+  return cloudOrLocal(async () => savedDocument(await callFunction('dataService', { action: 'goal.increment', payload: { id, requestId } })),
+    async () => {
+      const items = getLocalGoals();
+      const goal = items.find((item) => item._id === id);
+      if (!goal) throw new Error('目标已删除');
+      const receipts = Array.isArray(goal._increments) ? goal._increments : [];
+      if (receipts.includes(requestId)) return goal;
+      goal.current = Math.min(Number(goal.target), Number(goal.current) + 1);
+      goal._increments = [...receipts, requestId];
+      saveLocalGoals(items); return goal;
+    }, { cloudOnly: true });
 }
 
 async function deleteGoal(id) {
@@ -186,7 +240,9 @@ async function deleteGoal(id) {
   );
 }
 
-async function getProfile() {
+function getProfile(options = {}) { return cachedRead('profile', 'get', readProfile, options); }
+
+async function readProfile() {
   return cloudOrLocal(
     async () => {
       const res = await callFunction('dataService', { action: 'profile.get', payload: {} });
@@ -202,7 +258,7 @@ async function saveProfile(profile) {
   return cloudOrLocal(
     async () => {
       const res = await callFunction('dataService', { action: 'profile.save', payload: value });
-      return withCleanup(res.data, res.mediaCleanup);
+      return withCleanup(savedDocument(res), res.mediaCleanup);
     },
     async () => {
       const previous = storage.get(STORAGE_KEYS.PROFILE, DEFAULT_PROFILE);
@@ -247,7 +303,7 @@ function saveChatHistory(messages) {
 }
 
 async function importDemoData() {
-  if (await waitForCloudReady()) throw new Error('云模式不能导入示例');
+  if (await dataMode() === 'cloud') throw new Error('云模式不能导入示例');
   const memories = getLocalMemories();
   const goals = getLocalGoals();
   const memoryIds = new Set(memories.map((item) => item._id));
@@ -287,24 +343,34 @@ function importLocalData(payload) {
   if (payload.weather) storage.set(STORAGE_KEYS.WEATHER, payload.weather);
 }
 
+function mutation(resources, task) {
+  return async (...args) => {
+    resources.forEach(invalidateReads);
+    try { return await task(...args); }
+    finally { resources.forEach(invalidateReads); }
+  };
+}
+
 module.exports = {
   listMemories,
   getMemory,
-  saveMemory,
-  deleteMemory,
+  saveMemory: mutation(['memories'], saveMemory),
+  deleteMemory: mutation(['memories'], deleteMemory),
   listGoals,
-  saveGoal,
-  deleteGoal,
+  saveGoal: mutation(['goals'], saveGoal),
+  incrementGoal: mutation(['goals'], incrementGoal),
+  makeRequestId,
+  deleteGoal: mutation(['goals'], deleteGoal),
   getProfile,
-  saveProfile,
+  saveProfile: mutation(['profile'], saveProfile),
   getStepSnapshot,
   saveStepSnapshot,
   getWeatherSnapshot,
   saveWeatherSnapshot,
   getChatHistory,
   saveChatHistory,
-  importDemoData,
-  clearDemoData,
+  importDemoData: mutation(['memories', 'goals'], importDemoData),
+  clearDemoData() { try { return clearDemoData(); } finally { invalidateReads('memories'); invalidateReads('goals'); } },
   exportLocalData,
-  importLocalData
+  importLocalData(payload) { try { return importLocalData(payload); } finally { ['memories', 'goals', 'profile'].forEach(invalidateReads); } }
 };

@@ -1,7 +1,7 @@
-<view class="page page--no-tab report-page">
+<view class="{{experienceClass}} page page--no-tab report-page">
   <view class="nav-header">
     <button class="nav-back" bindtap="goBack">‹</button>
-    <view class="nav-title"><text class="nav-title__brand">暑假成长报告</text><text class="nav-title__sub">事实统计与 AI 推断分开呈现</text></view>
+    <view class="nav-title"><text class="nav-title__brand">暑假成长报告</text><text class="nav-title__sub">回看你的记录</text></view>
     <button class="nav-icon-button" open-type="share">↗</button>
   </view>
 
@@ -20,10 +20,10 @@
     <view class="stat-card paper-card"><text class="stat-icon">🗺️</text><text class="stat-value">{{summary.routeDistance || 0}}km</text><text class="stat-label">地点连接距离</text></view>
   </view>
 
-  <empty-state wx:if="{{!loading && !memories.length}}" emoji="📊" title="报告还没有数据" copy="我们没有自动填充假步数、假心情或假地点。记录后，这里才会计算。" buttonText="去记录第一件事" bind:action="startRecord" />
+  <empty-state wx:if="{{!loading && !memories.length}}" emoji="📊" title="报告还没有数据" copy="记录之后，这里会慢慢丰富起来。" buttonText="去记录第一件事" bind:action="startRecord" />
 
   <block wx:if="{{memories.length}}">
-    <view class="section-title"><text class="section-title__main">六片土地的记忆分布</text><text class="section-title__hint">纯统计</text></view>
+    <view class="section-title"><text class="section-title__main">记忆分布</text><text class="section-title__hint">纯统计</text></view>
     <view class="distribution-card paper-card">
       <view wx:for="{{categoryBars}}" wx:key="key" class="distribution-row">
         <view class="distribution-label"><text>{{item.emoji}} {{item.name}}</text><text class="text-strong">{{item.count}}</text></view>
@@ -40,10 +40,10 @@
     </view>
 
     <view class="section-title"><text class="section-title__main">行为成长画像</text><text class="section-title__hint">估算结果</text></view>
-    <view class="radar-card paper-card"><canvas type="2d" id="radarCanvas" class="radar-canvas"></canvas><text class="radar-note">画像由分类比例、记忆数量、目标完成和情绪记录计算，不属于心理评估。</text></view>
+    <view class="radar-card paper-card"><canvas type="2d" id="radarCanvas" class="radar-canvas"></canvas><text class="radar-note">根据记录与目标估算，不属于心理评估。</text></view>
   </block>
 
-  <view class="data-source-note"><text>🧾</text><text>事实层：记录数量、日期、地点、时长、目标；推断层：成长画像、叙事总结。两层在界面中始终明确标注。</text></view>
+
 
   <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">📊</text><text class="loading-text">正在整理真实数据…</text></view></view>
 </view>

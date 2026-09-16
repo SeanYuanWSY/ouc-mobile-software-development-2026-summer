@@ -1,0 +1,34 @@
+<view class="{{experienceClass}} page page--no-tab inbox-page">
+  <view class="nav-header"><button class="nav-back" bindtap="goBack">‹</button><text class="nav-title__brand">灵感收件箱</text></view>
+  <view class="inbox-intro"><text class="inbox-heading">把电脑上的成果，带回小岛。</text><text>助手先整理，你决定留下什么。</text></view>
+  <button class="secondary-button" bindtap="openRelay">发起电脑接力 · 查看任务结果 ↗</button>
+  <view wx:if="{{error}}" class="paper-card inbox-card"><text>{{error}}</text><button class="secondary-button" bindtap="refresh">刷新</button></view>
+  <view wx:if="{{!error && !drafts.length}}" class="paper-card inbox-card empty"><text class="inbox-heading">还没有新来信</text><text>连接助手后，让它把今天的收获发过来。</text></view>
+  <block wx:if="{{!editing}}"><view wx:for="{{drafts}}" wx:key="id" class="paper-card inbox-card">
+    <text class="inbox-label">AI 草稿 · {{item.connectionName}} · {{item.draft.kind === 'memory' ? '记忆' : '目标'}}</text>
+    <text class="inbox-heading">{{item.draft.title}}</text><text class="inbox-content">{{item.draft.content}}</text>
+    <text wx:if="{{item.draft.kind === 'goal'}}">目标：{{item.draft.target}} {{item.draft.unit}}</text>
+    <text wx:else>{{item.draft.date}}</text>
+    <view class="inbox-actions"><button class="secondary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="dismiss">忽略</button><button class="primary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="edit">查看并保存</button></view>
+  </view></block>
+  <view wx:if="{{editing}}" class="paper-card inbox-card editor">
+    <text class="inbox-heading">确认这份{{editing.kind === 'memory' ? '记忆' : '目标'}}</text>
+    <text>标题</text><input class="input" value="{{editing.title}}" maxlength="60" data-field="title" bindinput="onEdit"/>
+    <block wx:if="{{editing.kind === 'memory'}}"><text>正文</text><textarea class="input" auto-height value="{{editing.content}}" maxlength="3000" data-field="content" bindinput="onEdit"/><text>日期</text><picker mode="date" value="{{editing.date}}" bindchange="onDate"><view class="input">{{editing.date}} ▾</view></picker></block>
+    <block wx:else><text>目标数量</text><input class="input" type="number" value="{{editing.target}}" data-field="target" bindinput="onEdit"/><text>单位</text><input class="input" value="{{editing.unit}}" maxlength="10" data-field="unit" bindinput="onEdit"/></block>
+    <text class="inbox-label">请确认内容属实。保存后会保留 AI 辅助标记。</text>
+    <view class="inbox-actions"><button class="secondary-button" disabled="{{busy}}" bindtap="cancelEdit">取消</button><button class="primary-button" loading="{{busy}}" disabled="{{busy}}" bindtap="accept">确认保存</button></view>
+  </view>
+  <button class="secondary-button" bindtap="toggleConnections">{{showConnections ? '收起连接' : '连接我的助手'}} ▾</button>
+  <view wx:if="{{showConnections}}" class="paper-card inbox-card">
+    <text class="inbox-heading">我的助手</text><text class="inbox-label">电脑端通过 MCP 连接。每个连接有效期30天，最多5个。</text>
+    <view wx:for="{{connections}}" wx:key="id" class="connection-row"><view><text>{{item.name}}</text><text class="inbox-label">{{item.workJobs ? '接收手机任务 · ' : ''}}{{item.readRecent ? '可读近期内容' : '不读近期记录'}}</text></view><button class="secondary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="revoke">断开</button></view>
+    <text>新连接名称</text><input class="input" value="{{name}}" maxlength="30" placeholder="例如：我的电脑助手" bindinput="onName"/>
+    <view class="connection-row"><text>允许读取近期记录与目标</text><switch checked="{{readRecent}}" bindchange="onReadChange" color="#356f4d"/></view>
+    <view class="connection-row"><view><text>允许接收手机任务</text><text class="inbox-label">仅限你指定的资料与任务</text></view><switch checked="{{workJobs}}" disabled="{{!supportsJobs}}" bindchange="onJobsChange" color="#356f4d"/></view>
+    <text wx:if="{{!supportsJobs}}" class="inbox-label">云端电脑接力尚未更新，现有连接不会自动获得新权限。</text>
+    <button class="primary-button" loading="{{busy}}" disabled="{{busy || !!error}}" bindtap="connect">创建连接凭证</button>
+    <view wx:if="{{token}}" class="token-box"><text>凭证仅显示这一次，请放入自己的电脑端配置，勿发给他人。离开页面后隐藏；遗失可断开重建。</text><button class="secondary-button" bindtap="copyToken">复制连接凭证</button><button class="secondary-button" bindtap="clearToken">已配置，隐藏凭证</button></view>
+    <text class="inbox-label">断开后助手立即失去访问权限，已收到的草稿仍由你处理。</text>
+  </view>
+</view>

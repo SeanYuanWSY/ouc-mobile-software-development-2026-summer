@@ -1,49 +1,54 @@
-<view class="page page--no-tab settings-page">
-  <view class="nav-header">
-    <button class="nav-back" bindtap="goBack">‹</button>
-    <view class="nav-title"><text class="nav-title__brand">设置与真实接口</text><text class="nav-title__sub">把“能演示”升级成“能真实使用”</text></view>
+<view class="{{experienceClass}} page page--no-tab settings-page">
+  <view class="nav-header"><button class="nav-back" bindtap="goBack">‹</button><text class="nav-title__brand">设置</text></view>
+  <view class="section-title">使用方式</view>
+  <view class="paper-card data-card">
+    <view class="experience-selector"><button wx:for="{{experienceModes}}" wx:key="id" class="experience-option {{experienceMode === item.id ? 'is-selected' : ''}}" data-mode="{{item.id}}" bindtap="changeExperience">{{item.label}}</button></view>
+    <text class="settings-note">切换界面，不改变你的资料和记录。</text>
+    <view class="data-row"><text>减少动态效果</text><switch checked="{{reduceMotion}}" bindchange="changeMotion" color="#23634e" aria-label="减少动态效果"/></view>
   </view>
-
-  <view class="section-title"><text class="section-title__main">我的手账信息</text><text class="section-title__hint">由你填写</text></view>
-  <view class="profile-card paper-card">
-    <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"><image src="{{profile.avatarUrl}}" mode="aspectFill" /><text>更换头像</text></button>
-    <view class="profile-fields">
-      <label class="field"><text class="field__label">昵称</text><input class="input" type="nickname" value="{{profile.nickname}}" data-field="nickname" maxlength="24" bindinput="onProfileInput" /></label>
-      <label class="field"><text class="field__label">暑假寄语</text><textarea class="textarea profile-motto" value="{{profile.motto}}" data-field="motto" maxlength="120" bindinput="onProfileInput" /></label>
+  <view wx:if="{{loadError}}" class="paper-card data-card"><text class="settings-note">{{loadError}}</text><button class="secondary-button" bindtap="reconnectCloud" loading="{{reconnectingCloud}}" disabled="{{reconnectingCloud}}">重新连接</button></view>
+  <view class="section-title">我的资料</view>
+  <button class="secondary-button" bindtap="openInbox">灵感收件箱 · 连接电脑助手 ›</button>
+  <view class="paper-card profile-card">
+    <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"><image src="{{profile.avatarUrl}}" mode="aspectFill"/><text>更换头像</text></button>
+    <view class="field"><text class="field__label">昵称</text><input class="input" type="nickname" value="{{profile.nickname}}" data-field="nickname" bindinput="onProfileInput" maxlength="30"/></view>
+    <view class="field"><text class="field__label">签名</text><input class="input" value="{{profile.motto}}" data-field="motto" bindinput="onProfileInput" maxlength="80"/></view>
+    <button class="primary-button" loading="{{savingProfile}}" disabled="{{savingProfile}}" bindtap="saveProfile">保存资料</button>
+  </view>
+  <view class="section-title">AI 助手 · 可选</view>
+  <view class="paper-card ai-card">
+    <view class="field"><text class="field__label">服务商</text><picker range="{{providers}}" range-key="name" value="{{providerIndex}}" bindchange="onProviderChange"><view class="input">{{providers[providerIndex].name}} ▾</view></picker></view>
+    <block wx:if="{{providerId !== 'custom'}}">
+      <view class="field"><text class="field__label">文字模型</text><picker range="{{models}}" value="{{modelIndex}}" bindchange="onModelChange"><view class="input">{{models[modelIndex]}} ▾</view></picker></view>
+      <view class="field"><text class="field__label">识图模型</text><picker range="{{visionModels}}" value="{{visionIndex}}" bindchange="onVisionChange"><view class="input">{{visionModels[visionIndex]}} ▾</view></picker></view>
+    </block>
+    <block wx:else>
+      <view class="field"><text class="field__label">接口地址</text><input class="input" value="{{endpoint}}" placeholder="https://api.example.com/v1" data-field="endpoint" bindinput="onCustomInput" maxlength="500"/></view>
+      <view class="field"><text class="field__label">文字模型 ID</text><input class="input" value="{{customModel}}" data-field="model" bindinput="onCustomInput" maxlength="120"/></view>
+      <view class="field"><text class="field__label">识图模型 ID · 可不填</text><input class="input" value="{{customVisionModel}}" data-field="visionModel" bindinput="onCustomInput" maxlength="120"/></view>
+      <text class="settings-note">支持 OpenAI Chat Completions 格式。更换服务商或地址后，需重新填写 Key。</text>
+    </block>
+    <view class="field"><text class="field__label">API Key · 本次使用</text><view class="key-row"><input class="input key-input" value="{{tempApiKey}}" password="{{!showKey}}" bindinput="onApiKeyInput" placeholder="填写你自己的 Key" maxlength="300"/><button class="key-toggle" bindtap="toggleKey">{{showKey ? '隐藏' : '显示'}}</button></view></view>
+    <view class="key-actions"><button class="secondary-button" bindtap="clearKey">清除 Key</button><button class="primary-button" loading="{{testingAI}}" disabled="{{testingAI}}" bindtap="testAI">测试连接</button></view>
+    <view wx:if="{{connection}}" class="connection {{connection.type}}">{{connection.text}}</view>
+    <text class="settings-note">AI 费用由你的 API 账户承担。基础记录无需 Key。</text>
+    <button class="ghost-button settings-disclosure" bindtap="toggleAiHelp">{{showAiHelp ? '收起说明 ▴' : '使用说明 ▾'}}</button>
+    <text wx:if="{{showAiHelp}}" class="settings-note">服务商和模型选择会保留在本机；Key 目前只在本次运行中使用。AI 调用前会显示接收数据的地址，请只使用你信任的接口。测试连接只验证文字模型，识图需在记录页单独使用。</text>
+  </view>
+  <view class="section-title">记录保存</view>
+  <view class="paper-card data-card"><text class="settings-note">{{dataMode === 'cloud' ? '记忆、目标和资料保存在你的微信账号下，关闭小程序后仍会保留。' : '当前记录保存在本机，清理小程序数据前请先备份。'}}</text><text wx:if="{{dataMode !== 'cloud'}}" class="settings-note">本机记录不会自动合并到云端。</text></view>
+  <button class="secondary-button settings-disclosure" bindtap="toggleAdvanced">权限与备份 {{showAdvanced ? '▴' : '▾'}}</button>
+  <block wx:if="{{showAdvanced}}">
+    <view class="permission-list">
+      <button class="paper-card permission-card" bindtap="authorizeStep" loading="{{syncingStep}}" disabled="{{syncingStep}}"><view class="permission-icon">👟</view><view><text class="text-strong">微信步数</text></view><text>{{stepStatus}} ›</text></button>
+      <button class="paper-card permission-card" bindtap="authorizeLocation"><view class="permission-icon">📍</view><view><text class="text-strong">位置权限</text></view><text>{{locationStatus}} ›</text></button>
     </view>
-    <button class="secondary-button" loading="{{savingProfile}}" bindtap="saveProfile">保存个人信息</button>
-  </view>
-
-  <view class="section-title"><text class="section-title__main">DeepSeek AI 引擎</text><text class="section-title__hint">默认 V4 Flash</text></view>
-  <view class="ai-card paper-card">
-    <view class="engine-head"><view class="engine-logo">深</view><view><text class="text-strong">DeepSeek</text><text class="text-small">使用你自己的 API 账户</text></view><text class="status-pill {{cloudReady ? '' : 'status-pill--warning'}}">{{cloudReady ? '云开发已连接' : '未连接'}}</text></view>
-    <view class="activation-panel">
-      <view class="activation-head"><view><text class="activation-title">使用你自己的 DeepSeek</text><text class="activation-sub">填写个人 API Key，测试成功后即可使用 AI</text></view><text class="activation-state">{{connection && connection.type === 'success' ? '已验证' : '待验证'}}</text></view>
-      <text class="text-small">在 DeepSeek 开放平台创建 API Key，并确认 API 账户余额可用。聊天账号登录不等于已开通 API 额度。</text>
-      <text class="text-small">AI 调用费用由你的 DeepSeek 账户承担；不填写 Key，也可以记录、查看和管理自己的手账。</text>
-      <view wx:if="{{!cloudReady}}" class="blocker-note"><text class="blocker-note__label">AI 服务未连接</text><text>请稍后重试，基础记录功能仍可使用。</text></view>
+    <view class="paper-card data-card">
+      <view wx:if="{{dataMode !== 'cloud'}}" class="data-row"><view><text class="text-strong">示例数据</text></view><button class="secondary-button" bindtap="{{demoImported ? 'clearDemo' : 'importDemo'}}">{{demoImported ? '移除' : '导入'}}</button></view>
+      <view class="data-row"><view><text class="text-strong">本机备份</text><text class="text-small">不含 API Key</text></view><button class="secondary-button" bindtap="exportData">导出</button></view>
+      <view class="data-row"><view><text class="text-strong">恢复本机备份</text></view><button class="secondary-button" bindtap="importData">导入</button></view>
+      <view class="data-row"><view><text class="text-strong">隐私说明</text></view><button class="secondary-button" bindtap="openPrivacy">查看</button></view>
     </view>
-    <label class="field"><text class="field__label">模型</text><picker mode="selector" range="{{models}}" range-key="name" value="{{modelIndex}}" bindchange="onModelChange"><view class="picker-field">{{models[modelIndex].name}} · {{models[modelIndex].note}}</view></picker></label>
-    <label class="field"><text class="field__label">你的 DeepSeek API Key <text class="field__hint">仅本次运行</text></text><view class="key-row"><input class="input key-input" password="{{!showKey}}" value="{{tempApiKey}}" maxlength="300" placeholder="粘贴你自己创建的 API Key" bindinput="onApiKeyInput" /><button class="key-toggle" bindtap="toggleKey">{{showKey ? '隐藏' : '显示'}}</button></view></label>
-    <view class="key-actions"><button class="ghost-button button--small" bindtap="clearKey">清除 Key</button><button class="primary-button button--small" loading="{{testingAI}}" bindtap="testAI">测试连接</button></view>
-    <view wx:if="{{connection}}" class="connection {{connection.type}}"><text>{{connection.type === 'success' ? '✓' : connection.type === 'error' ? '!' : '…'}}</text><text>{{connection.text}}</text></view>
-    <view class="security-note"><text>🔐</text><view><text class="text-strong">Key 与费用</text><text class="text-small">每个人使用自己的 Key，应用不主动写入本地存储、数据库或日志。请求经腾讯云转发给 DeepSeek；清除 Key 后停止后续 AI 调用，已经发出的请求可能仍计费。</text></view></view>
-  </view>
-
-  <view class="section-title"><text class="section-title__main">微信真实数据接口</text><text class="section-title__hint">缺少授权时显示为空</text></view>
-  <view class="permission-list">
-    <button class="permission-card paper-card" bindtap="authorizeStep"><view class="permission-icon">👟</view><view><text class="text-strong">微信运动步数</text><text class="text-small">wx.getWeRunData + CloudID 云端解密</text></view><text>{{stepStatus}} ›</text></button>
-    <button class="permission-card paper-card" bindtap="authorizeLocation"><view class="permission-icon">📍</view><view><text class="text-strong">真实定位与地图</text><text class="text-small">wx.getLocation / wx.chooseLocation / map</text></view><text>{{locationStatus}} ›</text></button>
-  </view>
-  <view class="data-source-note"><text>📱</text><text>微信步数通常需要真实 AppID、真机、用户授权和已部署云函数；开发者工具中的模拟值不能当作最终验收证据。</text></view>
-
-  <view class="section-title"><text class="section-title__main">数据与演示模式</text><text class="section-title__hint">演示和真实数据分开</text></view>
-  <view class="data-card paper-card">
-    <view class="data-row"><view><text class="text-strong">明确标注的演示数据</text><text class="text-small">{{dataMode === 'cloud' ? '云模式不导入示例，避免混入真实账号' : '只用于无真实记录时展示页面完成度'}}</text></view><button wx:if="{{!demoImported}}" class="secondary-button button--small" bindtap="importDemo" disabled="{{dataMode === 'cloud'}}">导入</button><button wx:else class="danger-button button--small" bindtap="clearDemo" disabled="{{dataMode === 'cloud'}}">移除</button></view>
-    <view class="data-row"><view><text class="text-strong">导出本机备份</text><text class="text-small">复制 JSON 到剪贴板</text></view><button class="ghost-button button--small" bindtap="exportData">导出</button></view>
-    <view class="data-row"><view><text class="text-strong">从剪贴板恢复</text><text class="text-small">覆盖本机记忆与目标</text></view><button class="ghost-button button--small" bindtap="importData">导入</button></view>
-    <view class="data-row"><view><text class="text-strong">隐私保护说明</text><text class="text-small">权限用途、Key 安全和数据边界</text></view><button class="ghost-button button--small" bindtap="openPrivacy">查看</button></view>
-  </view>
-
-  <view class="environment-card paper-card"><text class="environment-title">当前运行环境</text><text>数据模式：{{dataMode === 'cloud' ? '微信云开发' : '本机存储回退'}}</text><text>云开发：{{cloudReady ? '初始化成功' : '未连接'}}</text><text wx:if="{{cloudErrorSummary}}">说明：{{cloudErrorSummary}}</text></view>
+    <view class="paper-card environment-card"><text>{{dataMode === 'cloud' ? (cloudReady ? '云服务已连接' : '云服务暂未连接，记录仍在云端') : '正在使用本机存储'}}</text><text wx:if="{{cloudErrorSummary}}">{{cloudErrorSummary}}</text><button wx:if="{{dataMode === 'cloud' && !cloudReady}}" class="secondary-button" bindtap="reconnectCloud" loading="{{reconnectingCloud}}" disabled="{{reconnectingCloud}}">重新连接</button></view>
+  </block>
 </view>

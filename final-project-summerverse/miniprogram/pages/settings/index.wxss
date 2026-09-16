@@ -1,4 +1,8 @@
 .profile-card,.ai-card,.data-card { padding:26rpx 22rpx; }
+.settings-note { display:block; color:var(--muted); font-size:22rpx; line-height:1.65; margin:12rpx 0; overflow-wrap:anywhere; }
+button.settings-disclosure { width:100%; margin:22rpx 0; }
+.ai-card .input { overflow-wrap:anywhere; }
+button.key-toggle { display:flex; align-items:center; justify-content:center; }
 button.avatar-button { width:auto; display:flex; align-items:center; gap:16rpx; margin-bottom:22rpx; text-align:left; }
 .avatar-button image { width:96rpx; height:96rpx; border:7rpx solid #fff9ec; border-radius:30rpx; box-shadow:0 8rpx 20rpx rgba(66,50,31,.13); }
 .avatar-button text { color:var(--green); font-size:22rpx; }

@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
@@ -24,11 +25,13 @@ function openingLine(memories, stage) {
   return `我记得你最近留下了「${latest.title}」。花园又长大了一点，要聊聊这件事吗？`;
 }
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
-    memories: [],
-    goals: [],
+    memoryCount: 0,
+    loadError: '',
+    chatError: '',
+    showGarden: false,
     stage: 0,
     stageAsset: TWIN_ASSETS[0],
     stageLabel: '初生状态',
@@ -43,18 +46,23 @@ Page({
     scrollIntoView: ''
   },
 
-  onLoad() { this.refresh(); },
+  onLoad() { this._alive = true; this._refreshEpoch = 0; this._chatEpoch = 0; this._memories = []; this.refresh(); },
+  onUnload() { this._alive = false; this._refreshEpoch += 1; this._chatEpoch += 1; },
   onShow() {
     this.getTabBar?.().setSelected(4);
-    if (!this.data.loading) this.refresh(false);
+    if (!this.data.loading && !this.data.sending) this.refresh(false);
   },
   onPullDownRefresh() { this.refresh().finally(() => wx.stopPullDownRefresh()); },
 
   async refresh(showLoading = true) {
+    if (this.data.sending) return;
+    const epoch = ++this._refreshEpoch;
     if (showLoading) this.setData({ loading: true });
     try {
       const [memoryRes, goalRes] = await Promise.all([repository.listMemories(), repository.listGoals()]);
+      if (!this._alive || epoch !== this._refreshEpoch) return;
       const memories = realMemories(memoryRes.data || []);
+      this._memories = memories;
       const goals = realGoals(goalRes.data || []);
       let chatMessages = repository.getChatHistory();
       if (!chatMessages.length) {
@@ -63,8 +71,7 @@ Page({
       const stage = getTwinStage(memories.length, chatMessages.filter((item) => item.role === 'user').length);
       const labels = ['初生状态', '成长状态', '成熟状态'];
       this.setData({
-        memories,
-        goals,
+        memoryCount: memories.length,
         stage,
         stageAsset: TWIN_ASSETS[stage],
         stageLabel: labels[stage],
@@ -74,12 +81,11 @@ Page({
         traits: makeTraits(memories, goals),
         chatMessages,
         aiReady: Boolean(getApp().globalData.aiReady),
-        loading: false
+        loading: false,
+        loadError: ''
       });
     } catch (error) {
-      console.error(error);
-      this.setData({ loading: false });
-      wx.showToast({ title: '花园暂时没有响应', icon: 'none' });
+      if (this._alive && epoch === this._refreshEpoch) this.setData({ loading: false, loadError: error.message || '记忆暂时没有读取成功，请重试' });
     }
   },
 
@@ -88,32 +94,36 @@ Page({
   async sendChat() {
     const question = this.data.chatInput.trim();
     if (!question || this.data.sending) return;
+    if (this.data.loading || this.data.loadError) { this.setData({ chatError: '先成功读取记忆，再开始聊天。' }); return; }
+    if (!this._memories.length) { this.setData({ chatError: '还没有真实记忆，可以先记一件事，或去资料工作台提问。' }); return; }
+    const epoch = ++this._chatEpoch;
     const userMessage = { id: `user-${Date.now()}`, role: 'user', content: question };
     const pending = { id: `pending-${Date.now()}`, role: 'twin', content: '我正在翻找与你问题有关的真实记忆…', pending: true };
-    const messages = [...this.data.chatMessages, userMessage, pending];
-    this.setData({ chatMessages: messages, chatInput: '', sending: true, scrollIntoView: pending.id });
+    const messages = [...this.data.chatMessages.slice(-38), userMessage, pending];
+    this.setData({ chatMessages: messages, chatInput: '', sending: true, chatError: '', scrollIntoView: pending.id });
     try {
-      const answer = await ai.chat(question, this.data.memories);
+      const answer = await ai.chat(question, this._memories);
+      if (!this._alive || epoch !== this._chatEpoch) return;
       const finalMessages = messages.map((item) => item.id === pending.id
         ? { id: `twin-${Date.now()}`, role: 'twin', content: typeof answer === 'string' ? answer : answer.answer || JSON.stringify(answer) }
         : item);
       this.setData({ chatMessages: finalMessages, sending: false, aiReady: Boolean(getApp().globalData.aiReady), scrollIntoView: finalMessages[finalMessages.length - 1].id });
       repository.saveChatHistory(finalMessages);
     } catch (error) {
-      const finalMessages = messages.map((item) => item.id === pending.id
-        ? { id: `twin-${Date.now()}`, role: 'twin', content: `这次没有连接成功：${error.message || '未知错误'}。你的真实记忆没有丢失。` }
-        : item);
-      this.setData({ chatMessages: finalMessages, sending: false, aiReady: Boolean(getApp().globalData.aiReady) });
-      repository.saveChatHistory(finalMessages);
+      if (!this._alive || epoch !== this._chatEpoch) return;
+      this.setData({ chatMessages: messages.slice(0, -2), chatInput: this.data.chatInput || question, sending: false, chatError: error.message || '本次没有收到回复，可以手动重试', aiReady: Boolean(getApp().globalData.aiReady) });
     }
   },
 
   askQuick(event) {
+    if (this.data.sending) return;
     this.setData({ chatInput: event.currentTarget.dataset.question });
     this.sendChat();
   },
 
   openTimePhone() { wx.navigateTo({ url: '/pages/time-phone/index' }); },
+  toggleGarden() { this.setData({ showGarden: !this.data.showGarden }); },
+  openMaterials() { wx.navigateTo({ url: '/pages/materials/index?mode=ask' }); },
   openParallel() { wx.navigateTo({ url: '/pages/parallel/index' }); },
   openDirector() { wx.navigateTo({ url: '/pages/director/index' }); },
   openReport() { wx.navigateTo({ url: '/pages/report/index' }); },
@@ -123,4 +133,4 @@ Page({
   onShareAppMessage() {
     return { title: '我的 SummerTwin 正住在一座由真实记忆长出的花园里', path: '/pages/twin/index' };
   }
-});
+}));

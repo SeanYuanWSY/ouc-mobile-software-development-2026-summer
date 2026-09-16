@@ -1,0 +1,27 @@
+<view class="page page--no-tab focus-page {{experienceClass}}">
+  <view class="nav-header"><button class="nav-back" bindtap="goBack" aria-label="返回">‹</button><view class="nav-title"><text class="nav-title__brand">专注一件事</text><text class="nav-title__sub">先把眼前的一步走完。</text></view></view>
+  <view wx:if="{{error}}" class="focus-message focus-error"><text>{{error}}</text><button bindtap="refresh" disabled="{{busy || loading}}">重新读取任务</button></view>
+  <text wx:if="{{notice}}" class="focus-notice">{{notice}}</text>
+  <view wx:if="{{loading}}" class="focus-empty"><text>正在读取已保存的任务…</text></view>
+  <block wx:else>
+    <view wx:if="{{workspaces.length}}" class="focus-selectors">
+      <picker range="{{workspaces}}" range-key="title" value="{{workspaceIndex}}" bindchange="selectWorkspace" disabled="{{busy || sessionState === 'running'}}"><view class="focus-picker"><text>资料</text><text class="focus-picker__value">{{workspaceTitle || '选择资料'}}⌄</text></view></picker>
+      <picker wx:if="{{tasks.length}}" range="{{tasks}}" range-key="title" value="{{taskIndex}}" bindchange="selectTask" disabled="{{busy || sessionState === 'running'}}"><view class="focus-picker"><text>任务</text><text class="focus-picker__value">{{task ? task.title : '选择任务'}}⌄</text></view></picker>
+    </view>
+    <view wx:if="{{task}}" class="focus-card">
+      <text class="focus-eyebrow">{{task.done ? '已完成' : '此刻只关注'}}</text>
+      <text class="focus-task-title">{{task.title}}</text>
+      <text wx:if="{{task.detail}}" class="focus-detail">{{task.detail}}</text>
+      <view class="focus-clock" aria-label="{{'剩余时间 ' + clock}}">{{clock}}</view>
+      <text class="focus-state">{{task.done ? '你已确认完成这项任务' : sessionState === 'running' ? '按设定时间倒计时' : sessionState === 'paused' ? '已暂停' : sessionState === 'finished' ? '时间到了，看看完成了什么' : '给这一步留一点时间'}}</text>
+      <view class="focus-durations"><button wx:for="{{durations}}" wx:key="*this" class="focus-duration {{minutes === item ? 'is-selected' : ''}}" data-minutes="{{item}}" bindtap="selectDuration" disabled="{{busy || task.done || sessionState === 'running' || sessionState === 'paused'}}" aria-label="{{item + '分钟'}}">{{item}} 分钟</button></view>
+      <button wx:if="{{!task.done}}" class="primary-button focus-primary" bindtap="toggleTimer" disabled="{{busy}}">{{sessionState === 'running' ? '暂停一下' : sessionState === 'paused' ? '继续专注' : sessionState === 'finished' ? '再来一轮' : '开始专注'}}</button>
+      <button wx:if="{{!task.done && (sessionState === 'running' || sessionState === 'paused')}}" class="focus-link" bindtap="resetTimer" disabled="{{busy}}">结束本次计时</button>
+      <button wx:if="{{!task.done}}" class="secondary-button focus-complete" bindtap="completeTask" loading="{{busy}}" disabled="{{busy}}">我已完成这项任务</button>
+      <button wx:if="{{task.provenance}}" class="focus-link" bindtap="toggleProvenance">{{provenanceOpen ? '收起任务出处' : '查看任务出处'}}</button>
+      <text wx:if="{{provenanceOpen}}" class="focus-provenance" selectable="{{true}}">{{task.provenance}}</text>
+    </view>
+    <view wx:else class="focus-empty"><text class="focus-task-title">{{workspaces.length ? '先确认一项任务' : '从一份资料开始'}}</text><text class="focus-detail">把资料里的下一步加入任务后，就可以在这里专注完成。</text><button class="primary-button" bindtap="openMaterials">打开资料工作台</button></view>
+    <text class="focus-footnote">计时结束不会自动完成任务，也不计入学习时长。离开页面后暂停刷新，回来按截止时间恢复。</text>
+  </block>
+</view>

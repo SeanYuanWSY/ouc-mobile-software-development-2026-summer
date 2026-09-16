@@ -5,6 +5,8 @@ const { CATEGORIES, CATEGORY_LIST, MOODS, ISLAND_ASSETS, DEFAULT_PROFILE, STORAG
 const { buildSummary, categoryCounts } = require('../../utils/stats');
 const { formatDate, friendlyDate } = require('../../utils/date');
 const storage = require('../../utils/storage');
+const materials = require('../../services/materials');
+const { withExperience } = require('../../utils/experience');
 
 const HOTSPOTS = {
   study: { x: 28, y: 23 },
@@ -27,11 +29,15 @@ function weatherMeta(code, isDay = true) {
   return { icon: '🌤️', label: '天气' };
 }
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     profile: DEFAULT_PROFILE,
-    memories: [],
+    memoryCount: 0,
+    workspaces: [],
+    libraryError: '',
+    loadError: '',
+    libraryLoading: false,
     latestMemories: [],
     goals: [],
     summary: {},
@@ -51,34 +57,70 @@ Page({
     showOnboarding: false,
     onboardingStep: 0,
     onboardingSlides: [
-      { emoji: '🏝️', title: '真实记忆，会长成一座岛', copy: '每保存一件真实发生的事，小岛才会出现新的建筑、道路与灯光。' },
+      { emoji: '🏝️', title: '真实记忆，会长成一座岛', copy: '随着记录积累，小岛会经历初生、成长和成熟三个阶段。' },
       { emoji: '👟', title: '授权以后，才读取真实数据', copy: '步数、位置、照片和麦克风都只在你主动点击时请求；失败时不会补上模拟数字。' },
       { emoji: '🌱', title: 'AI 帮你理解，但不替你编造', copy: 'SummerTwin 会把事实、推测与生成故事分开显示，所有草稿都由你确认后保存。' }
     ]
   },
 
   onLoad() {
+    this._alive = true;
+    this._refreshEpoch = 0;
+    this._libraryEpoch = 0;
     this.setData({ showOnboarding: !storage.get(STORAGE_KEYS.ONBOARDED, false) });
     this.refresh();
+    this.refreshLibrary();
   },
 
   onShow() {
     this.getTabBar?.().setSelected(0);
-    if (!this.data.loading) this.refresh(false);
+    if (!this.data.loading) { this.refresh(false); this.refreshLibrary(); }
   },
+  onUnload() { this._alive = false; this._refreshEpoch += 1; this._libraryEpoch += 1; },
+
+  changeExperience(event) {
+    try { this.setExperienceOptions({ mode: event.currentTarget.dataset.mode }); }
+    catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
+  },
+
+  async refreshLibrary() {
+    const epoch = ++this._libraryEpoch;
+    this.setData({ libraryLoading: true, libraryError: '' });
+    try {
+      const workspaces = await materials.list();
+      if (this._alive && epoch === this._libraryEpoch) this.setData({ workspaces: workspaces.slice(0, 3).map((w) => ({ id: w.id, title: w.title, sourceCount: w.sourceCount, taskCount: w.taskCount })), libraryLoading: false });
+    } catch (error) {
+      if (this._alive && epoch === this._libraryEpoch) this.setData({ libraryLoading: false, libraryError: error.message || '资料暂时没有读到，点此重试' });
+    }
+  },
+
+  openWorkspace(event) {
+    const id = event.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/materials/index?workspaceId=${encodeURIComponent(id)}` });
+  },
+
+  openStudio(event) {
+    const mode = event.currentTarget.dataset.mode;
+    wx.navigateTo({ url: `/pages/materials/index?mode=${encodeURIComponent(mode)}` });
+  },
+
+  openFocus() { wx.navigateTo({ url: '/pages/focus/index' }); },
+  openRelay() { wx.navigateTo({ url: '/pages/relay/index' }); },
 
   onPullDownRefresh() {
     this.refresh().finally(() => wx.stopPullDownRefresh());
   },
 
   async refresh(showLoading = true) {
-    if (showLoading) this.setData({ loading: true });
+    const epoch = ++this._refreshEpoch;
+    if (showLoading) this.setData({ loading: true, loadError: '' });
     try {
       const [memoryRes, goalRes, profileRes] = await Promise.all([
         repository.listMemories(),
         repository.listGoals(),
         repository.getProfile()
       ]);
+      if (!this._alive || epoch !== this._refreshEpoch) return;
       const memories = realMemories(memoryRes.data || []);
       const goals = realGoals(goalRes.data || []);
       const profile = profileRes.data || DEFAULT_PROFILE;
@@ -93,14 +135,13 @@ Page({
       }));
       const latestMoodMemory = memories.find((item) => MOODS[item.mood]);
       const categoryMap = categories.reduce((map, item) => { map[item.key] = item; return map; }, {});
-      const latestMemories = memories.slice(0, 3).map((item) => ({ ...item, categoryMeta: categoryMap[item.category] || CATEGORIES.life }));
+      const latestMemories = memories.slice(0, 3).map((item) => ({ _id: item._id, title: item.title, date: item.date, time: item.time, location: item.location ? { name: item.location.name } : null, categoryMeta: categoryMap[item.category] || CATEGORIES.life }));
       const stepProgress = step ? Math.min(100, Math.round((Number(step.steps) || 0) / 100)) : 0;
       const stage = summary.islandStage;
       const stageLabels = ['初生小岛', '成长中的岛', '丰盈夜岛'];
       this.setData({
-        memories,
+        memoryCount: memories.length,
         latestMemories,
-        goals,
         profile,
         summary,
         categories,
@@ -113,12 +154,12 @@ Page({
         mood: latestMoodMemory ? MOODS[latestMoodMemory.mood] : null,
         dataMode: memoryRes.mode,
         aiReady: Boolean(getApp().globalData.aiReady),
-        loading: false
+        loading: false,
+        loadError: '',
+        todayLabel: friendlyDate(formatDate())
       });
     } catch (error) {
-      console.error(error);
-      this.setData({ loading: false });
-      wx.showToast({ title: '读取小岛失败', icon: 'none' });
+      if (this._alive && epoch === this._refreshEpoch) this.setData({ loading: false, loadError: error.message || '记录暂时没有读到，点此重试' });
     }
   },
 
@@ -158,6 +199,10 @@ Page({
 
   openReport() {
     wx.navigateTo({ url: '/pages/report/index' });
+  },
+
+  openMaterials() {
+    wx.navigateTo({ url: '/pages/materials/index' });
   },
 
   openSettings() {
@@ -202,8 +247,8 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: `我的暑假小岛已经收集了 ${this.data.memories.length} 颗真实记忆`,
+      title: `我的暑假小岛已经收集了 ${this.data.memoryCount} 颗真实记忆`,
       path: '/pages/island/index'
     };
   }
-});
+}));

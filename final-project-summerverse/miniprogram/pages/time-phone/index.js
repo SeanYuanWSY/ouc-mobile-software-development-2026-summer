@@ -1,10 +1,11 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
 const { formatDate, friendlyDate } = require('../../utils/date');
 const { backOrHome } = require('../../utils/navigation');
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memories: [],
@@ -67,4 +68,4 @@ Page({
 
   useQuestion(event) { this.setData({ question: event.currentTarget.dataset.question }); },
   goBack() { backOrHome(); }
-});
+}));

@@ -8,7 +8,11 @@ const ACTION_CREDITS = Object.freeze({
   parallel: 3,
   insight: 3,
   director: 4,
-  visionMemory: 8
+  visionMemory: 8,
+  materialWebExtract: 1,
+  materialExtract: 1,
+  materialVision: 8,
+  materialsAnalyze: 4
 });
 
 function creditCost(action, model = '') {

@@ -1,9 +1,12 @@
-<view class="page twin-page">
+<view class="{{experienceClass}} page twin-page">
   <view class="twin-header">
-    <view><text class="twin-brand">SummerTwin</text><text class="twin-sub">你的暑假数字分身 · {{stageLabel}}</text></view>
+    <view><text class="twin-brand">SummerTwin</text><text class="twin-sub">{{experienceMode === 'journal' ? '你的暑假数字分身 · ' + stageLabel : '从自己的记忆里，找到一点启发。'}}</text></view>
     <button class="nav-icon-button" bindtap="openSettings">⚙️</button>
   </view>
-  <view class="status-row"><text class="status-pill {{aiReady ? '' : 'status-pill--warning'}}">{{aiReady ? 'DeepSeek 本次已验证' : 'AI 未连接 · 设置你的 Key'}}</text><text class="evidence-note">事实与推测会分开显示</text></view>
+  <view class="status-row"><text class="status-pill {{aiReady ? '' : 'status-pill--warning'}}">{{aiReady ? 'AI 已连接' : '设置 AI'}}</text><text class="evidence-note"></text></view>
+  <view wx:if="{{loadError}}" class="twin-error"><text>{{loadError}}</text><button class="secondary-button" bindtap="refresh">重试读取</button></view>
+  <button wx:if="{{experienceMode !== 'journal'}}" class="secondary-button garden-toggle" bindtap="toggleGarden">{{showGarden ? '收起记忆花园 ▴' : '看看记忆花园 ▾'}}</button>
+  <block wx:if="{{experienceMode === 'journal' || showGarden}}">
 
   <view class="garden-stage stage-{{stage}}">
     <image class="garden-image" src="{{stageAsset}}" mode="aspectFill" />
@@ -19,16 +22,17 @@
     <view class="feature-row">
       <button class="feature-card" bindtap="openTimePhone"><image src="/images/feature-time-phone-v2.jpg" mode="aspectFill" /><view><text class="feature-title">时间电话</text><text class="feature-copy">拨给过去某一天的自己</text></view></button>
       <button class="feature-card" bindtap="openParallel"><image src="/images/feature-parallel-v2.jpg" mode="aspectFill" /><view><text class="feature-title">平行暑假</text><text class="feature-copy">看看另一种选择的故事</text></view></button>
-      <button class="feature-card" bindtap="openDirector"><image src="/images/feature-director-v2.jpg" mode="aspectFill" /><view><text class="feature-title">AI 夏日导演</text><text class="feature-copy">把真实记录剪成一部片</text></view></button>
+      <button class="feature-card" bindtap="openDirector"><image src="/images/feature-director-v2.jpg" mode="aspectFill" /><view><text class="feature-title">AI 夏日导演</text><text class="feature-copy">把记录整理成故事</text></view></button>
     </view>
   </scroll-view>
+  </block>
 
-  <view class="section-title"><text class="section-title__main">和 SummerTwin 聊天</text><text class="section-title__hint">已载入 {{memories.length}} 条记忆</text></view>
+  <view class="section-title"><text class="section-title__main">聊聊最近</text><text class="section-title__hint">已载入 {{memoryCount}} 条记忆</text></view>
   <view class="chat-card paper-card">
     <scroll-view class="chat-list" scroll-y scroll-into-view="{{scrollIntoView}}" enable-back-to-top>
       <view wx:for="{{chatMessages}}" wx:key="id" id="{{item.id}}" class="chat-message {{item.role === 'user' ? 'is-user' : 'is-twin'}} {{item.pending ? 'is-pending' : ''}}">
         <image wx:if="{{item.role !== 'user'}}" class="chat-avatar" src="/images/twin-avatar-v2.jpg" mode="aspectFill" />
-        <view class="chat-bubble"><text>{{item.content}}</text><text wx:if="{{item.role !== 'user'}}" class="chat-source">{{item.pending ? '正在检索' : 'SummerTwin · 依据现有记忆'}}</text></view>
+        <view class="chat-bubble"><text>{{item.content}}</text><text wx:if="{{item.role !== 'user'}}" class="chat-source">{{item.pending ? '正在检索' : item.id === 'welcome' ? '欢迎语' : 'AI 生成'}}</text></view>
       </view>
     </scroll-view>
     <scroll-view scroll-x class="quick-question-scroll" enable-flex>
@@ -38,16 +42,20 @@
         <button class="chip" data-question="根据已有记录，给我一个下周能执行的小建议。" bindtap="askQuick">给我一个小建议</button>
       </view>
     </scroll-view>
-    <view class="chat-composer"><textarea class="chat-input" value="{{chatInput}}" placeholder="问一件只有你的暑假记忆才能回答的事…" maxlength="500" auto-height bindinput="onChatInput" /><button class="chat-send" loading="{{sending}}" bindtap="sendChat">发送</button></view>
+    <view class="chat-composer"><textarea class="chat-input" value="{{chatInput}}" placeholder="最近有什么值得回顾的事？" maxlength="500" auto-height bindinput="onChatInput" /><button class="chat-send" loading="{{sending}}" disabled="{{sending || loading}}" bindtap="sendChat">发送</button></view>
   </view>
+  <text wx:if="{{chatError}}" class="twin-error">{{chatError}}</text>
+  <button class="secondary-button garden-toggle" bindtap="openMaterials">想问通知或课件？去资料工作台 ↗</button>
 
+  <block wx:if="{{experienceMode === 'journal' || showGarden}}">
   <view class="section-title"><text class="section-title__main">行为成长画像</text><text class="section-title__hint">估算，不是人格诊断</text></view>
   <view class="trait-card paper-card">
     <view wx:for="{{traits}}" wx:key="key" class="trait-row"><view class="trait-name"><text>{{item.name}}</text><text class="text-small">{{item.value}}</text></view><view class="trait-track"><view class="trait-fill" style="width:{{item.value}}%;background:{{item.color}}"></view></view></view>
-    <view class="data-source-note"><text>🧾</text><text>画像只根据记忆分类、目标完成与互动次数计算，不会调用医疗或心理诊断结论。</text></view>
+    <view class="data-source-note"><text>🧾</text><text>根据记录与目标估算，仅供回顾。</text></view>
   </view>
+  </block>
 
-  <view wx:if="{{!memories.length}}" class="first-call paper-card"><text>我还不认识你。</text><button class="primary-button button--small" bindtap="startRecord">先告诉我今天发生了什么</button></view>
+  <view wx:if="{{!memoryCount}}" class="first-call paper-card"><text>从一件小事开始。</text><button class="primary-button button--small" bindtap="startRecord">记一件事</button></view>
 
   <view wx:if="{{loading}}" class="loading-mask"><view class="paper-card loading-card"><text class="loading-sprout">🌿</text><text class="loading-text">正在打开记忆花园…</text></view></view>
 </view>

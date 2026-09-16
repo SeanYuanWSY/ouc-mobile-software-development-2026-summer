@@ -2,5 +2,6 @@
   "name": "summerverse-deepseek-proxy",
   "version": "1.0.0",
   "main": "index.js",
-  "dependencies": { "wx-server-sdk": "^3.0.1" }
+  "dependencies": { "wx-server-sdk": "^3.0.1", "unpdf": "1.7.0", "yauzl": "3.4.0" },
+  "overrides": { "form-data": "2.5.6" }
 }

@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
@@ -12,7 +13,7 @@ function markerIcon(category) {
   return '/images/map-pin.png';
 }
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memories: [],
@@ -137,4 +138,4 @@ Page({
 
   startRecord() { wx.switchTab({ url: '/pages/record/index' }); },
   goBack() { backOrHome(); }
-});
+}));

@@ -1,30 +1,24 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-const path = require('node:path');
-const { createRequire } = require('node:module');
+const { prepareSubject } = require('./helpers/subject-load');
 function load(options = {}) {
-  const file = path.resolve(__dirname, '../miniprogram/services/wechat-data.js');
-  const localRequire = createRequire(file);
   const saved = []; let calls = 0;
-  const module = { exports: {} };
-  vm.runInNewContext(fs.readFileSync(file, 'utf8'), {
-    module, Number, Date, Error,
-    wx: { cloud: { CloudID: value => value }, getDeviceInfo: () => ({ platform: options.platform || 'ios' }) },
-    require(name) {
-      if (name === './cloud') return { waitForCloudReady: async () => true, callFunction: async () => { calls++; return options.response; } };
-      if (name === './repository') return { saveStepSnapshot: async s => saved.push(s) };
-      if (name === '../utils/promisify') return { wxp: async method => {
+  prepareSubject({
+    subject: '../miniprogram/services/wechat-data',
+    mocks: [
+      { spec: './cloud', value: { waitForCloudReady: async () => true, callFunction: async () => { calls++; return options.response; } } },
+      { spec: './repository', value: { saveStepSnapshot: async s => saved.push(s) } },
+      { spec: '../utils/promisify', value: { wxp: async method => {
         if (method === 'getSetting') return { authSetting: { 'scope.werun': true } };
         if (method === 'getWeRunData') { if (options.failure) throw options.failure; return { cloudID: 'test-only-id' }; }
         if (method === 'login') return {};
         throw new Error('Unexpected API '+method);
-      } };
-      return localRequire(name);
-    }
+      } } },
+    ],
+    globals: { wx: { cloud: { CloudID: value => value }, getDeviceInfo: () => ({ platform: options.platform || 'ios' }) } },
   });
-  return { sync: module.exports.syncWeRun, saved, calls: () => calls };
+  const service = require('../miniprogram/services/wechat-data');
+  return { sync: service.syncWeRun, saved, calls: () => calls };
 }
 test('Mac 微信读取失败解释客户端阶段且不调用云函数、不覆盖步数', async () => {
   const run = load({ platform: 'mac', failure: { errMsg: 'getWeRunData:fail' } });
@@ -49,16 +43,14 @@ test('微信实际返回的0步是有效数据并保留日期', async () => {
 });
 
 test('授权状态刷新保留同步结果，并发点击只发起一次读取', async () => {
-  const file = path.resolve(__dirname, '../miniprogram/pages/settings/index.js');
-  const localRequire = createRequire(file); let page, resolveSync, calls = 0;
-  vm.runInNewContext(fs.readFileSync(file, 'utf8'), {
-    Page(value) { page = value; },
-    require(name) {
-      if (name === '../../services/wechat-data') return { syncWeRun: () => { calls++; return new Promise(resolve => { resolveSync = resolve; }); } };
-      return localRequire(name);
-    },
-    wx: { showLoading() {}, hideLoading() {}, showToast() {}, showModal() {}, getSetting(o) { o.success({ authSetting: { 'scope.werun': true } }); } }
+  let page, resolveSync, calls = 0;
+  prepareSubject({
+    subject: '../miniprogram/pages/settings/index',
+    mocks: [{ spec: '../../services/wechat-data', value: { syncWeRun: () => { calls++; return new Promise(resolve => { resolveSync = resolve; }); } } }],
+    globals: { Page(value) { page = value; },
+      wx: { showLoading() {}, hideLoading() {}, showToast() {}, showModal() {}, getSetting(o) { o.success({ authSetting: { 'scope.werun': true } }); } } },
   });
+  require('../miniprogram/pages/settings/index');
   page.setData = function(value) { Object.assign(this.data, value); };
   await page.refreshPermissionStatus(); assert.equal(page.data.stepStatus, '已授权，待同步');
   const first = page.authorizeStep(); await page.authorizeStep(); assert.equal(calls, 1);

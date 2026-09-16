@@ -1,15 +1,18 @@
 {
-  "name": "SummerVerse",
-  "shortName": "Verse",
+  "name": "晞屿手记",
+  "shortName": "",
   "alternateNames": [
     "SummerVerse Journal",
     "SummerVerse Moments"
   ],
   "description": "Capture moments, grow your goals, and revisit your summer. Optional AI features use your own API key.",
   "avatar": "avatar.jpg",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "homePage": "pages/island/index",
-  "status": "英文品牌准备稿；当前后台名称SuiyuanWang且只读，未改名或提交。英文候选未获准使用。",
+  "status": "2026-09-12现场回读：1.0.6体验版，备案与认证完成；无代码审核/线上版本。隐私指引补齐指定邮箱并提交后显示审核中，待审正文回读异常，保存完整性尚未确认。",
   "tagline": "A little world for your everyday.",
-  "platformCurrentName": "SuiyuanWang"
+  "platformCurrentName": "晞屿手记",
+  "englishBrand": "SummerVerse",
+  "filingNumber": "粤ICP备2026134868号-1X",
+  "verifiedDate": "2026-09-12"
 }

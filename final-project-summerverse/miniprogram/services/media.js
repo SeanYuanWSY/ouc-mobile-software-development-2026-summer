@@ -1,13 +1,13 @@
-const { callFunction, isCloudReady, waitForCloudReady } = require('./cloud');
+const { callFunction, isCloudReady, dataMode } = require('./cloud');
 
 function extension(path, fallback = 'jpg') {
   const match = String(path || '').match(/\.([a-zA-Z0-9]{1,6})(?:\?|$)/);
   return match ? match[1].toLowerCase() : fallback;
 }
 
-async function uploadFile(tempFilePath, prefix = 'memory') {
+async function uploadFile(tempFilePath, prefix = 'memory', originalName = '') {
   if (!isCloudReady()) return Promise.reject(new Error('CLOUD_NOT_READY'));
-  const ext = extension(tempFilePath, prefix === 'voice' ? 'mp3' : 'jpg');
+  const ext = extension(originalName || tempFilePath, prefix === 'voice' ? 'mp3' : 'jpg');
   const prepared = await callFunction('dataService', { action: 'media.prepare', payload: {} });
   const ownerPrefix = prepared && prepared.data && prepared.data.prefix;
   if (!ownerPrefix || !String(ownerPrefix).startsWith('summerverse/')) throw new Error('无法获取安全上传路径');
@@ -97,14 +97,15 @@ function resolveUrl(value) {
 }
 
 async function persistItem(item) {
+  const mode = await dataMode();
   if (item.fileID) {
-    if (await waitForCloudReady()) await registerCloudItem(item);
+    if (mode === 'cloud') await registerCloudItem(item);
     return item;
   }
   if (item.url && !item.tempFilePath) return item;
   const path = item.tempFilePath || item.url;
   if (!path) return item;
-  if (await waitForCloudReady()) {
+  if (mode === 'cloud') {
     let uploaded;
     try {
       uploaded = { ...item, ...await uploadFile(path, item.type === 'audio' ? 'voice' : 'memory'), tempFilePath: '' };

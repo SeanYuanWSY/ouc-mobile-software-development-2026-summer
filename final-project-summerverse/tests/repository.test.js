@@ -38,6 +38,32 @@ test('本机目标可创建并更新进度', async () => {
   assert.equal(goals[0].current, 1);
 });
 
+test('本机超过300条记忆仍可读取和搜索旧记录', async () => {
+  const { repository, values } = loadRepository();
+  const { STORAGE_KEYS } = require('../miniprogram/utils/constants');
+  values.set(STORAGE_KEYS.MEMORIES, Array.from({ length: 351 }, (_, i) => ({
+    _id: String(i), title: i === 0 ? '最早的旅行' : '记录', content: '', date: '2026-07-01', occurredAt: i
+  })));
+  assert.equal((await repository.listMemories()).data.length, 351);
+  assert.equal((await repository.listMemories({ keyword: '最早' })).data.length, 1);
+  assert.equal((await repository.listMemories({ limit: 12 })).data.length, 12);
+});
+
+test('云端按游标读完记录，搜索空页仍继续且保留用户限制', async () => {
+  const { repository } = loadRepository();
+  const app = { globalData: { cloudReady: true }, awaitCloudReady: async () => true };
+  global.getApp = () => app;
+  const offsets = [];
+  global.wx.cloud = { callFunction({ data, success }) {
+    offsets.push(data.payload.offset);
+    const offset = data.payload.offset;
+    const items = offset < 300 ? [] : [{ _id: 'old', title: '旧记录' }];
+    success({ result: { ok: true, data: items, nextOffset: offset < 300 ? offset + 100 : null } });
+  }};
+  assert.equal((await repository.listMemories({ keyword: '旧' })).data[0]._id, 'old');
+  assert.deepEqual(offsets, [0, 100, 200, 300]);
+});
+
 test('本机写入失败时不会假装保存成功', async () => {
   const { repository } = loadRepository({ failWrites: true });
   const originalWarn = console.warn;
@@ -51,7 +77,8 @@ test('本机写入失败时不会假装保存成功', async () => {
 
 test('已进入云模式后读取失败不会混入本机数据', async () => {
   const { repository } = loadRepository();
-  global.getApp = () => ({ globalData: { cloudReady: true }, awaitCloudReady: () => Promise.resolve(true) });
+  const app = { globalData: { cloudReady: true }, awaitCloudReady: () => Promise.resolve(true) };
+  global.getApp = () => app;
   global.wx.cloud = { callFunction({ fail }) { fail(new Error('cloud unavailable')); } };
   const originalWarn = console.warn;
   console.warn = () => {};

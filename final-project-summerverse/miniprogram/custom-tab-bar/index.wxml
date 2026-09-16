@@ -1,8 +1,8 @@
-<view class="tabbar-wrap">
+<view class="tabbar-wrap {{experienceClass}}">
   <view class="tabbar">
     <button wx:for="{{list}}" wx:key="pagePath" class="tab-item {{selected === index ? 'is-active' : ''}} {{item.primary ? 'is-primary' : ''}}" data-index="{{index}}" bindtap="switchTab">
-      <view class="tab-icon"><text>{{item.icon}}</text></view>
-      <text class="tab-text">{{item.text}}</text>
+      <view class="tab-icon"><text>{{experienceMode === 'journal' ? item.icon : index === 0 ? '⌂' : index === 1 ? '≡' : index === 2 ? '＋' : index === 3 ? '✓' : '✦'}}</text></view>
+      <text class="tab-text">{{experienceMode === 'journal' ? item.text : index === 0 ? '首页' : index === 1 ? '回顾' : index === 2 ? '记录' : index === 3 ? '成长' : '助手'}}</text>
     </button>
   </view>
 </view>

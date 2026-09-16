@@ -1,3 +1,4 @@
+const { withExperience } = require('../../utils/experience');
 const { realMemories, realGoals } = require('../../utils/memory-source');
 const repository = require('../../services/repository');
 const ai = require('../../services/ai');
@@ -5,7 +6,7 @@ const { formatDate } = require('../../utils/date');
 const { enrichStoryboard } = require('../../utils/storyboard');
 const { backOrHome } = require('../../utils/navigation');
 
-Page({
+Page(withExperience({
   data: {
     loading: true,
     memories: [],
@@ -170,4 +171,4 @@ Page({
   onShareAppMessage() {
     return { title: this.data.storyboard?.title || '我的 SummerVerse 夏日故事', path: '/pages/director/index' };
   }
-});
+}));

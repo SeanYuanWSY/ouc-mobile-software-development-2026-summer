@@ -4,13 +4,14 @@ This folder contains the final-course-project implementation of **SummerVerse**,
 
 ## Product decisions already locked
 
-- Visual direction: **hand-drawn scrapbook / warm paper texture**.
+- Visual direction: **minimal / journal / focus**, sharing the same data. The user approved simpler modes on 2026-09-12; keep hand-drawn scrapbook / warm paper texture within journal mode.
 - Core combination: **A + A**.
   - Home: a growing **summer island planet**.
   - AI companion: **SummerTwin garden cottage**.
 - Product principle: never present demo, generated, or inferred data as real user data.
+- Main new workflow (user correction, 2026-09-12): phone-selected materials → authorized local AI/MCP client → result back to phone. Defense practice is optional, not the flagship. Preserve per-task source selection, explicit workJobs scope, review-before-fact-write, and host-client permissions; see `docs/ASSISTANT_BRIDGE.md`.
 - Real-data integrations: WeRun steps, location/map, weather, media, cloud database.
-- AI provider: DeepSeek through `cloudfunctions/deepseekProxy`; strict BYOK uses each user’s session-only Key, with no developer/shared/environment Key fallback.
+- AI providers: DeepSeek, GLM, Kimi, Qwen and HTTPS OpenAI-compatible custom endpoints through `cloudfunctions/deepseekProxy`. Strict BYOK uses each user’s session-only Key, with no developer/shared/environment fallback. Current scope: `docs/UPGRADE_2026-09-07.md`.
 
 ## Start here
 
