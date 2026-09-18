@@ -1,7 +1,7 @@
 // Presentation preferences only: never select a storage backend or carry AI config.
 const KEY = 'summerverse.experience.v1';
 const MODES = [
-  { id: 'minimal', label: '简洁', description: '资料与行动，清楚就好' },
+  { id: 'minimal', label: '工作台', description: '资料与行动，一处完成' },
   { id: 'journal', label: '记录', description: '保留小岛和手绘日常' }
 ];
 function normalize(value) {
