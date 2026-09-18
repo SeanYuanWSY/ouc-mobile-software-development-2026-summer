@@ -10,9 +10,9 @@
   <view class="paper-card section import-section">
     <view class="section-top"><text class="eyebrow">01 · 收好资料</text><text class="muted">{{sourceViews.length}} / 6份</text></view>
     <input class="workspace-title" value="{{workspace.title}}" maxlength="80" bindinput="onTitle" disabled="{{busy}}" aria-label="资料名称"/>
-    <view class="import-buttons"><button class="primary-button" bindtap="chooseFiles" disabled="{{busy}}">从微信聊天选文件</button><button class="secondary-button" bindtap="toggleText" disabled="{{busy}}">粘贴文字</button></view>
+    <view class="import-buttons"><button class="primary-button" bindtap="chooseFiles" disabled="{{busy}}">从微信选择资料</button></view>
     <view class="import-more-row"><text class="hint">也支持图片和公开网页</text><button class="small-button" bindtap="toggleImportOptions" disabled="{{busy}}">{{showImportOptions ? '收起' : '更多方式'}}</button></view>
-    <view wx:if="{{showImportOptions}}" class="import-extra"><button class="secondary-button" bindtap="chooseImages" disabled="{{busy}}">从相册 / 相机选图片</button><button class="secondary-button" bindtap="toggleLink" disabled="{{busy}}">添加公开网页</button><text class="hint">支持 PDF、DOCX、PPTX、TXT、MD；单个文件不超过 8MB。</text></view>
+    <view wx:if="{{showImportOptions}}" class="import-extra"><button class="secondary-button" bindtap="toggleText" disabled="{{busy}}">粘贴文字</button><button class="secondary-button" bindtap="chooseImages" disabled="{{busy}}">从相册 / 相机选图片</button><button class="secondary-button" bindtap="toggleLink" disabled="{{busy}}">添加公开网页</button><text class="hint">支持 PDF、DOCX、PPTX、TXT、MD；单个文件不超过 8MB。</text></view>
     <view wx:if="{{textOpen}}" class="text-editor"><input class="input" placeholder="资料名称，如：老师的补充通知" value="{{textName}}" maxlength="100" bindinput="onTextName" disabled="{{busy}}"/><textarea class="input text-area" placeholder="粘贴聊天文字或通知内容…" value="{{textDraft}}" maxlength="40000" bindinput="onText" disabled="{{busy}}"/><view class="pair"><button class="secondary-button" bindtap="pasteText" disabled="{{busy}}">读取剪贴板</button><button class="primary-button" bindtap="addText" disabled="{{busy}}">添加文字</button></view></view>
     <view wx:if="{{linkOpen}}" class="link-editor"><input class="input" placeholder="粘贴公开网页链接" value="{{linkDraft}}" maxlength="1500" bindinput="onLink" disabled="{{busy}}"/><view class="pair"><button class="secondary-button" bindtap="pasteLink" disabled="{{busy}}">读取剪贴板</button><button class="primary-button" bindtap="addLink" disabled="{{busy}}">提取网页</button></view><text class="hint">需登录、验证码或依赖脚本显示的页面，请复制文字或截图导入。</text></view>
     <view wx:if="{{!sourceViews.length && !textOpen && !linkOpen}}" class="empty-import"><text class="empty-symbol">✦</text><text class="heading">通知、课件、截图，都放在一起</text><text class="muted">只处理你选中的资料，不读取完整群聊。</text></view>
@@ -20,14 +20,14 @@
     <view class="save-row"><text class="muted">{{unsaved ? '有未保存修改' : saveState || (storageMode === 'cloud' ? '资料保存在你的云端账号' : storageMode === 'local' ? '当前为本机模式' : '存储状态尚未确认')}}</text><button wx:if="{{unsaved}}" class="small-button" bindtap="retrySave" disabled="{{busy}}">保存</button></view>
   </view>
 
-  <view class="paper-card section">
+  <view wx:if="{{sourceViews.length}}" class="paper-card section">
     <button class="relay-entry" bindtap="openRelay" disabled="{{busy || !sourceViews.length}}"><view><text class="heading">让电脑助手接着做 ↗</text><text class="muted">指定资料与任务，通过 MCP 领取并回传结果。</text></view></button>
   </view>
 
-  <view class="paper-card section">
+  <view wx:if="{{sourceViews.length}}" class="paper-card section">
     <text class="eyebrow">02 · 让 AI 帮你整理</text>
-    <view class="mode-list"><button wx:for="{{modes}}" wx:key="id" wx:if="{{showAllModes || index < 3 || selectedMode === item.id}}" class="mode {{selectedMode === item.id ? 'selected' : ''}}" data-mode="{{item.id}}" bindtap="selectMode" disabled="{{busy}}">{{item.label}}</button></view>
-    <view class="mode-explanation"><text class="muted">{{modeInfo.hint}}</text><button class="small-button" bindtap="toggleModes">{{showAllModes ? '收起' : '更多场景'}}</button></view>
+    <view class="mode-current"><view><text class="heading">{{modeInfo.label}}</text><text class="muted">{{modeInfo.hint}}</text></view><button class="small-button" bindtap="toggleModePicker" disabled="{{busy}}">{{showModePicker ? '收起' : '换一种'}}</button></view>
+    <view wx:if="{{showModePicker}}" class="mode-list"><button wx:for="{{modes}}" wx:key="id" class="mode {{selectedMode === item.id ? 'selected' : ''}}" data-mode="{{item.id}}" bindtap="selectMode" disabled="{{busy}}">{{item.label}}</button></view>
     <textarea wx:if="{{selectedMode === 'ask'}}" class="input question-area" placeholder="例如：截止时间有没有调整？需要交哪些文件？" value="{{question}}" maxlength="600" bindinput="onQuestion" disabled="{{busy}}"/>
     <button class="primary-button analyze-button" bindtap="analyze" loading="{{busy}}" disabled="{{busy || !sourceViews.length}}">{{busy ? '处理中' : modeInfo.action}}</button>
     <view class="ai-note"><text class="muted">使用你自己的 AI 接口</text><button class="small-button" bindtap="openSettings" disabled="{{busy}}">设置 AI ›</button></view>
