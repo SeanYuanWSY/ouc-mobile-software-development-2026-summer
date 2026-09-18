@@ -6,13 +6,12 @@
   <view class="experience-selector"><button wx:for="{{experienceModes}}" wx:key="id" class="experience-option {{experienceMode === item.id ? 'is-selected' : ''}}" data-mode="{{item.id}}" bindtap="changeExperience" aria-label="切换为{{item.label}}模式">{{item.label}}</button></view>
   <view wx:if="{{loadError}}" class="home-error"><text>{{loadError}}</text><button class="small-button" bindtap="refresh">重试</button></view>
 
-  <block wx:if="{{experienceMode !== 'journal'}}">
+  <block wx:if="{{experienceMode === 'minimal'}}">
     <view class="workspace-hero">
-      <text class="workspace-eyebrow">{{experienceMode === 'focus' ? '专注' : '电脑助手'}}</text>
-      <text class="workspace-headline">{{experienceMode === 'focus' ? '先把眼前这一件做好。' : '把资料，变成下一步。'}}</text>
-      <text class="workspace-description">{{experienceMode === 'focus' ? '从你确认过的任务开始。' : '手机收好，电脑接着做。'}}</text>
-      <button wx:if="{{experienceMode === 'focus'}}" class="primary-button workspace-primary" bindtap="openFocus">选择一件事，开始专注 <text>↗</text></button>
-      <button wx:else class="primary-button workspace-primary" bindtap="openComputer">连接我的电脑助手 <text>↗</text></button>
+      <text class="workspace-eyebrow">电脑助手</text>
+      <text class="workspace-headline">把资料，变成下一步。</text>
+      <text class="workspace-description">手机收好，电脑接着做。</text>
+      <button class="primary-button workspace-primary" bindtap="openComputer">连接我的电脑助手 <text>↗</text></button>
     </view>
     <button class="more-scenes" bindtap="toggleHomeActions">{{showHomeActions ? '收起更多场景' : '更多场景'}}</button>
     <view wx:if="{{showHomeActions && experienceMode === 'minimal'}}" class="studio-grid">
@@ -27,7 +26,7 @@
       <button wx:for="{{workspaces}}" wx:key="id" class="workspace-row" data-id="{{item.id}}" bindtap="openWorkspace"><text class="workspace-dot">▤</text><view class="workspace-row-copy"><text class="workspace-row-title">{{item.title}}</text><text class="workspace-row-meta">{{item.sourceCount}} 份资料 · {{item.taskCount}} 个已确认任务</text></view><text>›</text></button>
       <view wx:if="{{!libraryLoading && !libraryError && !workspaces.length}}" class="library-empty"><text>从一条通知、一份课件开始。</text><text class="library-empty-sub">你保存过的资料会出现在这里。</text></view>
     </view>
-    <view wx:if="{{showHomeActions}}" class="quiet-links"><button bindtap="startRecord">记一件事</button><button bindtap="openFocus">专注一下</button><button bindtap="openTwin">找小精灵</button></view>
+    <view wx:if="{{showHomeActions}}" class="quiet-links"><button bindtap="startRecord">记一件事</button><button bindtap="openTwin">找小精灵</button></view>
   </block>
 
   <block wx:if="{{experienceMode === 'journal'}}">

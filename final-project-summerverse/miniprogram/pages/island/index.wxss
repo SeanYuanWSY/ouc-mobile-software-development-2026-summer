@@ -69,8 +69,8 @@ button.materials-entry { width:100%; min-width:0; box-sizing:border-box; display
 .materials-entry__arrow { flex:none; font-size:36rpx; color:#406c4e; }
 .experience-selector { margin-bottom:28rpx; }
 button.home-settings { width:76rpx; height:76rpx; flex:none; border:1rpx solid var(--line); border-radius:50%; color:var(--ink); font-size:40rpx; }
-.experience-minimal .brand,.experience-focus .brand { font-family:Georgia,serif; font-size:40rpx; letter-spacing:1rpx; }
-.experience-minimal .brand-sub,.experience-focus .brand-sub { font-size:22rpx; letter-spacing:0; margin-top:9rpx; }
+.experience-minimal .brand { font-family:"KaiTi","STKaiti",serif; font-size:40rpx; font-weight:700; letter-spacing:1rpx; line-height:1.2; }
+.experience-minimal .brand-sub { font-size:21rpx; letter-spacing:0; margin-top:7rpx; }
 .workspace-hero { padding:30rpx 0 38rpx; }
 .workspace-eyebrow { display:block; color:var(--green); font-size:22rpx; letter-spacing:2rpx; font-weight:600; }
 .workspace-headline { display:block; margin-top:18rpx; font-size:48rpx; letter-spacing:0; font-weight:650; line-height:1.4; white-space:pre-line; }

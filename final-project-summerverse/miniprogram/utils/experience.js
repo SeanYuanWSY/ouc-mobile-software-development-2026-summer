@@ -2,11 +2,12 @@
 const KEY = 'summerverse.experience.v1';
 const MODES = [
   { id: 'minimal', label: '简洁', description: '资料与行动，清楚就好' },
-  { id: 'journal', label: '记录', description: '保留小岛和手绘日常' },
-  { id: 'focus', label: '专注', description: '此刻只做一件重要的事' }
+  { id: 'journal', label: '记录', description: '保留小岛和手绘日常' }
 ];
 function normalize(value) {
-  return { mode: MODES.some((item) => item.id === value?.mode) ? value.mode : 'minimal', reduceMotion: value?.reduceMotion === true };
+  // Older builds persisted the removed focus mode. Treat it as the default workspace
+  // so an upgrade never leaves the user on a mode that no longer has a public entry.
+  return { mode: value?.mode === 'journal' ? 'journal' : 'minimal', reduceMotion: value?.reduceMotion === true };
 }
 function read() { try { return normalize(wx.getStorageSync(KEY)); } catch (_) { return normalize(null); } }
 function write(value) {

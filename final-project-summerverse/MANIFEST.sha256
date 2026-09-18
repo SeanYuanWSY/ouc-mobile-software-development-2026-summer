@@ -56,7 +56,7 @@ f9525f360be821e886498234531f44d6fe6c43964aee6fc475b281b02eb91dd7  ./cloudfunctio
 63b70e3a74c8e1f06b4d6c9d4e02bf3de36f522f3296a97750d0303162e4bbc5  ./docs/ACCEPTANCE_STATUS.md
 7be73d4f03a6a4c6a45b436834ee93037ba1c5bf02a83260046dc7afc1a34c06  ./docs/API_MATRIX.md
 0222fe6a59af62988a4678ec39a538ef0a83b0fd00bfc3b0e61ea0c2299bb7ac  ./docs/ARTWORK_PROMPTS.md
-d8ec1fb63e2cf300313707ed7ff6ffcdc1b2328a0e860334c8ebd3ba5df0edf7  ./docs/ASSISTANT_BRIDGE.md
+7d3d1dc87d2562ba609ef557e5711653e989bc0caccd822a0ef1a47c75d4cacc  ./docs/ASSISTANT_BRIDGE.md
 017cc67c47ba001a553aec6acf01e5f1a17786aa2582753502eb3ca5d24cbaa5  ./docs/CLOUD_SETUP.md
 015e9ad7d5750b8581026b558835f7f1aee74f781fbce04f2fb46347166003f4  ./docs/COLLABORATION.md
 1b648239e86129f4293f398cf2231a3c521cae0dbf482506f14d2c3f7d1bc5d6  ./docs/DATABASE_SCHEMA.md
@@ -160,15 +160,15 @@ e91dc0a43235d2a6f47a3b9b9bd24358d55619370b46dfb8045334d8b8d8dff5  ./miniprogram/
 35bee40c2efcecb47aeecae66e0e20e43e3832707d680d127ea601a36163a508  ./miniprogram/pages/inbox/index.wxss
 2b0ba9709322af3f7684245429fa6da1a97961422ae8a1b2c34aee93d3182a71  ./miniprogram/pages/island/index.js
 47031578d68d5e28ca1f6d0f53217c85b0cfb242ff9ad2428f20d41e22c79ad9  ./miniprogram/pages/island/index.json
-cb9223ad70d703a47550f93245a97c4e081bb0d1add6a7b9f4b8597858052a69  ./miniprogram/pages/island/index.wxml
-9bb1a833752f1ec9883a1aae093985be11c0498d90ced7688d8ee842a6e51b2e  ./miniprogram/pages/island/index.wxss
+6fc8a78cf87b28a09ff6b3faf4bb52569dffcfc91dc6d5b37b0ad132aba9faf4  ./miniprogram/pages/island/index.wxml
+7a701b843aece80e510d49e73333fb9a35e7f3b2af6569ed64d4f78fcdf044a3  ./miniprogram/pages/island/index.wxss
 9a2a193a0d9692030a7c049827f818dd490809cae6ff9fa4d151f929e109271f  ./miniprogram/pages/map/index.js
 463dd36abf6043624daf9c10bd1971c64903aafb7dc0f046c402b869536cd530  ./miniprogram/pages/map/index.json
 9d3f0ebe2ac2870b8edeb49f59aaf56509bfe298e602d824b366fc1d0c9d9ca6  ./miniprogram/pages/map/index.wxml
 912533515f8371616223257a478de24a6998d1cff8cdcbbad32694a904dcfa3f  ./miniprogram/pages/map/index.wxss
 e8083a471bdaecc0ba0665469655697ce3ec8b333bc685e62ff3bf68d2214dd7  ./miniprogram/pages/materials/index.js
 2dbd38ca3e7e81c7b55ee016955e422da7c88385b2d71b852c641554252514ad  ./miniprogram/pages/materials/index.json
-f6e6571141543d238964fceb56c4416bcd2b12abb22703896dec2c885c3075ad  ./miniprogram/pages/materials/index.wxml
+1482dfe70c6ad1d9ef017dbdac8e02cf006baec23a62f0133e6d2b966bcb07b7  ./miniprogram/pages/materials/index.wxml
 8395dd96d41b83139ab634f9221f2e6cc6805addb4f4949a69690f9b0dd7461c  ./miniprogram/pages/materials/index.wxss
 ade71f2a623ffc8da62fb30cb4113ed0ad715e077562aa7c95275775b98274a1  ./miniprogram/pages/memory-detail/index.js
 00cb4d8011b5f2a4e21e3dcda65a3a5205fc95784be202f7bfd5171b6d834003  ./miniprogram/pages/memory-detail/index.json
@@ -205,7 +205,7 @@ a26f02b8cb6ee763e355ffd8eb9133e20002325566d8c3073773182c4d8b48e4  ./miniprogram/
 dd167122d9547ab05101058b43084851bba5502c077520f3562a98f40de0fd7b  ./miniprogram/pages/twin/index.js
 9793b1b602535f49501deebf291cb9d5ff9c1267c0412d5e713500171df983d6  ./miniprogram/pages/twin/index.json
 74965cc4f39f67ed7de8cd9fb68c25eb2b732412d5dc438f319fce5792c09894  ./miniprogram/pages/twin/index.wxml
-3b8c2422fe9b3bef45b95037b59c7ac2977341e96bae093a3a9ab33c2cbb7e42  ./miniprogram/pages/twin/index.wxss
+b96721a2f5681343abc5301dd0a3d1c9565da7023c497ed31242e18e6fd4e4e4  ./miniprogram/pages/twin/index.wxss
 133a66e51d149463a418da501798230c7e3d82ce57f28f7d741fe30e154e2d19  ./miniprogram/services/ai-preferences.js
 f8dd11a61bb0fbc4fea69b2fc760b7cacd51f66b7c4a76552992f4bf6afd9ca1  ./miniprogram/services/ai.js
 93bcc6c87e4b01ba298ab223dc2f438cc8d7e32f1e24c35fccf6415cb418c7f2  ./miniprogram/services/assistant.js
@@ -220,7 +220,7 @@ c45e4fcb2da5404ebfd2e458871d44c94a729db014b63814a5b06bb6b50b18af  ./miniprogram/
 dc145ab0850a19a7b306a7e24fec408367d7da7bbabacd317433bc2379dd47cf  ./miniprogram/utils/ai-output.js
 687d3a453238407004b02457279378fc36eb808d3ee2102e2a9c48fd4daa2ed8  ./miniprogram/utils/constants.js
 5b05ce45644e83c951789b9b65caac3bad5a5be03671b20a61ffe6b758ee276e  ./miniprogram/utils/date.js
-1ae4c214bd3cc115b8246ed31dfc403d832375121561c56172d8057549967fca  ./miniprogram/utils/experience.js
+33a8e101ef84c397c822cd35a84c8ba6b969e9701ebe9b34b18e0f0dda4a899c  ./miniprogram/utils/experience.js
 992f333de0160820f5cc1359d51248348067bb8670aa3ae26888dd5ca1c073d9  ./miniprogram/utils/focus-session.js
 8c54e1f33cc3e98520fa09819f5411b9e94ef8f1bb368bbcd86eb5c6b2710395  ./miniprogram/utils/material-policy.js
 c4d8642b37175e96e3b1861eb98575ae7d85f8e09531d6979d81ae9380865e18  ./miniprogram/utils/memory-source.js
@@ -255,7 +255,7 @@ e748afddace4e570b4bfa1e0f113041c68aea83f1c2825df07392d7f1d283249  ./tests/byok.t
 4c406d593b681eba6553d4460d7e4bae6486a6468f52dc690407a5d43a56bbb8  ./tests/data-service-policy.test.js
 c34d4c221bd242ee8c2e3effd76dfa24397aed8cb9a174e3fecc4527f0069ff5  ./tests/deepseek-errors.test.js
 76273eb1bc2f73b1164f3f46b8b78885dff30ce9a124789672d269e7980f63f5  ./tests/edge-ingress.test.js
-883dab9003f083608ce69f18552b79627335bbd7aa66bb80a0801d9d14f47289  ./tests/experience.test.js
+da69032c0dcbbd0b63e51888be55fe03c4570520388a585a0db287e592d97600  ./tests/experience.test.js
 b36bdd6d7530a665b9fd38bcaa3e431a57bb726eca6718292d569b7616b2de73  ./tests/focus-session.test.js
 245edd938226d73719c2530d23b5ceb8b4dfa8198a91d9219b6fadf20056f9dc  ./tests/growth-page.test.js
 af3b95d1932310bbc2df06dddf52d6355fd6458a2aa34ad758d3691fbd5c8eb3  ./tests/helpers/account-db.js
