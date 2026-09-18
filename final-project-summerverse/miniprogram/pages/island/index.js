@@ -55,6 +55,7 @@ Page(withExperience({
     syncingWeather: false,
     stepProgress: 0,
     showOnboarding: false,
+    showHomeActions: false,
     onboardingStep: 0,
     onboardingSlides: [
       { emoji: '🏝️', title: '真实记忆，会长成一座岛', copy: '随着记录积累，小岛会经历初生、成长和成熟三个阶段。' },
@@ -81,6 +82,10 @@ Page(withExperience({
   changeExperience(event) {
     try { this.setExperienceOptions({ mode: event.currentTarget.dataset.mode }); }
     catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
+  },
+
+  toggleHomeActions() {
+    this.setData({ showHomeActions: !this.data.showHomeActions });
   },
 
   async refreshLibrary() {

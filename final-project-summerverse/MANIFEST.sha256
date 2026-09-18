@@ -3,9 +3,10 @@ f2d15bcec48f651662325a230f5fa7e862261f2e780e230fa6dee7e7bfbc679e  ./.gitignore
 484f69bac260586b3ba957e9ccb65257bed7a839f1dd2d433d16b5e3504caa88  ./CHANGELOG.md
 2a67d65d0d7fe67eaef7040b352931ffb0a4fe130b88cad0452beab123383ea0  ./README.md
 f8c5db4674bb8c6627c3977b9797383aef00ee735790d76c4c7a873d4186a902  ./branding/app-icon.svg
-e0678311c99f1c01c884e63d58617da43884e8de4494345160d86e70252049d9  ./cloudfunctions/assistantGateway/index.js
+e74d5345b76ab60d04fa180392603e19cb4710997a9fd2c3401ba26577dbb67c  ./cloudfunctions/assistantGateway/index.js
 019644d365c1b954c533f88a9b99e89545b320a4c6a1ff476d3a0be36c99905c  ./cloudfunctions/assistantGateway/jobs.js
 e59ae4bb04762d4c319c9e78fa9e273040df6002af1516d2a2007bf3e8b65afc  ./cloudfunctions/assistantGateway/library.js
+b79036b27e73cd58057a26db2c445c83bb71b88b0b2706fd172bf63e329d53c3  ./cloudfunctions/assistantGateway/mcp.js
 3ff927774ec096cbfbd66396f0c5b5447c21b2a284850e07bd6bb3a2645c3a53  ./cloudfunctions/assistantGateway/package-lock.json
 60c48c48eba5bdaed556bff20e2d249db36897041c7dc1ecc1f205b5756ca369  ./cloudfunctions/assistantGateway/package.json
 59c818ee01232ffc296b9594b4fddc85088c428496cf5f43847a79a50fe09011  ./cloudfunctions/assistantGateway/policy.js
@@ -55,7 +56,7 @@ f9525f360be821e886498234531f44d6fe6c43964aee6fc475b281b02eb91dd7  ./cloudfunctio
 63b70e3a74c8e1f06b4d6c9d4e02bf3de36f522f3296a97750d0303162e4bbc5  ./docs/ACCEPTANCE_STATUS.md
 7be73d4f03a6a4c6a45b436834ee93037ba1c5bf02a83260046dc7afc1a34c06  ./docs/API_MATRIX.md
 0222fe6a59af62988a4678ec39a538ef0a83b0fd00bfc3b0e61ea0c2299bb7ac  ./docs/ARTWORK_PROMPTS.md
-d390fdb7a3dc6aa38dd54e564d9b2f12e88611fe445859e78cb8407abe731cf8  ./docs/ASSISTANT_BRIDGE.md
+d8ec1fb63e2cf300313707ed7ff6ffcdc1b2328a0e860334c8ebd3ba5df0edf7  ./docs/ASSISTANT_BRIDGE.md
 017cc67c47ba001a553aec6acf01e5f1a17786aa2582753502eb3ca5d24cbaa5  ./docs/CLOUD_SETUP.md
 015e9ad7d5750b8581026b558835f7f1aee74f781fbce04f2fb46347166003f4  ./docs/COLLABORATION.md
 1b648239e86129f4293f398cf2231a3c521cae0dbf482506f14d2c3f7d1bc5d6  ./docs/DATABASE_SCHEMA.md
@@ -157,10 +158,10 @@ b00c37476490daa9fe2b05255055f1b978734e39b0016bcabd1fb91dd158ae1a  ./miniprogram/
 61dffdd0d758757258489b1a7c9535a358f51d4dbe76b7471a4b59c2eb0c7599  ./miniprogram/pages/inbox/index.json
 e91dc0a43235d2a6f47a3b9b9bd24358d55619370b46dfb8045334d8b8d8dff5  ./miniprogram/pages/inbox/index.wxml
 35bee40c2efcecb47aeecae66e0e20e43e3832707d680d127ea601a36163a508  ./miniprogram/pages/inbox/index.wxss
-1fba7ba6832d0e61197518a8c07bdb341ac7201c39aa31deea1661a86e12fc4d  ./miniprogram/pages/island/index.js
+2b0ba9709322af3f7684245429fa6da1a97961422ae8a1b2c34aee93d3182a71  ./miniprogram/pages/island/index.js
 47031578d68d5e28ca1f6d0f53217c85b0cfb242ff9ad2428f20d41e22c79ad9  ./miniprogram/pages/island/index.json
-53355f6c5f75d9d802b1c19050776ed27090035df7b6b848c7e74b7bb2c4db85  ./miniprogram/pages/island/index.wxml
-adbb45a7e697e5c5e4f2546397d8fe4c06c2b01030d68da55f18f26776b95e20  ./miniprogram/pages/island/index.wxss
+cb9223ad70d703a47550f93245a97c4e081bb0d1add6a7b9f4b8597858052a69  ./miniprogram/pages/island/index.wxml
+9bb1a833752f1ec9883a1aae093985be11c0498d90ced7688d8ee842a6e51b2e  ./miniprogram/pages/island/index.wxss
 9a2a193a0d9692030a7c049827f818dd490809cae6ff9fa4d151f929e109271f  ./miniprogram/pages/map/index.js
 463dd36abf6043624daf9c10bd1971c64903aafb7dc0f046c402b869536cd530  ./miniprogram/pages/map/index.json
 9d3f0ebe2ac2870b8edeb49f59aaf56509bfe298e602d824b366fc1d0c9d9ca6  ./miniprogram/pages/map/index.wxml
@@ -183,7 +184,7 @@ cf889d694c27cc471bebb551894df89d61de18e44297b63f16f33bf1a165df8c  ./miniprogram/
 65a4e8087469c25c87589e54561aa54d605437a3e41064c7d02dd3d5ccfb7d16  ./miniprogram/pages/record/index.wxss
 954233a6e23829331d44c7c851513aec2aaa18cae27ade94362dc217ac0855d2  ./miniprogram/pages/relay/index.js
 00cb4d8011b5f2a4e21e3dcda65a3a5205fc95784be202f7bfd5171b6d834003  ./miniprogram/pages/relay/index.json
-56f3ceaf21f59c0cd4d0edf605ffda7947b3a292c820c50356c2414213ccb4c0  ./miniprogram/pages/relay/index.wxml
+3445e0ea2cb975eb9423ae8fe73ed32dd0de9d69633193115843d81a9fe22a16  ./miniprogram/pages/relay/index.wxml
 1acff6ac0409b8ba930646b0666a008f64c2ba1e6c7170625e3600f0e11e8be4  ./miniprogram/pages/relay/index.wxss
 fdc73a41ec183a2e9e546bdad47fed060dc8ba9c85ddc93f7cf6068e0eed808d  ./miniprogram/pages/report/index.js
 4886b7ddf07fb5708cb56e701c09b8b5db785bc4c05fbddc97c7f7c5874676db  ./miniprogram/pages/report/index.json
@@ -276,6 +277,7 @@ f8eb44aa096ff09e61ca637dce4fb076b2614aef2fa83079db4270a7a3ee58fc  ./tests/memory
 92819bdee49ceba37c2b98be7afcc925800a719fd80aa47680589f31289a65fd  ./tests/quota.test.js
 e6d0fb86dbf8f55a835ea24b1d2de6c94af76f8382d80913ab2c5ceaf3fe3920  ./tests/record-retry.test.js
 49e5e9848102548dd9f0a52db6538c81802ef3b05710776289cf464192e41f99  ./tests/relay-client.test.js
+de90317f4050d521c5d1f86ed83ac8758b6cb2eb0ad9c0174a21dafe9456e4cd  ./tests/remote-mcp.test.js
 14170c5f155a5f18ae39c02c223a2f43654013a58275c0baf1bc9fbb183a247b  ./tests/repository.test.js
 29f53789f07f46aa98501f78fdce4a934ef245d17c1e4d4d7cd5609a64fb4c1c  ./tests/request-policy.test.js
 e18b64ed5ce1047190a8aac7385171cd2ecb363a0b96faf1f4734fdd294a63d5  ./tests/runtime-resilience.test.js

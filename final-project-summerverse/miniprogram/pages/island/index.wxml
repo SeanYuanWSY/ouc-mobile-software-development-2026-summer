@@ -1,6 +1,6 @@
 <view class="page island-page {{experienceClass}}">
   <view class="island-header">
-    <view class="brand-block"><text class="brand">{{experienceMode === 'journal' ? 'SummerVerse' : '晞屿'}}</text><text class="brand-sub">{{experienceMode === 'journal' ? profile.nickname + ' 的暑假星球' : 'SUMMERVERSE · ' + todayLabel}}</text></view>
+    <view class="brand-block"><text class="brand">SummerVerse</text><text class="brand-sub">{{profile.nickname}} · {{todayLabel}}</text></view>
     <button class="home-settings" bindtap="openSettings" aria-label="打开设置">⋯</button>
   </view>
   <view class="experience-selector"><button wx:for="{{experienceModes}}" wx:key="id" class="experience-option {{experienceMode === item.id ? 'is-selected' : ''}}" data-mode="{{item.id}}" bindtap="changeExperience" aria-label="切换为{{item.label}}模式">{{item.label}}</button></view>
@@ -8,13 +8,14 @@
 
   <block wx:if="{{experienceMode !== 'journal'}}">
     <view class="workspace-hero">
-      <text class="workspace-eyebrow">{{experienceMode === 'focus' ? 'ONE THING AT A TIME' : 'LESS NOISE. MORE CLARITY.'}}</text>
-      <text class="workspace-headline">{{experienceMode === 'focus' ? '留一点时间，\n做好眼前这一件。' : '把零散资料，\n变成清晰的下一步。'}}</text>
-      <text class="workspace-description">{{experienceMode === 'focus' ? '从你确认过的任务开始。进度由你决定。' : '手机收好资料，电脑助手接着做。'}}</text>
+      <text class="workspace-eyebrow">{{experienceMode === 'focus' ? '专注' : '电脑助手'}}</text>
+      <text class="workspace-headline">{{experienceMode === 'focus' ? '先把眼前这一件做好。' : '把资料，变成下一步。'}}</text>
+      <text class="workspace-description">{{experienceMode === 'focus' ? '从你确认过的任务开始。' : '手机收好，电脑接着做。'}}</text>
       <button wx:if="{{experienceMode === 'focus'}}" class="primary-button workspace-primary" bindtap="openFocus">选择一件事，开始专注 <text>↗</text></button>
       <button wx:else class="primary-button workspace-primary" bindtap="openComputer">连接我的电脑助手 <text>↗</text></button>
     </view>
-    <view wx:if="{{experienceMode === 'minimal'}}" class="studio-grid">
+    <button class="more-scenes" bindtap="toggleHomeActions">{{showHomeActions ? '收起更多场景' : '更多场景'}}</button>
+    <view wx:if="{{showHomeActions && experienceMode === 'minimal'}}" class="studio-grid">
       <button class="studio-card" bindtap="openMaterials"><text class="studio-number">01</text><text class="studio-title">收好资料</text><text class="studio-copy">聊天文件、文字和链接</text><text class="studio-arrow">↗</text></button>
       <button class="studio-card" data-mode="plan" bindtap="openStudio"><text class="studio-number">02</text><text class="studio-title">拆解计划</text><text class="studio-copy">把要求拆成可做的事</text><text class="studio-arrow">↗</text></button>
       <button class="studio-card" data-mode="checklist" bindtap="openStudio"><text class="studio-number">03</text><text class="studio-title">提交前检查</text><text class="studio-copy">逐项核对交付要求</text><text class="studio-arrow">↗</text></button>
@@ -26,8 +27,7 @@
       <button wx:for="{{workspaces}}" wx:key="id" class="workspace-row" data-id="{{item.id}}" bindtap="openWorkspace"><text class="workspace-dot">▤</text><view class="workspace-row-copy"><text class="workspace-row-title">{{item.title}}</text><text class="workspace-row-meta">{{item.sourceCount}} 份资料 · {{item.taskCount}} 个已确认任务</text></view><text>›</text></button>
       <view wx:if="{{!libraryLoading && !libraryError && !workspaces.length}}" class="library-empty"><text>从一条通知、一份课件开始。</text><text class="library-empty-sub">你保存过的资料会出现在这里。</text></view>
     </view>
-    <view class="quiet-links"><button bindtap="startRecord">✎ 记一件事</button><button bindtap="openFocus">◷ 专注一下</button><button bindtap="openTwin">✦ 找小精灵</button></view>
-    <text class="home-footnote">三种方式，同一份日常。</text>
+    <view wx:if="{{showHomeActions}}" class="quiet-links"><button bindtap="startRecord">记一件事</button><button bindtap="openFocus">专注一下</button><button bindtap="openTwin">找小精灵</button></view>
   </block>
 
   <block wx:if="{{experienceMode === 'journal'}}">
@@ -56,13 +56,9 @@
   <button class="materials-entry" bindtap="openMaterials"><view class="materials-entry__mark">✦</view><view class="materials-entry__copy"><text class="materials-entry__title">把资料变成下一步</text><text class="materials-entry__hint">导入聊天文件 · 找要求 · 拆任务</text></view><text class="materials-entry__arrow">›</text></button>
   <view class="link-row">
     <button class="link-item link-item--twin" bindtap="openTwin"><image class="link-item__avatar" src="/images/twin-avatar-v2.jpg" mode="aspectFill" /><text>找 SummerTwin ›</text></button>
-    <text class="link-row__sep">｜</text>
-    <button class="link-item" bindtap="openMap">地图</button>
-    <text class="link-row__dot">·</text>
-    <button class="link-item" bindtap="openReport">报告</button>
-    <text class="link-row__dot">·</text>
-    <button class="link-item" bindtap="openSettings">设置</button>
+    <button class="link-item" bindtap="toggleHomeActions">{{showHomeActions ? '收起' : '更多'}}</button>
   </view>
+  <view wx:if="{{showHomeActions}}" class="link-row link-row--secondary"><button class="link-item" bindtap="openMap">地图</button><text class="link-row__dot">·</text><button class="link-item" bindtap="openReport">报告</button><text class="link-row__dot">·</text><button class="link-item" bindtap="openSettings">设置</button></view>
 
   <view class="section-title"><text class="section-title__main">最近留下的记忆</text><text class="section-title__hint">{{latestMemories.length ? '点开即可回看' : '等待第一颗记忆'}}</text></view>
   <view wx:if="{{latestMemories.length}}" class="recent-list"><button wx:for="{{latestMemories}}" wx:key="_id" class="recent-memory" data-id="{{item._id}}" bindtap="openMemory"><view class="recent-icon" style="background:{{item.categoryMeta.soft}}">{{item.categoryMeta.emoji}}</view><view class="recent-copy"><text class="recent-title">{{item.title}}</text><text class="recent-meta">{{item.date}} · {{item.time}}{{item.location ? ' · ' + item.location.name : ''}}</text></view><text class="recent-arrow">›</text></button></view>

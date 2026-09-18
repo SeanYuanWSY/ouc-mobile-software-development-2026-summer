@@ -1,7 +1,6 @@
 <view class="page page--no-tab relay-page {{experienceClass}}">
   <view class="nav-header"><button class="nav-back" bindtap="goBack" aria-label="返回">‹</button><view class="nav-title"><text class="nav-title__brand">电脑接力</text><text class="nav-title__sub">手机收集，电脑接着做。</text></view><button class="relay-small" bindtap="openConnections">连接</button></view>
-  <view class="relay-intro"><text class="relay-kicker">YOUR AI. CONNECTED.</text><text class="relay-headline">随手想到的，
-让电脑帮你推进。</text><text class="relay-lead">把所选资料交给自己的 AI 助手，结果回到这里。</text></view>
+  <view class="relay-intro"><text class="relay-headline">把资料交给电脑助手。</text><text class="relay-lead">选资料，写任务，结果回到手机。</text></view>
   <view class="relay-tabs"><button class="{{tab === 'dispatch' ? 'active' : ''}}" data-tab="dispatch" bindtap="switchTab" disabled="{{busy || loading}}">发起接力</button><button class="{{tab === 'jobs' ? 'active' : ''}}" data-tab="jobs" bindtap="switchTab" disabled="{{busy || loading}}">接力列表 · {{jobs.length}}</button></view>
   <view wx:if="{{error}}" class="relay-message"><text>{{error}}</text><button wx:if="{{!ready}}" class="relay-small" bindtap="bootstrap" disabled="{{loading || busy}}">重新连接</button></view>
   <text wx:if="{{notice}}" class="relay-notice">{{notice}}</text>
@@ -9,24 +8,24 @@
   <block wx:elif="{{tab === 'dispatch'}}">
     <view wx:if="{{pending}}" class="relay-message"><text>上次交接的回执待确认。重试会使用相同请求，不另建任务。</text><button class="relay-small" bindtap="discardPending" disabled="{{busy}}">已核对列表，清除待确认表单</button></view>
     <view class="paper-card relay-section">
-      <text class="relay-step">01 · 交给谁</text>
+      <text class="relay-step">01 · 选择电脑</text>
       <picker wx:if="{{connections.length}}" range="{{connections}}" range-key="name" value="{{connectionIndex}}" bindchange="selectConnection" disabled="{{busy || pending}}"><view class="relay-picker"><text>{{connections[connectionIndex].name}}</text><text>⌄</text></view></picker>
       <view wx:else class="relay-empty"><text>还没有允许接收任务的电脑助手。</text><button class="secondary-button" bindtap="openConnections">连接我的电脑助手</button></view>
       <text class="relay-hint">只允许这个连接领取你指定的资料。</text>
     </view>
     <view class="paper-card relay-section">
-      <text class="relay-step">02 · 带上这些资料</text>
+      <text class="relay-step">02 · 选择资料</text>
       <picker wx:if="{{workspaces.length}}" range="{{workspaces}}" range-key="title" value="{{workspaceIndex}}" bindchange="selectWorkspace" disabled="{{busy || pending}}"><view class="relay-picker"><text>{{workspaces[workspaceIndex].title}}</text><text>⌄</text></view></picker>
       <view wx:else class="relay-empty"><text>先收好一份通知、文档或网页。</text><button class="secondary-button" bindtap="openMaterials">去资料工作台</button></view>
       <button wx:for="{{sources}}" wx:key="id" class="relay-source {{item.selected ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="changeSource" disabled="{{busy || pending}}" aria-label="{{item.selected ? '取消选择' : '选择'}}{{item.name}}"><text class="relay-check">{{item.selected ? '✓' : '○'}}</text><text class="relay-source-name">{{item.name}}</text><text class="relay-count">{{item.count}} 字</text></button>
       <text wx:if="{{sources.length}}" class="relay-hint {{characterCount > 12000 ? 'relay-limit' : ''}}">已选 {{sourceCount}} 份 · {{characterCount}} / 12000 字</text>
     </view>
     <view class="paper-card relay-section">
-      <text class="relay-step">03 · 需要电脑做什么</text>
+      <text class="relay-step">03 · 写下要做的事</text>
       <view class="recipe-list"><button wx:for="{{recipes}}" wx:key="title" data-index="{{index}}" bindtap="chooseRecipe" disabled="{{busy || pending}}">{{item.title}}</button></view>
       <textarea class="input relay-prompt" value="{{prompt}}" bindinput="onPrompt" maxlength="1000" disabled="{{busy || pending}}" placeholder="例如：结合我电脑上正在做的项目，检查这条通知里的新要求，补充说明并把结果回传。" aria-label="给电脑助手的任务要求"/>
       <button class="primary-button relay-submit" bindtap="createJob" loading="{{busy}}" disabled="{{busy || !ready || (!pending && (!sourceCount || characterCount > 12000 || !connections.length))}}">{{pending ? '核对并重试交接' : '确认资料，发起接力 ↗'}}</button>
-      <text class="relay-hint">电脑助手领取后才会处理；小程序不会替你启动电脑、运行命令或自动提交作业。</text>
+      <text class="relay-hint">电脑助手领取后处理，结果会回到这里。</text>
     </view>
   </block>
   <block wx:elif="{{tab === 'jobs'}}">
