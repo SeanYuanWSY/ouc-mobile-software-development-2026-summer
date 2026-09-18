@@ -17,7 +17,7 @@ function empty() { return { id: materials.makeId('w'), title: '我的资料', so
 function modal(options) { return new Promise((resolve) => wx.showModal({ ...options, success: resolve, fail: () => resolve({ confirm: false }) })); }
 Page(withExperience({
   data: { workspace: null, sourceViews: [], resultViews: [], modes: MODES, selectedMode: 'requirements', question: '', busy: false, progress: '', error: '', notice: '', saveState: '', unsaved: false, storageMode: '',
-    textOpen: false, textName: '', textDraft: '', linkOpen: false, linkDraft: '', sessions: [], libraryOpen: false, evidenceOpen: null, completed: 0, modeInfo: MODES[0], showAllModes: false },
+    textOpen: false, textName: '', textDraft: '', linkOpen: false, linkDraft: '', sessions: [], libraryOpen: false, evidenceOpen: null, completed: 0, modeInfo: MODES[0], showAllModes: false, showImportOptions: false },
   onLoad(options = {}) {
     this._alive = true; this._epoch = 0; this._operation = 0; this._libraryRequest = 0;
     this.setWorkspace(empty());
@@ -103,7 +103,7 @@ Page(withExperience({
     if (this.data.busy) return;
     if (this.data.unsaved && !(await modal({ title: '还有未保存的内容', content: '新建将放弃当前未保存修改，是否继续？', confirmText: '继续新建' })).confirm) return;
     this._epoch += 1; this.setWorkspace(empty());
-    this.setData({ error: '', notice: '', saveState: '', question: '', libraryOpen: false, textOpen: false, linkOpen: false, linkDraft: '' });
+    this.setData({ error: '', notice: '', saveState: '', question: '', libraryOpen: false, textOpen: false, linkOpen: false, linkDraft: '', showImportOptions: false });
   },
   async openWorkspace(event) {
     if (this.data.busy) return;
@@ -116,7 +116,7 @@ Page(withExperience({
       guard();
       this._epoch += 1; this.setWorkspace(workspace);
       const mode = MODES.find((m) => m.id === workspace.analysis?.mode) || this.data.modeInfo;
-      this.setData({ libraryOpen: false, question: workspace.analysis?.question || '', selectedMode: mode.id, modeInfo: mode, showAllModes: MODES.indexOf(mode) > 3, saveState: '已恢复资料', textOpen: false, linkOpen: false, linkDraft: '', evidenceOpen: null });
+      this.setData({ libraryOpen: false, question: workspace.analysis?.question || '', selectedMode: mode.id, modeInfo: mode, showAllModes: MODES.indexOf(mode) > 3, showImportOptions: false, saveState: '已恢复资料', textOpen: false, linkOpen: false, linkDraft: '', evidenceOpen: null });
     });
   },
   async deleteWorkspace(event) {
@@ -130,6 +130,7 @@ Page(withExperience({
     });
   },
   toggleLibrary() { if (!this.data.busy) this.setData({ libraryOpen: !this.data.libraryOpen }); },
+  toggleImportOptions() { if (!this.data.busy) this.setData({ showImportOptions: !this.data.showImportOptions }); },
   onTitle(event) { if (!this.data.busy) this.setData({ 'workspace.title': event.detail.value, unsaved: true, saveState: '' }); },
   retrySave() { return this.run(async () => this.persist()); },
   toggleText() { if (!this.data.busy) this.setData({ textOpen: !this.data.textOpen }); },

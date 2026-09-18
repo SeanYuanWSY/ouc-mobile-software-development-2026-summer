@@ -9,6 +9,11 @@ button.small-button { width: auto; flex-shrink: 0; padding: 12rpx; color: #42745
 .import-buttons { display: flex; flex-wrap: wrap; gap: 14rpx; }
 .import-buttons > button.primary-button { width: 100%; }
 .import-buttons > button.secondary-button { flex: 1; width: auto; }
+.import-more-row { display:flex; align-items:center; justify-content:space-between; gap:12rpx; margin-top:8rpx; }
+.import-more-row .hint { margin-top:0; }
+.import-extra { display:flex; flex-wrap:wrap; gap:12rpx; margin-top:8rpx; padding-top:14rpx; border-top:1rpx solid var(--line); }
+.import-extra > button { flex:1; min-width:260rpx; width:auto; }
+.import-extra > .hint { width:100%; margin-top:0; }
 .hint { display: block; color: #817a6c; font-size: 21rpx; line-height: 1.65; margin-top: 15rpx; }
 .empty-import { padding: 28rpx 4rpx 14rpx; text-align: center; }
 .empty-symbol { display: block; font-size: 65rpx; color: #c29c58; margin: 4rpx; }

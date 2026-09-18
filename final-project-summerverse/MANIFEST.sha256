@@ -165,10 +165,10 @@ adbb45a7e697e5c5e4f2546397d8fe4c06c2b01030d68da55f18f26776b95e20  ./miniprogram/
 463dd36abf6043624daf9c10bd1971c64903aafb7dc0f046c402b869536cd530  ./miniprogram/pages/map/index.json
 9d3f0ebe2ac2870b8edeb49f59aaf56509bfe298e602d824b366fc1d0c9d9ca6  ./miniprogram/pages/map/index.wxml
 912533515f8371616223257a478de24a6998d1cff8cdcbbad32694a904dcfa3f  ./miniprogram/pages/map/index.wxss
-1533813e3c604fbed1006e3ffb08d3a152f8a612b495d347cab8b57a9fef2598  ./miniprogram/pages/materials/index.js
+50dc04836fcce55512c8868df1ed61399fdb5eca4b7b4a86176dc58ff935f514  ./miniprogram/pages/materials/index.js
 2dbd38ca3e7e81c7b55ee016955e422da7c88385b2d71b852c641554252514ad  ./miniprogram/pages/materials/index.json
-3a27be6a9fb49c6a998e16e1fa3aa0b39ff05b60e5e83bff261df2a99c7d98a4  ./miniprogram/pages/materials/index.wxml
-7cfbeb6f1dd072010b1f7def39f20cbab6c5eac6d85fb434f70759a2f4df6e80  ./miniprogram/pages/materials/index.wxss
+a7cb2a3bf8946e55480dbe8d8cbc916eade10c54fd9a905317c600f10d5d0039  ./miniprogram/pages/materials/index.wxml
+c410ad3773eb8eb18b2291d112d0c0155f0b5f9c0868691cc39090f36d8099b5  ./miniprogram/pages/materials/index.wxss
 ade71f2a623ffc8da62fb30cb4113ed0ad715e077562aa7c95275775b98274a1  ./miniprogram/pages/memory-detail/index.js
 00cb4d8011b5f2a4e21e3dcda65a3a5205fc95784be202f7bfd5171b6d834003  ./miniprogram/pages/memory-detail/index.json
 b5851538e3e0cd9d26c6ac830a404a16049e4668116b734449db3dbfdc89e5eb  ./miniprogram/pages/memory-detail/index.wxml
