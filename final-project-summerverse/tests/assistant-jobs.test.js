@@ -41,10 +41,20 @@ async function fixture(workJobs = true, readRecent = false) {
   const create = (extra = {}) => inbox('alice', { ...request, ...extra });
   return { db, inbox, gateway, ...connection, request, create, get time() { return time; }, advance: delta => { time += delta; } };
 }
+test('已删除资料不能新建接力，但已明确发送的独立快照仍可读取', async () => {
+  const f = await fixture();
+  const original = await f.create();
+  await f.db.collection('material_workspaces').doc(hash('alice:workspace1')).set({ data: { _openid: 'alice', id: 'workspace1', revision: 3, _deleted: true } });
+  await assert.rejects(f.create({ requestId: 'new-request' }), { code: 'NOT_FOUND' });
+  const retry = await f.create();
+  assert.equal(retry.job.id, original.job.id);
+  const claimed = await f.gateway(f.token, { action: 'job.claim', id: original.job.id, claimId: 'claim' });
+  assert.equal(claimed.ok, true);
+});
 test('relay deployment copies match; capabilities and scopes are explicit', async () => {
   for (const name of ['jobs.js', 'policy.js']) assert.equal(fs.readFileSync(path.resolve(__dirname, '../cloudfunctions/assistantGateway', name), 'utf8'), fs.readFileSync(path.resolve(__dirname, '../cloudfunctions/assistantInbox', name), 'utf8'));
   const f = await fixture(false, true);
-  assert.deepEqual(await f.inbox('alice', { action: 'capabilities' }), { jobsProtocol: 'relay-v1' });
+  assert.deepEqual(await f.inbox('alice', { action: 'capabilities' }), { jobsProtocol: 'relay-v1', libraryProtocol: 'workspace-v1', gatewayUrl: '' });
   await assert.rejects(f.create(), { code: 'FORBIDDEN' });
   await assert.rejects(f.gateway(f.token, { action: 'job.list' }), { code: 'FORBIDDEN' });
   const old = await f.inbox('alice', { action: 'connect', name: '旧客户端', readRecent: true });
@@ -248,7 +258,7 @@ test('actual stdio entry runs phone create → tool claim → tool complete → 
       child.stdin.end(messages.map(message => JSON.stringify(message)).join('\n') + '\n');
     });
     const replies = stdout.trim().split('\n').map(line => JSON.parse(line));
-    assert.equal(replies.find(reply => reply.id === 2).result.tools.length, 6);
+    assert.equal(replies.find(reply => reply.id === 2).result.tools.length, 9);
     const claimed = JSON.parse(replies.find(reply => reply.id === 4).result.content[0].text);
     assert.deepEqual(claimed.data.job.sources, materials);
     assert.equal(JSON.parse(replies.find(reply => reply.id === 5).result.content[0].text).data.job.status, 'review');

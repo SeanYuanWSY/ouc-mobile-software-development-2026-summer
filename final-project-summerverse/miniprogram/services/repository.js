@@ -1,3 +1,4 @@
+const accountScope = require('../utils/account-scope');
 const storage = require('../utils/storage');
 const { STORAGE_KEYS, DEFAULT_PROFILE } = require('../utils/constants');
 const { normalizeMemory, normalizeGoal } = require('../utils/validate');
@@ -59,9 +60,11 @@ function savedDocument(response) {
 }
 
 async function cloudOrLocal(cloudTask, localTask, options = {}) {
-  if (await dataMode() === 'cloud') {
+  const checkAccount = accountScope.guard(!options.cloudOnly);
+  const selectedMode = await dataMode(); checkAccount();
+  if (selectedMode === 'cloud') {
     try {
-      const result = await cloudTask();
+      const result = await cloudTask(); checkAccount();
       if (result !== undefined) return { data: result, mode: 'cloud' };
       throw Object.assign(new Error('云端返回了不完整的数据，请重试或更新小程序'), { outcomeUnknown: true });
     } catch (error) {

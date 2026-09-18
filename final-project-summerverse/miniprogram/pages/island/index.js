@@ -105,6 +105,7 @@ Page(withExperience({
   },
 
   openFocus() { wx.navigateTo({ url: '/pages/focus/index' }); },
+  openComputer() { wx.navigateTo({ url: '/pages/inbox/index?connections=1' }); },
   openRelay() { wx.navigateTo({ url: '/pages/relay/index' }); },
 
   onPullDownRefresh() {

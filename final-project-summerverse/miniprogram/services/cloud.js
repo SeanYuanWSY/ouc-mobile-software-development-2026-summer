@@ -1,3 +1,4 @@
+const accountScope = require('../utils/account-scope');
 function getAppSafe() {
   try { return getApp(); } catch (_) { return null; }
 }
@@ -10,7 +11,7 @@ let cacheScope = '';
 
 function resetReadScope(mode) {
   const app = getAppSafe();
-  const scope = `${mode}:${app?.globalData?.cloudGeneration || 0}`;
+  const scope = `${mode}:${app?.globalData?.cloudGeneration || 0}:${accountScope.stamp()}`;
   if (cacheApp !== app || cacheScope !== scope) {
     readCache.clear(); resourceVersions.clear(); cacheApp = app; cacheScope = scope;
   }
@@ -22,7 +23,9 @@ function invalidateReads(resource) {
 }
 
 async function dataMode() {
-  if (await waitForCloudReady()) return 'cloud';
+  const check = accountScope.guard(true);
+  const ready = await waitForCloudReady(); check();
+  if (ready) return 'cloud';
   const app = getAppSafe();
   if (app?.globalData?.dataMode === 'cloud' || app?.globalData?.cloudIntent === true) {
     const error = new Error('云端暂未连接，请检查网络后在设置中重新连接；内容不会改存本机');
@@ -41,7 +44,7 @@ async function cachedRead(resource, key, loader, options = {}) {
   const scope = cacheScope, app = cacheApp;
   const contextChanged = () => {
     const current = getAppSafe();
-    return current !== app || `${current?.globalData?.dataMode || mode}:${current?.globalData?.cloudGeneration || 0}` !== scope;
+    return current !== app || `${current?.globalData?.dataMode || mode}:${current?.globalData?.cloudGeneration || 0}:${accountScope.stamp()}` !== scope;
   };
   const existing = readCache.get(cacheKey);
   if (existing?.pending) return existing.pending;
@@ -85,7 +88,9 @@ async function waitForCloudReady() {
 }
 
 async function callFunction(name, data = {}, options = {}) {
+  const accountStamp = accountScope.stamp();
   if (!(await waitForCloudReady())) throw new Error('CLOUD_NOT_READY');
+  if (accountStamp !== accountScope.stamp()) throw Object.assign(new Error('账号已变化，请重新操作'), { code: 'ACCOUNT_CHANGED' });
   if (options.beforeDispatch) options.beforeDispatch();
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -112,6 +117,7 @@ async function callFunction(name, data = {}, options = {}) {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
+        if (accountStamp !== accountScope.stamp()) { reject(Object.assign(new Error('账号已变化，已忽略旧账号的回复'), { code: 'ACCOUNT_CHANGED' })); return; }
         const result = res?.result;
         if (!result || typeof result !== 'object' || Array.isArray(result) || typeof result.ok !== 'boolean') {
           reject(Object.assign(new Error('云端返回格式不完整，提交结果尚未确认'), { code: 'CLOUD_INVALID_RESPONSE', outcomeUnknown: true }));

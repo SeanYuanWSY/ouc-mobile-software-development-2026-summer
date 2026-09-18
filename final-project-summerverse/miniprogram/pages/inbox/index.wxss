@@ -7,9 +7,11 @@
 .inbox-actions { display:flex; gap:18rpx; }
 .inbox-actions button { flex:1; margin:0; min-width:0; }
 .connection-row { display:flex; justify-content:space-between; align-items:center; gap:16rpx; border-bottom:1rpx solid #deded0; padding:16rpx 0; }
-.connection-row>view { flex:1; min-width:0; overflow-wrap:anywhere; }
-.connection-row button { margin:0; flex-shrink:0; }
+.connection-row>view { flex:1 1 auto; min-width:0; overflow-wrap:break-word; word-break:break-word; }
+.connection-row>view text { display:block; max-width:100%; }
+.connection-row button { width:auto; min-width:150rpx; margin:0; flex:0 0 auto; }
 .token-box { background:#edf3e9; padding:22rpx; border-radius:18rpx; display:grid; gap:16rpx; }
+.token-value { display:block; padding:18rpx; border-radius:12rpx; background:#fff; color:#264d37; font-family:monospace; font-size:24rpx; line-height:1.45; overflow-wrap:anywhere; word-break:break-all; }
 .editor { border:2rpx solid #64876a; }
 .editor .input { width:100%; box-sizing:border-box; }
 .empty { min-height:160rpx; justify-content:center; }

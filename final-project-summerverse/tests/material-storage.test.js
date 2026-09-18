@@ -37,6 +37,35 @@ function dbFixture() {
     queue = task.catch(() => {}); return task;
   } };
 }
+test('删除阻止旧创建和旧编辑复活，删除重试不保留正文', async () => {
+  const db = dbFixture(), run = createWorkspaces(db);
+  const workspace = { id: 'deleted', title: 'private-title', sources: [] };
+  await run('alice', 'material.save', { workspace, revision: 0 });
+  await run('alice', 'material.delete', { id: workspace.id, revision: 1 });
+  await run('alice', 'material.delete', { id: workspace.id, revision: 1 });
+  for (const revision of [0, 1, 2]) await assert.rejects(run('alice', 'material.save', { workspace, revision }), { code: 'MATERIAL_CONFLICT' });
+  await assert.rejects(run('alice', 'material.get', { id: workspace.id }));
+  assert.deepEqual(await run('alice', 'material.list'), []);
+  assert(!JSON.stringify(db.snapshot()).includes('private-title'));
+  await run('alice', 'material.delete', { id: 'late-create', revision: 0 });
+  await assert.rejects(run('alice', 'material.save', { workspace: { id: 'late-create', title: 'late' }, revision: 0 }), { code: 'MATERIAL_CONFLICT' });
+});
+test('清空与旧版本写入串行化，保留删除标记且不影响其他用户', async () => {
+  for (const resetFirst of [true, false]) {
+    const db = dbFixture(), run = createWorkspaces(db), workspace = { id: 'work', title: 'private-title' };
+    await run('alice', 'material.save', { workspace, revision: 0 });
+    await run('bob', 'material.save', { workspace, revision: 0 });
+    const save = () => run('alice', 'material.save', { workspace, revision: 1 });
+    await Promise.allSettled(resetFirst ? [run.clear('alice'), save()] : [save(), run.clear('alice')]);
+    assert.deepEqual(await run('alice', 'material.list'), []);
+    assert.equal((await run('bob', 'material.list')).length, 1);
+    for (const revision of [0, 1, 2]) await assert.rejects(run('alice', 'material.save', { workspace, revision }), { code: 'MATERIAL_CONFLICT' });
+    await run.clear('alice');
+    await assert.rejects(run('alice', 'material.save', { workspace, revision: 0 }), { code: 'MATERIAL_CONFLICT' });
+    await run('alice', 'material.save', { workspace: { id: 'new', title: '新资料' }, revision: 0 });
+    assert.equal((await run('alice', 'material.list')).length, 1);
+  }
+});
 test('只接受精确环境、当前owner和专用目录的文件ID', () => {
   assert.equal(validateMaterialFile('alice', fileID, authority).cloudPath, ownPath);
   for (const f of [fileID.replace(authority, 'other.bucket'), fileID.replace('/material/', '/memory/'), fileID.replace('/material/', '/material/../material/'), fileID.replace('abcdef.pdf', 'ab%2fcd.pdf'), fileID.replace('abcdef.pdf', 'abcdef.mp3')]) assert.throws(() => validateMaterialFile('alice', f, authority));

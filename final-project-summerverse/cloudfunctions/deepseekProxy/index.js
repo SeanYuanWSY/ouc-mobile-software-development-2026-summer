@@ -5,7 +5,8 @@ const { ACTION_CREDITS, reserveAiMinute, reserveAiQuota } = require('./quota');
 const { validateRequestPayload } = require('./request-policy');
 const { publicErrorForStatus, publicError } = require('./deepseek-errors');
 
-const { configFromEvent } = require('./config-policy');
+const { createVault } = require('./credential-vault');
+const vault = createVault(db);
 const { requestBody } = require('./providers');
 const { postJson } = require('./safe-http');
 const materials = require('./material-ai');
@@ -194,17 +195,20 @@ async function prepareVisionPayload(openid, payload) {
 
 exports.main = async (event = {}) => {
   try {
+    if (!event || typeof event !== 'object' || Array.isArray(event) || ['httpMethod', 'headers', 'body'].some(k => Object.hasOwn(event, k))) return { ok: false, code: 'NO_OPENID', error: '仅支持已登录的小程序账号' };
+    const input = { ...event }; delete input.userInfo; delete input.tcbContext; event = input;
     const action = clean(event.action, 60);
     const { OPENID, APPID } = cloud.getWXContext();
     if (!OPENID) return { ok: false, error: '无法识别当前微信用户', code: 'NO_OPENID' };
-    if (action === 'capabilities') return { ok: true, data: { protocol: 'multi-provider-v1', materialsProtocol: 'materials-v1', materialModes: materialPolicy.MODES, materialStorageConfigured: Boolean(process.env.MATERIAL_STORAGE_AUTHORITY), webMaterials: true } };
+    if (action.startsWith('credential.')) return { ok: true, data: await vault.manage(OPENID, APPID, event) };
+    if (action === 'capabilities') return { ok: true, data: { protocol: 'multi-provider-v1', credentialsProtocol: 'account-vault-v1', materialsProtocol: 'materials-v1', materialModes: materialPolicy.MODES, materialStorageConfigured: Boolean(process.env.MATERIAL_STORAGE_AUTHORITY), webMaterials: true } };
     if (!ACTION_CREDITS[action]) return { ok: false, error: '未知 AI 操作', code: 'BAD_REQUEST' };
     if (['materialExtract', 'materialWebExtract', 'materialVision', 'materialsAnalyze'].includes(action)) {
       if (event.httpMethod || event.headers || event.body) throw Object.assign(new Error('资料分析仅支持微信内使用'), { code: 'NO_OPENID' });
       const payload = event.payload || {};
       materials.validate(action, payload);
       // Parsing has no model charge or Key, but invalid documents still consume backend quota.
-      const config = ['materialExtract', 'materialWebExtract'].includes(action) ? null : configFromEvent(event);
+      const config = ['materialExtract', 'materialWebExtract'].includes(action) ? null : await vault.resolve(OPENID, APPID, event);
       if (action === 'materialVision' && !config.visionModel) throw Object.assign(new Error('请先设置识图模型'), { code: 'BAD_REQUEST' });
       await reserveAiQuota(db, { openid: OPENID, appId: APPID, action, model: config?.model || '', includeGlobal: false });
       const data = action === 'materialExtract' ? await materials.extract(cloud, db, OPENID, payload)
@@ -213,7 +217,7 @@ exports.main = async (event = {}) => {
           : await materials.analyze(payload, config, requestDeepSeek);
       return { ok: true, data };
     }
-    const config = configFromEvent(event);
+    const config = await vault.resolve(OPENID, APPID, event);
     if (!config.apiKey) {
       const error = new Error('请在设置中填写你自己的 DeepSeek API Key。');
       error.code = 'AI_KEY_MISSING';

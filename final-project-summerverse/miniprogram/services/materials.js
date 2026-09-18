@@ -1,10 +1,11 @@
+const { scopedKey, guard: accountGuard } = require('../utils/account-scope');
 const policy = require('../utils/material-policy');
 const { callFunction, waitForCloudReady, dataMode: resolveMode, cachedRead = (resource, key, loader) => loader(), invalidateReads = () => {} } = require('./cloud');
 const media = require('./media');
 const ai = require('./ai');
 const LOCAL_KEY = 'summerverse.material-workspaces.v1';
 function makeId(prefix = 's') { return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`; }
-async function mode() { return resolveMode ? resolveMode() : await waitForCloudReady() ? 'cloud' : 'local'; }
+async function mode() { const check = accountGuard(); const result = resolveMode ? await resolveMode() : await waitForCloudReady() ? 'cloud' : 'local'; check(); return result; }
 async function capability() {
   return cachedRead('material-capability', 'protocol', async () => {
     const res = await callFunction('dataService', { action: 'material.capabilities' });
@@ -12,7 +13,7 @@ async function capability() {
     return res.data;
   });
 }
-function locals() { const value = wx.getStorageSync(LOCAL_KEY); return Object.assign(Object.create(null), value && typeof value === 'object' && !Array.isArray(value) ? value : {}); }
+function locals() { const value = wx.getStorageSync(scopedKey(LOCAL_KEY)); return Object.assign(Object.create(null), value && typeof value === 'object' && !Array.isArray(value) ? value : {}); }
 function agreeCloudStorage() { getApp().globalData.materialStorageConsent = true; }
 async function ensureCloudStorageConsent(guard) {
   guard();
@@ -29,13 +30,14 @@ async function ensureCloudStorageConsent(guard) {
 function list(options = {}) { return cachedRead('materials', 'list', readList, options); }
 async function readList() {
   if (await mode() === 'cloud') { await capability(); return (await callFunction('dataService', { action: 'material.list' })).data; }
-  return Object.values(locals()).map((w) => ({ id: w.id, title: w.title, revision: w.revision, updatedAt: w.updatedAt, sourceCount: w.sources.length, taskCount: w.tasks.length })).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  return Object.values(locals()).filter(w => !w._deleted).map((w) => ({ id: w.id, title: w.title, revision: w.revision, updatedAt: w.updatedAt, sourceCount: w.sources.length, taskCount: w.tasks.length })).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 async function get(id) {
   if (await mode() === 'cloud') return (await callFunction('dataService', { action: 'material.get', payload: { id } })).data;
-  const found = locals()[id]; if (!found) throw new Error('资料已删除'); return found;
+  const found = locals()[id]; if (!found || found._deleted) throw new Error('资料已删除'); return found;
 }
 async function save(input, revision, guard = () => {}) {
+  const originalGuard = guard, check = accountGuard(); guard = () => { check(); originalGuard(); };
   invalidateReads('materials');
   try { return await saveWorkspace(input, revision, guard); }
   finally { invalidateReads('materials'); }
@@ -48,10 +50,10 @@ async function saveWorkspace(input, revision, guard) {
   }
   guard();
   const all = locals();
-  if ((all[workspace.id]?.revision || 0) !== revision) throw new Error('资料已更新，请重新打开后修改');
-  if (!all[workspace.id] && Object.keys(all).length >= policy.LIMITS.workspaces) throw new Error('最多保存12份资料，请先删除不用的工作台');
+  if (all[workspace.id]?._deleted || (all[workspace.id]?.revision || 0) !== revision) throw new Error('资料已更新或删除，请重新打开后修改');
+  if (!all[workspace.id] && Object.values(all).filter(w => !w._deleted).length >= policy.LIMITS.workspaces) throw new Error('最多保存12份资料，请先删除不用的工作台');
   const next = { ...workspace, revision: revision + 1, updatedAt: new Date().toISOString() };
-  all[workspace.id] = next; wx.setStorageSync(LOCAL_KEY, all);
+  all[workspace.id] = next; wx.setStorageSync(scopedKey(LOCAL_KEY), all);
   return { revision: next.revision, updatedAt: next.updatedAt };
 }
 async function remove(id, revision) {
@@ -62,7 +64,8 @@ async function remove(id, revision) {
 async function removeWorkspace(id, revision) {
   if (await mode() === 'cloud') return callFunction('dataService', { action: 'material.delete', payload: { id, revision } });
   const all = locals(); if ((all[id]?.revision || 0) !== revision) throw new Error('资料已更新，请刷新');
-  delete all[id]; wx.setStorageSync(LOCAL_KEY, all);
+  if (!all[id]?._deleted) all[id] = { id, revision, _deleted: true };
+  wx.setStorageSync(scopedKey(LOCAL_KEY), all);
 }
 function textSource(name, text) {
   if (typeof text !== 'string' || !text.trim() || text.length > policy.LIMITS.characters) throw new Error('请提供1到40000字的文字');

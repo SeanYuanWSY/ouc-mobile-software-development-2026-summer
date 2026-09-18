@@ -8,7 +8,7 @@
   </view>
   <view wx:if="{{loadError}}" class="paper-card data-card"><text class="settings-note">{{loadError}}</text><button class="secondary-button" bindtap="reconnectCloud" loading="{{reconnectingCloud}}" disabled="{{reconnectingCloud}}">重新连接</button></view>
   <view class="section-title">我的资料</view>
-  <button class="secondary-button" bindtap="openInbox">灵感收件箱 · 连接电脑助手 ›</button>
+  <button class="secondary-button" bindtap="openInbox">电脑助手与回信 ›</button>
   <view class="paper-card profile-card">
     <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"><image src="{{profile.avatarUrl}}" mode="aspectFill"/><text>更换头像</text></button>
     <view class="field"><text class="field__label">昵称</text><input class="input" type="nickname" value="{{profile.nickname}}" data-field="nickname" bindinput="onProfileInput" maxlength="30"/></view>
@@ -28,12 +28,15 @@
       <view class="field"><text class="field__label">识图模型 ID · 可不填</text><input class="input" value="{{customVisionModel}}" data-field="visionModel" bindinput="onCustomInput" maxlength="120"/></view>
       <text class="settings-note">支持 OpenAI Chat Completions 格式。更换服务商或地址后，需重新填写 Key。</text>
     </block>
-    <view class="field"><text class="field__label">API Key · 本次使用</text><view class="key-row"><input class="input key-input" value="{{tempApiKey}}" password="{{!showKey}}" bindinput="onApiKeyInput" placeholder="填写你自己的 Key" maxlength="300"/><button class="key-toggle" bindtap="toggleKey">{{showKey ? '隐藏' : '显示'}}</button></view></view>
-    <view class="key-actions"><button class="secondary-button" bindtap="clearKey">清除 Key</button><button class="primary-button" loading="{{testingAI}}" disabled="{{testingAI}}" bindtap="testAI">测试连接</button></view>
+    <view class="field"><text class="field__label">API Key</text><view class="key-row"><input class="input key-input" value="{{tempApiKey}}" password="{{!showKey}}" bindinput="onApiKeyInput" placeholder="填写你自己的 Key" maxlength="300"/><button class="key-toggle" bindtap="toggleKey">{{showKey ? '隐藏' : '显示'}}</button></view></view>
+    <text wx:if="{{vaultSaved}}" class="settings-note">此账号已保存加密 Key，不展示原文。填写新 Key 后可替换。</text>
+    <view class="key-actions"><button wx:if="{{tempApiKey}}" class="secondary-button" disabled="{{vaultBusy || !vaultConfigured}}" loading="{{vaultBusy}}" bindtap="saveAccountKey">保存到我的账号</button><button wx:if="{{vaultSaved}}" class="secondary-button" disabled="{{vaultBusy}}" loading="{{vaultBusy}}" bindtap="deleteAccountKey">删除账号 Key</button></view>
+    <text wx:if="{{!vaultConfigured}}" class="settings-note">账号保存服务未就绪，目前可使用会话 Key。</text>
+    <view class="key-actions"><button class="secondary-button" bindtap="clearKey">清除本次输入</button><button class="primary-button" loading="{{testingAI}}" disabled="{{testingAI}}" bindtap="testAI">测试连接</button></view>
     <view wx:if="{{connection}}" class="connection {{connection.type}}">{{connection.text}}</view>
     <text class="settings-note">AI 费用由你的 API 账户承担。基础记录无需 Key。</text>
     <button class="ghost-button settings-disclosure" bindtap="toggleAiHelp">{{showAiHelp ? '收起说明 ▴' : '使用说明 ▾'}}</button>
-    <text wx:if="{{showAiHelp}}" class="settings-note">服务商和模型选择会保留在本机；Key 目前只在本次运行中使用。AI 调用前会显示接收数据的地址，请只使用你信任的接口。测试连接只验证文字模型，识图需在记录页单独使用。</text>
+    <text wx:if="{{showAiHelp}}" class="settings-note">默认只在本次运行中使用 Key。选择保存后，它会加密绑定当前微信账号及服务商地址；电脑助手无法读取 Key。更换接口后需重新保存。AI 调用前会显示接收数据的地址，请只使用你信任的接口。测试连接只验证文字模型，识图需在记录页单独使用。</text>
   </view>
   <view class="section-title">记录保存</view>
   <view class="paper-card data-card"><text class="settings-note">{{dataMode === 'cloud' ? '记忆、目标和资料保存在你的微信账号下，关闭小程序后仍会保留。' : '当前记录保存在本机，清理小程序数据前请先备份。'}}</text><text wx:if="{{dataMode !== 'cloud'}}" class="settings-note">本机记录不会自动合并到云端。</text></view>

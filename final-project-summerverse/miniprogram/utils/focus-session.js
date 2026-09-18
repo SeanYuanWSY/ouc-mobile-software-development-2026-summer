@@ -1,3 +1,4 @@
+const { scopedKey } = require('./account-scope');
 const KEY = 'summerverse.focus.v1';
 const MINUTES = [10, 25, 45];
 const validId = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(value);
@@ -37,12 +38,12 @@ function pause(value, now = Date.now()) {
   if (!current) throw new Error('计时状态无效，请重新选择任务');
   return current.state === 'running' ? { ...current, state: 'paused', deadline: 0 } : current;
 }
-function read(now = Date.now()) { return normalize(wx.getStorageSync(KEY), now); }
+function read(now = Date.now()) { return normalize(wx.getStorageSync(scopedKey(KEY)), now); }
 function save(value, now = Date.now()) {
   const current = normalize(value, now);
   if (!current) throw new Error('计时状态无效，请重新选择任务');
   // This object contains IDs and timer state only; no task text, answer, Key or token.
-  try { wx.setStorageSync(KEY, current); } catch (_) { throw new Error('计时状态未能保存，请检查本机空间后重试'); }
+  try { wx.setStorageSync(scopedKey(KEY), current); } catch (_) { throw new Error('计时状态未能保存，请检查本机空间后重试'); }
   return current;
 }
 function display(value, now = Date.now()) {

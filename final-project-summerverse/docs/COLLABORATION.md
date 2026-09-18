@@ -57,12 +57,20 @@ Pages must preserve these distinctions visually and in stored records.
 - Send the minimum memory context needed for the selected feature.
 - Do not send raw media to AI without explicit user action.
 
-## High-priority remaining work
+## Current baseline and remaining work
 
-1. Replace `touristappid` with the real AppID in a private local config.
-2. Create the CloudBase environment and deploy the five cloud functions.
-3. Complete WeRun, location, weather, media, and cloud-database device testing.
-4. Test DeepSeek text and vision calls with real credentials.
-5. Complete privacy declarations and permission-denied UX.
-6. Profile island animation and image memory use on low-end phones.
-7. Capture final demo data and rehearse `docs/DEMO_SCRIPT.md`.
+Reviewed 2026-09-18. Read the latest dated section of `docs/ACCEPTANCE_STATUS.md` before interpreting older records.
+
+- The former instructions to replace `touristappid` and create the initial cloud environment are outdated. `project.config.json` already contains the project AppID, and `miniprogram/config/env.js` enables its configured cloud environment. Do not replace these to force a local preview; use an explicitly isolated copy for offline tests.
+- The 2026-09-17 acceptance record and `dist/relay-fix-20260916/experience-1.1.1.txt` record experience version 1.1.1, not an approved or publicly released version. The saved deployment verification covers 18 files across three updated functions; it does not prove real-account business flows. These are historical platform observations, not a fresh online check.
+- The 2026-09-18 local check passed `npm run verify` with 206 tests, 16 pages and seven cloud-function directories. The local-only materials-page fix refreshes saved task state and revision after returning, while protecting unsaved edits and rejecting stale responses. Unknown storage state no longer claims local mode. Local and fixture tests are not evidence of real cloud, model, or cross-device connectivity.
+- Initial GUI readback was unstable and CLI authorization was pending. After the user authorized it on 2026-09-18, CLI status succeeded and an actual home-button tap reached the materials page. After recompilation its storage-status text was verified as unknown, while the cloud-disconnected message persisted. This supersedes the authorization blocker, but does not pass the saved-task GUI round trip or real cloud flow. Do not treat the older synthetic demo as validation of these changes.
+
+1. Resolve the external assistant entry and complete real phone-to-computer relay testing. Do not substitute environment-wide administrator credentials for end-user access.
+2. Complete real-account material upload, parsing, save, restore and deletion checks, including cross-account isolation.
+3. Complete user-entered BYOK text and vision requests, plus WeRun, location, weather and media device testing.
+4. Verify the platform's saved privacy text and supplemental purposes; the last recorded pending-review state had a content readback discrepancy.
+5. Profile island animation and image memory use on low-end phones.
+6. Align `docs/DEMO_SCRIPT.md` and classroom materials with the features actually verified for the presentation. Do not present fixture relay results as a connected computer assistant.
+
+Submitting code for WeChat platform review, uploading, public release and Git push require separate authorization. Local validation alone does not complete any of them.

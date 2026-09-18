@@ -1,34 +1,45 @@
 <view class="{{experienceClass}} page page--no-tab inbox-page">
-  <view class="nav-header"><button class="nav-back" bindtap="goBack">‹</button><text class="nav-title__brand">灵感收件箱</text></view>
-  <view class="inbox-intro"><text class="inbox-heading">把电脑上的成果，带回小岛。</text><text>助手先整理，你决定留下什么。</text></view>
-  <button class="secondary-button" bindtap="openRelay">发起电脑接力 · 查看任务结果 ↗</button>
+  <view class="nav-header"><button class="nav-back" bindtap="goBack">‹</button><text class="nav-title__brand">电脑助手</text></view>
+  <view class="inbox-intro"><text class="inbox-heading">手机收集，电脑接着做。</text><text>Kimi 读取你授权的资料和任务，成果回到这里确认。</text></view>
+  <button class="secondary-button" bindtap="openRelay">指定任务 · 查看接力记录 ↗</button>
   <view wx:if="{{error}}" class="paper-card inbox-card"><text>{{error}}</text><button class="secondary-button" bindtap="refresh">刷新</button></view>
   <view wx:if="{{!error && !drafts.length}}" class="paper-card inbox-card empty"><text class="inbox-heading">还没有新来信</text><text>连接助手后，让它把今天的收获发过来。</text></view>
   <block wx:if="{{!editing}}"><view wx:for="{{drafts}}" wx:key="id" class="paper-card inbox-card">
-    <text class="inbox-label">AI 草稿 · {{item.connectionName}} · {{item.draft.kind === 'memory' ? '记忆' : '目标'}}</text>
+    <text class="inbox-label">AI 草稿 · {{item.connectionName}} · {{item.draft.kind === 'result' ? '成果' : item.draft.kind === 'memory' ? '记忆' : '目标'}}</text>
     <text class="inbox-heading">{{item.draft.title}}</text><text class="inbox-content">{{item.draft.content}}</text>
     <text wx:if="{{item.draft.kind === 'goal'}}">目标：{{item.draft.target}} {{item.draft.unit}}</text>
     <text wx:else>{{item.draft.date}}</text>
     <view class="inbox-actions"><button class="secondary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="dismiss">忽略</button><button class="primary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="edit">查看并保存</button></view>
   </view></block>
   <view wx:if="{{editing}}" class="paper-card inbox-card editor">
-    <text class="inbox-heading">确认这份{{editing.kind === 'memory' ? '记忆' : '目标'}}</text>
+    <text class="inbox-heading">确认这份{{editing.kind === 'result' ? '成果' : editing.kind === 'memory' ? '记忆' : '目标'}}</text>
     <text>标题</text><input class="input" value="{{editing.title}}" maxlength="60" data-field="title" bindinput="onEdit"/>
+    <block wx:if="{{editing.kind === 'result'}}"><text>成果正文</text><textarea class="input" auto-height value="{{editing.content}}" maxlength="3000" data-field="content" bindinput="onEdit"/></block>
     <block wx:if="{{editing.kind === 'memory'}}"><text>正文</text><textarea class="input" auto-height value="{{editing.content}}" maxlength="3000" data-field="content" bindinput="onEdit"/><text>日期</text><picker mode="date" value="{{editing.date}}" bindchange="onDate"><view class="input">{{editing.date}} ▾</view></picker></block>
     <block wx:else><text>目标数量</text><input class="input" type="number" value="{{editing.target}}" data-field="target" bindinput="onEdit"/><text>单位</text><input class="input" value="{{editing.unit}}" maxlength="10" data-field="unit" bindinput="onEdit"/></block>
-    <text class="inbox-label">请确认内容属实。保存后会保留 AI 辅助标记。</text>
+    <text class="inbox-label">{{editing.kind === 'result' ? '确认后保留为 AI 成果，不会记成真实经历或自动完成任务。' : '请确认内容属实，保存后保留 AI 辅助标记。'}}</text>
     <view class="inbox-actions"><button class="secondary-button" disabled="{{busy}}" bindtap="cancelEdit">取消</button><button class="primary-button" loading="{{busy}}" disabled="{{busy}}" bindtap="accept">确认保存</button></view>
   </view>
+  <view wx:if="{{results.length}}" class="section-title">已确认成果</view>
+  <view wx:for="{{results}}" wx:key="id" class="paper-card inbox-card"><text class="inbox-label">AI 成果 · {{item.connectionName}}</text><text class="inbox-heading">{{item.draft.title}}</text><text class="inbox-content">{{item.draft.content}}</text></view>
   <button class="secondary-button" bindtap="toggleConnections">{{showConnections ? '收起连接' : '连接我的助手'}} ▾</button>
   <view wx:if="{{showConnections}}" class="paper-card inbox-card">
-    <text class="inbox-heading">我的助手</text><text class="inbox-label">电脑端通过 MCP 连接。每个连接有效期30天，最多5个。</text>
-    <view wx:for="{{connections}}" wx:key="id" class="connection-row"><view><text>{{item.name}}</text><text class="inbox-label">{{item.workJobs ? '接收手机任务 · ' : ''}}{{item.readRecent ? '可读近期内容' : '不读近期记录'}}</text></view><button class="secondary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="revoke">断开</button></view>
+    <text class="inbox-heading">我的助手</text><text class="inbox-label">每台电脑单独授权，有效期30天，可随时断开。</text>
+    <view wx:for="{{connections}}" wx:key="id" class="connection-row"><view><text>{{item.name}}</text><text class="inbox-label">{{item.permissionLabel}} · {{item.expiryLabel}} 到期</text></view><button class="secondary-button" disabled="{{busy}}" data-id="{{item.id}}" bindtap="revoke">断开</button></view>
+    <view wx:if="{{supportsLibrary && !gatewayUrl}}" class="data-source-note">当前使用本机匹配模式：在你的电脑上运行连接适配器，再用 Kimi Code 读取你授权的资料。适合个人电脑演示，不对外开放。</view>
+    <view wx:if="{{gatewayUrl}}" class="data-source-note"><text>在电脑运行连接包中的 connect.cjs，按提示填写地址和凭证，再把生成的配置加入 Kimi。无需开发工具。</text></view>
+    <button wx:if="{{gatewayUrl}}" class="secondary-button" bindtap="copyGatewayUrl">复制电脑连接地址</button>
     <text>新连接名称</text><input class="input" value="{{name}}" maxlength="30" placeholder="例如：我的电脑助手" bindinput="onName"/>
+    <block wx:if="{{supportsLibrary}}">
+      <view class="connection-row"><view><text>工作区任务与进度</text><text class="inbox-label">当前及以后保存的工作区，无需逐次派单</text></view><switch checked="{{readWorkspace}}" bindchange="onWorkspaceChange" color="#356f4d"/></view>
+      <view class="connection-row"><view><text>工作区资料正文</text><text class="inbox-label">允许助手按需阅读你导入的内容</text></view><switch checked="{{readSources}}" bindchange="onSourcesChange" color="#356f4d"/></view>
+      <view class="connection-row"><text>回传成果与建议草稿</text><switch checked="{{allowResults}}" bindchange="onResultsChange" color="#356f4d"/></view>
+    </block>
     <view class="connection-row"><text>允许读取近期记录与目标</text><switch checked="{{readRecent}}" bindchange="onReadChange" color="#356f4d"/></view>
-    <view class="connection-row"><view><text>允许接收手机任务</text><text class="inbox-label">仅限你指定的资料与任务</text></view><switch checked="{{workJobs}}" disabled="{{!supportsJobs}}" bindchange="onJobsChange" color="#356f4d"/></view>
+    <view class="connection-row"><view><text>指定接力任务的读写</text><text class="inbox-label">独立权限：读取指定快照并回传接力结果</text></view><switch checked="{{workJobs}}" disabled="{{!supportsJobs}}" bindchange="onJobsChange" color="#356f4d"/></view>
     <text wx:if="{{!supportsJobs}}" class="inbox-label">云端电脑接力尚未更新，现有连接不会自动获得新权限。</text>
     <button class="primary-button" loading="{{busy}}" disabled="{{busy || !!error}}" bindtap="connect">创建连接凭证</button>
-    <view wx:if="{{token}}" class="token-box"><text>凭证仅显示这一次，请放入自己的电脑端配置，勿发给他人。离开页面后隐藏；遗失可断开重建。</text><button class="secondary-button" bindtap="copyToken">复制连接凭证</button><button class="secondary-button" bindtap="clearToken">已配置，隐藏凭证</button></view>
+    <view wx:if="{{token}}" class="token-box"><text>这是一次性连接码，不是 API Key。请复制到你自己的电脑配置中；离开页面后会隐藏，遗失可断开后重建。</text><text class="token-value" selectable="true">{{token}}</text><button class="secondary-button" bindtap="copyToken">复制连接码</button><button class="secondary-button" bindtap="clearToken">已配置，隐藏连接码</button></view>
     <text class="inbox-label">断开后助手立即失去访问权限，已收到的草稿仍由你处理。</text>
   </view>
 </view>

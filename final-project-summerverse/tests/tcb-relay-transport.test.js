@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { transport, cloudBaseAuthorization, cloudBaseTransport } = require('../integrations/mcp/server.cjs');
+const { createProtocol, transport, cloudBaseAuthorization, cloudBaseTransport } = require('../integrations/mcp/server.cjs');
 
 // 向量来自 CloudBase Open API 官方文档示例：固定密钥与时间戳必须复现文档给出的签名。
 test('CloudBase Open API 签名与官方示例向量一致', () => {
@@ -60,9 +60,22 @@ test('Open API 外层失败或畸形响应不伪装成业务结果', async () =>
   const token = 'd'.repeat(64);
   const make = (outer) => async () => ({ body: (async function* () { yield Buffer.from(JSON.stringify(outer)); })() });
   const base = { envId: 'cloudbase-test', secretId: 'AKID' + 'x'.repeat(20), secretKey: 'k'.repeat(36), token };
-  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ code: 'SIGN_PARAM_INVALID', message: 'no auth' }) })({ action: 'draft.status', requestId: 'r3' }), /CloudBase API: SIGN_PARAM_INVALID/);
-  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ data: {} }) })({ action: 'draft.status', requestId: 'r4' }), /Invalid response/);
+  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ code: 'SIGN_PARAM_INVALID', message: 'no auth' }) })({ action: 'draft.status', requestId: 'r3' }), { relayError: 'AUTH' });
+  await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ data: {} }) })({ action: 'draft.status', requestId: 'r4' }), { relayError: 'RESPONSE' });
   await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: make({ data: { response_data: '{"statusCode":200,"body":"not-json"}' } }) })({ action: 'draft.status', requestId: 'r5' }), SyntaxError);
   await assert.rejects(cloudBaseTransport({ ...base, fetchImpl: async () => ({ body: (async function* () { yield Buffer.alloc(262145); })() }) })({ action: 'draft.status', requestId: 'r6' }), /Response too large/);
   await assert.rejects(cloudBaseTransport(base)({ action: 'draft.status', requestId: 'r7' + 'x'.repeat(16400) }), /Too large/);
+});
+test('MCP实际工具调用区分平台故障且不输出原始错误或密钥', async () => {
+  for (const [code, expected] of [['SIGN_PARAM_INVALID', '鉴权失败'], ['UnauthorizedOperation', '拒绝调用'], ['RequestLimitExceeded', '限流'], ['unknown-private-marker', '无法识别']]) {
+    const send = cloudBaseTransport({ envId: 'cloudbase-test', secretId: 'AKID' + 'x'.repeat(20), secretKey: 'k'.repeat(36), token: 'a'.repeat(64), fetchImpl: async () => ({ body: (async function* () { yield Buffer.from(JSON.stringify({ code, message: 'private-marker' })); })() }) });
+    const handle = createProtocol(send);
+    await handle({ jsonrpc: '2.0', id: 1, method: 'initialize' });
+    await handle({ jsonrpc: '2.0', method: 'notifications/initialized' });
+    const reply = await handle({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'summerverse_jobs', arguments: {} } });
+    assert.equal(reply.result.isError, true);
+    assert(reply.result.content[0].text.includes(expected));
+    assert(!JSON.stringify(reply).includes('private-marker'));
+    assert(!JSON.stringify(reply).includes('k'.repeat(36)));
+  }
 });

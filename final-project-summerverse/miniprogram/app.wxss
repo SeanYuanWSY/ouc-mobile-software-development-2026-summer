@@ -359,31 +359,57 @@ button.chip {
 .text-strong { font-weight: 700; }
 .text-small { color: var(--muted); font-size: 20rpx; }
 
-/* Three experiences share records and permissions; these tokens only change presentation. */
+/* Three experiences share the journal palette; only content density changes. */
 .experience-minimal, .experience-focus {
-  --paper: #f8f9fb; --paper-deep: #eceff2; --ink: #19252a; --muted: #657378;
-  --line: #e0e6e8; --green: #23634e; --green-soft: #e8f2ed;
-  --shadow: 0 5rpx 20rpx rgba(21,39,45,.035);
-  color: var(--ink); background: var(--paper);
+  --paper: #f7f1e4; --paper-deep: #efe4cf; --ink: #2f2c27; --muted: #7f796e;
+  --line: rgba(83, 74, 61, 0.16); --green: #3d7a55; --green-soft: #e4efe4;
+  --shadow: 0 14rpx 38rpx rgba(74, 60, 42, 0.12);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 2%, rgba(255,255,255,.72), transparent 32%),
+    linear-gradient(180deg, #faf5e9 0%, var(--paper) 42%, #f3ead9 100%);
 }
-.experience-focus { --paper: #f6f7f3; --green: #465b43; --green-soft: #e9eee5; }
+.experience-focus { --green: #3d7a55; --green-soft: #e4efe4; }
 .experience-minimal .nav-title__brand, .experience-focus .nav-title__brand,
 .experience-minimal .section-title__main, .experience-focus .section-title__main {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; letter-spacing: 0;
+  font-family: "KaiTi", "STKaiti", serif; letter-spacing: 1rpx;
 }
-.experience-minimal .paper-card, .experience-focus .paper-card { background: #fff; border-radius: 24rpx; }
-.experience-minimal .primary-button, .experience-focus .primary-button { background: var(--green); box-shadow: none; border-radius: 18rpx; }
+.experience-minimal .paper-card, .experience-focus .paper-card { background: rgba(255, 252, 244, 0.93); border-radius: 28rpx; box-shadow: var(--shadow); }
+.experience-minimal .primary-button, .experience-focus .primary-button { background: linear-gradient(135deg, #477f5c, #2f6f4b); box-shadow: 0 12rpx 26rpx rgba(46, 103, 71, 0.24); border-radius: 24rpx 20rpx 25rpx 21rpx; }
 .experience-minimal .secondary-button, .experience-focus .secondary-button,
 .experience-minimal .input, .experience-focus .input,
 .experience-minimal .textarea, .experience-focus .textarea,
-.experience-minimal .ghost-button, .experience-focus .ghost-button { border-radius: 18rpx; }
-.experience-minimal .loading-mask, .experience-focus .loading-mask { background: rgba(248,249,251,.92); backdrop-filter: none; }
+.experience-minimal .ghost-button, .experience-focus .ghost-button { border-radius: 22rpx 18rpx 24rpx 19rpx; }
+.experience-minimal .loading-mask, .experience-focus .loading-mask { background: rgba(247, 241, 228, .72); backdrop-filter: blur(8rpx); }
 .experience-minimal .loading-sprout, .experience-focus .loading-sprout { animation: none; }
 .reduce-motion view, .reduce-motion text, .reduce-motion image, .reduce-motion button { animation: none !important; transition: none !important; }
 button[disabled] { opacity: .55; }
 .pending-save-note { display:block; padding:18rpx; margin-bottom:16rpx; color:#8a442a; background:#fff3e9; border-radius:18rpx; font-size:24rpx; line-height:1.6; }
 .timeline-more { display:block; margin:24rpx 0; text-align:center; color:var(--muted); font-size:22rpx; }
 .experience-selector { display: flex; gap: 6rpx; padding: 7rpx; margin: 24rpx 0; border-radius: 20rpx; background: rgba(117,134,128,.08); }
-button.experience-option { flex: 1; width: auto; min-width: 0; min-height: 72rpx; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 15rpx; font-size: 25rpx; color: var(--muted); }
-.experience-option.is-selected { background: #fff; color: var(--ink); font-weight: 700; box-shadow: 0 2rpx 8rpx rgba(21,39,45,.06); }
+button.experience-option { flex: 1; width: auto; min-width: 0; min-height: 72rpx; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 18rpx 15rpx 19rpx 16rpx; font-size: 25rpx; color: var(--muted); }
+.experience-option.is-selected { background: var(--green); color: #fffdf6; font-weight: 700; box-shadow: 0 7rpx 15rpx rgba(46, 103, 71, 0.18); }
 .experience-help { display: block; color: var(--muted); font-size: 23rpx; line-height: 1.7; }
+
+/* Shared workspace language across collection, AI settings and computer connections. */
+.page { --surface: #fffdf8; --radius-card: 26rpx; --space-section: 24rpx; }
+.page.experience-minimal, .page.experience-focus { --surface: #fff; }
+.page .paper-card { border-color: var(--line); border-radius: var(--radius-card); box-shadow: var(--shadow); }
+.page .nav-header { gap: 20rpx; margin-bottom: 24rpx; }
+.page .nav-title__brand { color: var(--ink); font-size: 34rpx; line-height: 1.35; }
+.page .input, .page .textarea { color: var(--ink); background: var(--surface); border-color: var(--line); }
+.page .hint, .page .settings-note, .page .inbox-label, .page .relay-hint { color: var(--muted); font-size: 24rpx; line-height: 1.65; }
+.page .primary-button { background: var(--green); min-height: 84rpx; }
+.page .secondary-button { color: var(--green); border-color: var(--line); min-height: 76rpx; }
+.page button { word-break: break-word; }
+.page .connection-row > view { flex: 1; min-width: 0; }
+.page .connection-row switch { flex-shrink: 0; }
+.page .connection-row > view > text { display: block; }
+.page .token-box { background: var(--green-soft); border-color: var(--line); border-radius: 18rpx; }
+.page .file-badge { color: var(--green); background: var(--green-soft); }
+.page button.mode.selected { background: var(--green); border-color: var(--green); }
+.page .source-card { background: var(--surface); }
+.page .inbox-intro { padding: 12rpx 0 24rpx; }
+.page .inbox-intro > text:last-child { display: block; margin-top: 12rpx; color: var(--muted); font-size: 26rpx; line-height: 1.65; }
+.page .key-actions { flex-wrap: wrap; gap: 14rpx; }
+.page .key-actions > button { flex: 1; min-width: 220rpx; }

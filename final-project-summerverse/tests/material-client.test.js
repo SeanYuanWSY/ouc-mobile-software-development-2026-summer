@@ -3,6 +3,14 @@ const assert = require('node:assert/strict');
 const { prepareSubject } = require('./helpers/subject-load');
 const policy = require('../miniprogram/utils/material-policy');
 const experience = require('../miniprogram/utils/experience');
+test('资料页仅在明确本机模式时显示本机存储文案', () => {
+  const template = require('node:fs').readFileSync(require('node:path').join(__dirname, '../miniprogram/pages/materials/index.wxml'), 'utf8');
+  const expression = template.match(/<view class="save-row"><text class="muted">\{\{([\s\S]*?)\}\}/)[1];
+  const render = new Function('unsaved', 'saveState', 'storageMode', `return (${expression});`);
+  assert.equal(render(false, '', 'local'), '当前为本机模式');
+  assert.equal(render(false, '', 'cloud'), '资料保存在你的云端账号');
+  assert.equal(render(false, '', ''), '存储状态尚未确认');
+});
 const source = { id: 's1', name: '通知', kind: 'text', extraction: 'plain', chunks: [{ id: 'c1', locator: '正文', text: '周五交报告' }], warnings: [] };
 const report = { id: 'a1', mode: 'requirements', items: [{ kind: 'task', title: '提交报告', detail: '核对要求后上传', evidence: [{ sourceId: 's1', chunkId: 'c1', quote: '周五交报告' }] }] };
 function loadService({ cloud = false, consent = true, failSave = false } = {}) {
@@ -62,6 +70,17 @@ test('本机资料可恢复且不需云同意；存储失败不能伪装保存�
   assert.equal((await f.api.get('w')).sources[0].chunks[0].text, '周五交报告'); assert.equal(f.count(), 0);
   assert.equal((await f.api.list()).length, 1); assert.equal(f.calls.length, 0);
   await assert.rejects(loadService({ failSave: true }).api.save({ id: 'w', title: '资料' }, 0), /storage full/);
+});
+test('本机删除保留无正文标记，旧请求不能恢复且不占用资料列表', async () => {
+  const { api, wx } = loadService();
+  const workspace = { id: 'w', title: 'private-title', sources: [source] };
+  await api.save(workspace, 0);
+  await api.remove('w', 1);
+  await api.remove('w', 1);
+  assert.deepEqual(await api.list(), []);
+  await assert.rejects(api.get('w'));
+  for (const revision of [0, 1]) await assert.rejects(api.save(workspace, revision));
+  assert(!JSON.stringify(wx.getStorageSync()).includes('private-title'));
 });
 test('页面离开后的迟到同意不留下全局保存权限，也不上传原资料', async () => {
   const f = loadService({ cloud: true }); let confirm, alive = true;
@@ -140,6 +159,52 @@ test('云保存拒绝或冲突保留未保存内容；移除资料会清空过�
   await f.page.addText(); assert(f.page.data.unsaved); assert.equal(f.page.data.workspace.sources[0].chunks[0].text, '周一交'); assert.match(f.page.data.error, /保存冲突/);
   const g = loadPage(); await g.page.analyze(); await g.page.removeSource({ currentTarget: { dataset: { id: 's1' } } });
   assert.equal(g.page.data.workspace.analysis, null); assert.equal(g.page.data.resultViews.length, 0);
+});
+test('从专注页返回刷新已保存任务与版本，不产生额外写入', async () => {
+  const latest = { id: 'w1', title: '报告', sources: [source], analysis: null, tasks: [{ id: 't1', title: '提交报告', done: true }], revision: 2 };
+  const f = loadPage({ get: async () => structuredClone(latest) });
+  f.page.setWorkspace({ ...latest, tasks: [{ ...latest.tasks[0], done: false }], revision: 1 });
+  await f.page.onShow();
+  if (f.page.onHide) f.page.onHide();
+  await f.page.onShow();
+  assert.equal(f.page.data.workspace.revision, 2);
+  assert.equal(f.page.data.completed, 1);
+  assert.equal(f.saved.length, 0);
+});
+test('返回刷新不覆盖未保存标题，读取失败保留内容并提示', async () => {
+  const f = loadPage({ get: async () => { throw Error('读取失败'); } });
+  f.page.setWorkspace({ ...f.page.data.workspace, revision: 1 });
+  await f.page.onShow();
+  if (f.page.onHide) f.page.onHide();
+  f.page.onTitle({ detail: { value: '未保存标题' } });
+  await f.page.onShow();
+  assert.equal(f.page.data.workspace.title, '未保存标题');
+  assert.equal(f.page.data.unsaved, true);
+  f.page.setWorkspace({ ...f.page.data.workspace }, false);
+  if (f.page.onHide) f.page.onHide();
+  await f.page.onShow();
+  assert.match(f.page.data.error, /读取失败/);
+  assert.equal(f.page.data.workspace.title, '未保存标题');
+});
+test('返回刷新中的迟到响应不能覆盖新编辑或离开后的页面', async () => {
+  for (const change of ['edit', 'hide', 'unload', 'switch', 'operation']) {
+    let resolveRead;
+    const f = loadPage({ get: () => new Promise(resolve => { resolveRead = resolve; }) });
+    f.page.setWorkspace({ ...f.page.data.workspace, revision: 1 });
+    await f.page.onShow();
+    if (f.page.onHide) f.page.onHide();
+    const pending = f.page.onShow();
+    assert.equal(typeof resolveRead, 'function');
+    if (change === 'edit') f.page.onTitle({ detail: { value: '新编辑' } });
+    if (change === 'hide') f.page.onHide();
+    if (change === 'unload') f.page.onUnload();
+    if (change === 'switch') f.page.setWorkspace({ ...f.page.data.workspace, id: 'w2', title: '另一份资料' });
+    if (change === 'operation') await f.page.run(async () => {});
+    resolveRead({ ...f.page.data.workspace, title: '旧响应', revision: 2 });
+    await pending;
+    assert.equal(f.page.data.workspace.revision, 1);
+    assert.notEqual(f.page.data.workspace.title, '旧响应');
+  }
 });
 test('只有1173文件打开场景接收forwardMaterials，冷启动不重复入队，query不能伪造', () => {
   let app;

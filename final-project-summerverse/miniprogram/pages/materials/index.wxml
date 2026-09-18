@@ -16,7 +16,7 @@
     <view wx:if="{{linkOpen}}" class="link-editor"><input class="input" placeholder="粘贴公开网页链接" value="{{linkDraft}}" maxlength="1500" bindinput="onLink" disabled="{{busy}}"/><view class="pair"><button class="secondary-button" bindtap="pasteLink" disabled="{{busy}}">读取剪贴板</button><button class="primary-button" bindtap="addLink" disabled="{{busy}}">提取网页</button></view><text class="hint">需登录、验证码或依赖脚本显示的页面，请复制文字或截图导入。</text></view>
     <view wx:if="{{!sourceViews.length && !textOpen && !linkOpen}}" class="empty-import"><text class="empty-symbol">✦</text><text class="heading">通知、课件、截图，都放在一起</text><text class="muted">只处理你选中的资料，不读取完整群聊。</text></view>
     <view wx:for="{{sourceViews}}" wx:key="id" class="source-card"><view class="source-row"><view class="file-badge">{{item.badge}}</view><button class="source-name" data-id="{{item.id}}" bindtap="showSource"><text>{{item.name}}</text><text class="muted">{{item.meta}} · 查看提取内容</text></button><button class="remove-source" data-id="{{item.id}}" bindtap="removeSource" disabled="{{busy}}" aria-label="移除资料">×</button></view><text wx:if="{{item.warning}}" class="source-warning">{{item.warning}}</text></view>
-    <view class="save-row"><text class="muted">{{unsaved ? '有未保存修改' : saveState || (storageMode === 'cloud' ? '资料保存在你的云端账号' : '当前为本机模式')}}</text><button wx:if="{{unsaved}}" class="small-button" bindtap="retrySave" disabled="{{busy}}">保存</button></view>
+    <view class="save-row"><text class="muted">{{unsaved ? '有未保存修改' : saveState || (storageMode === 'cloud' ? '资料保存在你的云端账号' : storageMode === 'local' ? '当前为本机模式' : '存储状态尚未确认')}}</text><button wx:if="{{unsaved}}" class="small-button" bindtap="retrySave" disabled="{{busy}}">保存</button></view>
   </view>
 
   <view class="paper-card section">

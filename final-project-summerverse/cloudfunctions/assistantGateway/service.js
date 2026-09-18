@@ -1,10 +1,13 @@
 const { hash, requireValue, fields, string, draft, active } = require('./policy');
+const { createLibrary } = require('./library');
 const { createGatewayJobs } = require('./jobs');
 // This service has no account-management operations. Owner identity comes only from the token record.
 function createGateway(db, now = Date.now) {
   const jobs = createGatewayJobs(db, now);
+  const library = createLibrary(db, now);
   return async (token, input) => {
     requireValue(typeof token === 'string' && /^[a-f0-9]{64}$/.test(token), 'UNAUTHORIZED');
+    if (input && String(input.action).startsWith('library.')) return library(token, input);
     if (input && ['job.list', 'job.claim', 'job.complete'].includes(input.action)) return jobs(hash(token), input);
     fields(input, ['action', 'requestId', 'draft']);
     requireValue(['recent.read', 'draft.submit', 'draft.status'].includes(input.action));
@@ -17,6 +20,7 @@ function createGateway(db, now = Date.now) {
     const outcome = await db.runTransaction(async (tx) => {
       const cr = tx.collection('assistant_connections').doc(connectionId);
       const c = (await cr.get()).data; active(c, timestamp);
+      if (c.scopeVersion === 2) requireValue(c.scopes.includes(input.action === 'recent.read' ? 'memories.read' : 'results.submit'), 'FORBIDDEN');
       requireValue(input.action !== 'recent.read' || c.readRecent === true, 'FORBIDDEN');
       const ar = tx.collection('assistant_accounts').doc(hash(c._openid));
       const account = (await ar.get()).data;

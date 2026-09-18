@@ -5,8 +5,9 @@ function createInbox(db, now = Date.now) {
   const jobs = createPhoneJobs(db, now);
   return async (openid, input) => {
     requireValue(typeof openid === 'string' && openid.length > 0, 'UNAUTHORIZED');
+    if (input?.action === 'capabilities') { fields(input, ['action']); return { ...(await jobs(openid, input)), libraryProtocol: 'workspace-v1', gatewayUrl: /^https:\/\/[a-z0-9.-]+\/assistant$/i.test(process.env.PERSONAL_MCP_URL || '') ? process.env.PERSONAL_MCP_URL : '' }; }
     if (input && (input.action === 'capabilities' || String(input.action).startsWith('job.'))) return jobs(openid, input);
-    const allowed = { list: ['action'], connect: ['action', 'name', 'readRecent', 'workJobs'], revoke: ['action', 'id'], accept: ['action', 'id', 'draft'], dismiss: ['action', 'id'] };
+    const allowed = { list: ['action'], connect: ['action', 'name', 'readRecent', 'workJobs', 'scopes'], revoke: ['action', 'id'], accept: ['action', 'id', 'draft'], dismiss: ['action', 'id'] };
     requireValue(input && Object.hasOwn(allowed, input.action)); fields(input, allowed[input.action]);
     const timestamp = now(), accountId = hash(openid);
     if (input.action === 'list') {
@@ -17,14 +18,18 @@ function createInbox(db, now = Date.now) {
         if (c && c._openid === openid) connections.push(publicConnection(c));
       }
       const drafts = (await db.collection('assistant_drafts').where({ _openid: openid, status: 'pending' }).limit(100).get()).data || [];
-      return { connections, drafts: drafts.filter(d => d.type === undefined || d.type === 'draft').sort((a, b) => b.createdAt - a.createdAt).map(d => ({ id: d._id, draft: d.draft, connectionName: d.connectionName, createdAt: d.createdAt })) };
+      const history = (await db.collection('assistant_drafts').where({ _openid: openid, status: 'accepted' }).orderBy('resolvedAt', 'desc').limit(30).get()).data || [];
+      return { connections, results: history.filter(d => d.type === 'draft' && d.draft?.kind === 'result').map(d => ({ id: d._id, draft: d.acceptedDraft || d.draft, connectionName: d.connectionName, createdAt: d.resolvedAt })), drafts: drafts.filter(d => d.type === undefined || d.type === 'draft').sort((a, b) => b.createdAt - a.createdAt).map(d => ({ id: d._id, draft: d.draft, connectionName: d.connectionName, createdAt: d.createdAt })) };
     }
     if (input.action === 'connect') {
       const name = string(input.name, 30);
       requireValue(typeof input.readRecent === 'boolean');
       requireValue(input.workJobs === undefined || typeof input.workJobs === 'boolean');
+      const scopes = input.scopes;
+      if (scopes !== undefined) requireValue(Array.isArray(scopes) && scopes.length > 0 && scopes.length <= 5 && new Set(scopes).size === scopes.length && scopes.every(s => ['tasks.read', 'materials.read', 'results.submit', 'memories.read', 'jobs.execute'].includes(s)) && (!scopes.includes('materials.read') || scopes.includes('tasks.read')));
       const token = crypto.randomBytes(32).toString('hex'), id = hash(token);
       const c = { _openid: openid, publicId: crypto.randomBytes(16).toString('hex'), name, readRecent: input.readRecent, workJobs: input.workJobs === true, createdAt: timestamp, expiresAt: timestamp + 30 * 86400000, revoked: false, requests: 0 };
+      if (scopes) { c.scopeVersion = 2; c.scopes = scopes; c.readRecent = scopes.includes('memories.read'); c.workJobs = scopes.includes('jobs.execute'); }
       await db.runTransaction(async tx => {
         const ref = tx.collection('assistant_accounts').doc(accountId);
         const account = (await ref.get()).data || { _openid: openid, connections: [], pending: 0 };
@@ -58,10 +63,12 @@ function createInbox(db, now = Date.now) {
       const dr = tx.collection('assistant_drafts').doc(id), d = (await dr.get()).data;
       requireValue(d && (d.type === undefined || d.type === 'draft') && d._openid === openid, 'NOT_FOUND');
       if (d.status !== 'pending') return { status: d.status, targetId: d.targetId || null };
-      let targetId = null;
+      let targetId = null, acceptedDraft = null;
       if (input.action === 'accept') {
         const safe = draft(input.draft);
         requireValue(safe.kind === d.draft.kind);
+        acceptedDraft = safe;
+        if (safe.kind !== 'result') {
         targetId = 'assistant_' + id;
         const data = safe.kind === 'memory' ? {
           title: safe.title, content: safe.content, date: safe.date, time: '00:00', occurredAt: new Date(safe.date + 'T00:00:00+08:00'),
@@ -70,9 +77,10 @@ function createInbox(db, now = Date.now) {
         const ref = tx.collection(safe.kind === 'memory' ? 'memories' : 'goals').doc(targetId);
         requireValue(!(await ref.get()).data, 'CONFLICT');
         await ref.set({ data: { ...data, _openid: openid, createdAt: new Date(timestamp), updatedAt: new Date(timestamp), assistantDraftId: id } });
+        }
       }
       const status = input.action === 'accept' ? 'accepted' : 'dismissed';
-      await dr.update({ data: { status, targetId, resolvedAt: timestamp } });
+      await dr.update({ data: { status, targetId, ...(acceptedDraft ? { acceptedDraft } : {}), resolvedAt: timestamp } });
       await ar.update({ data: { pending: Math.max(0, (account.pending || 0) - 1) } });
       return { status, targetId };
     });

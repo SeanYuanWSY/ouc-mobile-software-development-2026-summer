@@ -1,3 +1,4 @@
+const { scopedKey } = require('../utils/account-scope');
 const { defaults, providerFor } = require('../config/ai-providers');
 const STORAGE = 'summerverse.ai.preferences.v1';
 function safeDraftEndpoint(value) {
@@ -14,12 +15,12 @@ function normalize(input = {}) {
     visionModel: p.visionModels.includes(input.visionModel) ? input.visionModel : base.visionModel };
 }
 function load() {
-  try { return normalize(wx.getStorageSync(STORAGE) || {}); } catch (_) { return defaults('deepseek'); }
+  try { return normalize(wx.getStorageSync(scopedKey(STORAGE)) || {}); } catch (_) { return defaults('deepseek'); }
 }
 function save(input) {
   if (input.provider === 'custom' && !safeDraftEndpoint(input.endpoint || '')) return false;
   const safe = normalize(input);
-  try { wx.setStorageSync(STORAGE, safe); return true; } catch (_) { return false; }
+  try { wx.setStorageSync(scopedKey(STORAGE), safe); return true; } catch (_) { return false; }
 }
 // This runs in the Mini Program (no Node URL API). Cloud validates again before connecting.
 function receiver(config) {

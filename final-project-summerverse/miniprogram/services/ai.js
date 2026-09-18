@@ -1,3 +1,4 @@
+const accountScope = require('../utils/account-scope');
 const { callFunction, waitForCloudReady } = require('./cloud');
 const { realMemories, isRealMemory } = require('../utils/memory-source');
 const { normalizeMemoryDraft, normalizeParallel, normalizeInsight } = require('../utils/ai-output');
@@ -11,14 +12,15 @@ function snapshot() {
   const provider = d.aiProvider || 'deepseek';
   const config = { provider, model: d.aiModel || providerFor(provider).models[0], visionModel: d.visionModel || providerFor(provider).visionModels[0], endpoint: d.aiEndpoint || '', apiKeyOverride: d.aiSessionKey };
   config.endpoint = receiver(config);
-  return { config, revision: d.aiConfigRevision };
+  return { config, credential: d.aiSessionKey ? null : d.aiCredential, account: accountScope.stamp(), revision: d.aiConfigRevision };
 }
 function assertCurrent(s) {
+  if (s.account !== accountScope.stamp()) throw aiError('ACCOUNT_CHANGED', '账号已变化，请重新操作。');
   if (s.revision !== getApp().globalData.aiConfigRevision) throw aiError('AI_CONFIG_CHANGED', 'AI 设置已更改，请重新操作。');
 }
 async function ensureConsent(kind = 'text', s = snapshot()) {
   const app = getApp();
-  if (!s.config.apiKeyOverride) throw aiError('AI_KEY_MISSING', '请先在设置中填写你的 API Key。');
+  if (!s.config.apiKeyOverride && !s.credential) throw aiError('AI_KEY_MISSING', '请先在设置中填写你的 API Key。');
   if (!(await waitForCloudReady())) throw aiError('AI_CLOUD_UNAVAILABLE', 'AI 服务暂未连接，请稍后重试；基础记录仍可使用。');
   assertCurrent(s);
   const consent = app.globalData.aiConsent || {};
@@ -26,9 +28,9 @@ async function ensureConsent(kind = 'text', s = snapshot()) {
   const isPhoto = kind === 'photo' || kind === 'materials-photo';
   const result = await new Promise((resolve, reject) => wx.showModal({
     title: isPhoto ? '允许 AI 分析照片？' : kind === 'materials' ? '允许 AI 分析这些资料？' : '允许使用 AI？',
-    content: kind === 'materials' ? `导入资料的文字和提问将经腾讯云发送至 ${s.config.endpoint}，使用你本次填写的 Key 并由你的 API 账户付费。请确认你有权上传这些内容。结果是待核对的 AI 草稿。` : isPhoto
-      ? `照片和补充文字将上传腾讯云并发送至 ${s.config.endpoint}。对方会收到本次 Key，费用由你的 API 账户承担。仅使用可信服务。本次运行内有效。`
-      : `相关文字、日期、心情和地点名称将经腾讯云发送至 ${s.config.endpoint}。对方会收到本次 Key，测试也会产生费用。仅使用可信服务。本次运行内有效。`,
+    content: kind === 'materials' ? `导入资料的文字和提问将经腾讯云发送至 ${s.config.endpoint}，使用你个人的 Key 并由你的 API 账户付费。请确认你有权上传这些内容。结果是待核对的 AI 草稿。` : isPhoto
+      ? `照片和补充文字将上传腾讯云并发送至 ${s.config.endpoint}。对方会收到你的 Key，费用由你的 API 账户承担。仅使用可信服务。本次运行内有效。`
+      : `相关文字、日期、心情和地点名称将经腾讯云发送至 ${s.config.endpoint}。对方会收到你的 Key，测试也会产生费用。仅使用可信服务。本次运行内有效。`,
     confirmText: '同意使用', success: resolve, fail: reject
   }));
   if (!result.confirm) throw aiError('AI_CANCELLED', '已取消。');
@@ -61,7 +63,7 @@ async function invoke(action, payload = {}, options = {}) {
     assertCurrent(s);
     const res = await callFunction('deepseekProxy', {
       action, payload,
-      config: s.config
+      config: s.credential ? { credentialId: s.credential.id, credentialVersion: s.credential.version } : s.config
     }, { timeout: options.timeout || 60000, beforeDispatch: () => assertCurrent(s) });
     if (revision !== app.globalData.aiConfigRevision) throw aiError('AI_CONFIG_CHANGED', 'AI 设置已更改，已忽略旧设置的回复，请重试。');
     app.globalData.aiReady = true;

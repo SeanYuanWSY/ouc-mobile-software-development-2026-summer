@@ -12,7 +12,7 @@
       <text class="workspace-headline">{{experienceMode === 'focus' ? '留一点时间，\n做好眼前这一件。' : '把零散资料，\n变成清晰的下一步。'}}</text>
       <text class="workspace-description">{{experienceMode === 'focus' ? '从你确认过的任务开始。进度由你决定。' : '手机收好资料，电脑助手接着做。'}}</text>
       <button wx:if="{{experienceMode === 'focus'}}" class="primary-button workspace-primary" bindtap="openFocus">选择一件事，开始专注 <text>↗</text></button>
-      <button wx:else class="primary-button workspace-primary" bindtap="openRelay">交给我的电脑助手 <text>↗</text></button>
+      <button wx:else class="primary-button workspace-primary" bindtap="openComputer">连接我的电脑助手 <text>↗</text></button>
     </view>
     <view wx:if="{{experienceMode === 'minimal'}}" class="studio-grid">
       <button class="studio-card" bindtap="openMaterials"><text class="studio-number">01</text><text class="studio-title">收好资料</text><text class="studio-copy">聊天文件、文字和链接</text><text class="studio-arrow">↗</text></button>

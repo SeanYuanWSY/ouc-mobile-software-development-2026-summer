@@ -97,6 +97,7 @@ function createPhoneJobs(db, now = Date.now) {
           if (candidate?._openid === owner && candidate.publicId === request.connectionId) { connection = candidate; connectionId = key; cr = ref; break; }
         }
         active(connection, timestamp); requireValue(connection.workJobs === true, 'FORBIDDEN');
+      if (connection.scopeVersion === 2) requireValue(connection.scopes.includes('jobs.execute'), 'FORBIDDEN');
         const id = hash(owner + ':job:' + connectionId + ':' + request.requestId), dr = tx.collection('assistant_drafts').doc(id);
         const existing = (await dr.get()).data, digest = hash(JSON.stringify(request));
         if (existing) {
@@ -104,7 +105,7 @@ function createPhoneJobs(db, now = Date.now) {
           await quota(cr, ar, connection, account, timestamp); return bounded({ job: full(existing) });
         }
         const workspace = (await tx.collection('material_workspaces').doc(hash(owner + ':' + request.workspaceId)).get()).data;
-        requireValue(workspace && workspace._openid === owner && workspace.id === request.workspaceId, 'NOT_FOUND');
+        requireValue(workspace && !workspace._deleted && workspace._openid === owner && workspace.id === request.workspaceId, 'NOT_FOUND');
         requireValue(workspace.revision === request.revision, 'REVISION_CONFLICT');
         const sources = snapshot(workspace, request.sourceIds);
         const job = { type: 'job', id, _openid: owner, connectionId, publicConnectionId: connection.publicId, connectionName: connection.name,
@@ -148,6 +149,7 @@ function createGatewayJobs(db, now = Date.now) {
     const outcome = await db.runTransaction(async tx => {
       const timestamp = now(), cr = tx.collection('assistant_connections').doc(connectionId), connection = (await cr.get()).data;
       active(connection, timestamp); requireValue(connection.workJobs === true, 'FORBIDDEN');
+      if (connection.scopeVersion === 2) requireValue(connection.scopes.includes('jobs.execute'), 'FORBIDDEN');
       const ar = tx.collection('assistant_accounts').doc(hash(connection._openid)), account = (await ar.get()).data;
       requireValue(account && account._openid === connection._openid, 'UNAUTHORIZED');
       let data;
@@ -192,6 +194,7 @@ function createGatewayJobs(db, now = Date.now) {
     // A revoked connection or cancelled claim must not receive a late source snapshot.
     const current = (await db.collection('assistant_connections').doc(connectionId).get()).data;
     active(current, now()); requireValue(current._openid === outcome.owner && current.workJobs === true, 'FORBIDDEN');
+    if (current.scopeVersion === 2) requireValue(current.scopes.includes('jobs.execute'), 'FORBIDDEN');
     if (input.action !== 'job.list') {
       const latest = (await db.collection('assistant_drafts').doc(input.id).get()).data; isJob(latest, outcome.owner, connectionId);
       requireValue(latest.status !== 'cancelled', 'CANCELLED'); requireValue(latest.claimId === input.claimId, 'CONFLICT');

@@ -3,6 +3,12 @@ const aiPreferences = require('./services/ai-preferences');
 
 App({
   globalData: {
+    accountSubject: '',
+    accountEpoch: 0,
+    aiCredential: null,
+    aiSavedCredential: null,
+    aiCredentialVersion: 0,
+    aiVaultConfigured: false,
     cloudReady: false,
     cloudStatus: 'idle',
     cloudError: '',
@@ -25,7 +31,7 @@ App({
 
   onLaunch(options = {}) {
     this.captureMaterials(options);
-    const saved = aiPreferences.load();
+    const saved = aiPreferences.normalize({});
     this.globalData.aiProvider = saved.provider;
     this.globalData.aiModel = saved.model;
     this.globalData.visionModel = saved.visionModel;
@@ -39,7 +45,7 @@ App({
 
   onShow(options = {}) {
     this.captureMaterials(options);
-    if (this.globalData.cloudIntent && this.globalData.cloudStatus === 'unavailable' && Date.now() - (this._lastCloudAttempt || 0) > 15000) this.reconnectCloud();
+    if (this.globalData.cloudIntent && Date.now() - (this._lastCloudAttempt || 0) > 15000) this.reconnectCloud();
   },
 
   captureMaterials(options) {
@@ -111,10 +117,53 @@ App({
       try { wx.cloud.callFunction({
         name: 'dataService',
         data: { action: 'system.ping' },
-        success: (response) => finish(response?.result?.ok === true, response?.result?.error || response?.result?.message),
+        success: (response) => {
+          const result = response?.result;
+          if (settled || generation !== this.globalData.cloudGeneration) return;
+          const subject = result?.data?.subject;
+          if (result?.ok !== true || !/^[a-f0-9]{64}$/.test(subject || '')) { finish(false, result?.error || '账号服务需要更新'); return; }
+          this.bindAccount(subject);
+          finish(true);
+          this.refreshCredential().catch(() => {});
+        },
         fail: (error) => finish(false, error && (error.errMsg || error.message))
       }); } catch (error) { finish(false, error?.message || '云开发连接检测失败'); }
     });
+  },
+
+  bindAccount(subject) {
+    if (this.globalData.accountSubject === subject) return;
+    const hadAccount = Boolean(this.globalData.accountSubject);
+    this.globalData.accountSubject = subject;
+    this.globalData.accountEpoch += 1;
+    Object.assign(this.globalData, { aiSessionKey: '', aiCredential: null, aiSavedCredential: null, aiCredentialVersion: 0,
+      aiVaultConfigured: false, materialStorageConsent: false, editMemoryId: '', pendingTimelineCategory: null });
+    if (hadAccount) this.globalData.pendingMaterials = [];
+    this.resetAiConnection();
+    const saved = aiPreferences.load();
+    Object.assign(this.globalData, { aiProvider: saved.provider, aiModel: saved.model, aiEndpoint: saved.endpoint, visionModel: saved.visionModel });
+    // Destroy old page instances so private drafts and delayed page work cannot survive an account switch.
+    if (hadAccount) wx.reLaunch({ url: '/pages/island/index' });
+  },
+
+  async refreshCredential() {
+    const { callFunction } = require('./services/cloud');
+    const epoch = this.globalData.accountEpoch, revision = this.globalData.aiConfigRevision;
+    const sequence = this._credentialSequence = (this._credentialSequence || 0) + 1;
+    const result = await callFunction('deepseekProxy', { action: 'credential.status' });
+    if (sequence !== this._credentialSequence || epoch !== this.globalData.accountEpoch || revision !== this.globalData.aiConfigRevision) return;
+    const status = result.data;
+    this.globalData.aiVaultConfigured = status.configured === true;
+    this.globalData.aiCredentialVersion = status.version;
+    const previous = this.globalData.aiCredential;
+    if (!this.globalData.aiSessionKey && JSON.stringify(previous) !== JSON.stringify(status.credential)) this.resetAiConnection();
+    this.globalData.aiSavedCredential = status.credential;
+    this.globalData.aiCredential = this.globalData.aiSessionKey ? null : status.credential;
+    if (status.credential && !this.globalData.aiSessionKey) {
+      const c = status.credential;
+      Object.assign(this.globalData, { aiProvider: c.provider, aiEndpoint: c.endpoint, aiModel: c.model, visionModel: c.visionModel });
+    }
+    return status;
   },
 
   awaitCloudReady() {
@@ -136,6 +185,7 @@ App({
   },
 
   setTemporaryApiKey(value) {
+    this.globalData.aiCredential = null;
     this.globalData.aiSessionKey = String(value || '').trim();
     this.resetAiConnection();
   },
@@ -145,6 +195,7 @@ App({
     if (next.provider !== this.globalData.aiProvider || next.endpoint !== this.globalData.aiEndpoint) {
       this.globalData.aiSessionKey = '';
     }
+    this.globalData.aiCredential = null;
     this.globalData.aiProvider = next.provider;
     this.globalData.aiEndpoint = next.endpoint;
     this.globalData.aiModel = next.model;
@@ -154,6 +205,7 @@ App({
   },
 
   clearTemporaryApiKey() {
+    this.globalData.aiCredential = null;
     this.globalData.aiSessionKey = '';
     this.resetAiConnection();
   },

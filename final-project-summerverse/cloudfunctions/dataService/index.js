@@ -624,7 +624,7 @@ async function main(event, openid) {
         clearRecordsWithReceipts(COLLECTIONS.goals, openid),
         db.collection(COLLECTIONS.profiles).where({ _openid: openid }).remove(),
         db.collection(COLLECTIONS.steps).where({ _openid: openid }).remove(),
-        db.collection('material_workspaces').where({ _openid: openid }).remove()
+        materialWorkspaces.clear(openid)
       ]);
       return ok(true, { mediaCleanup });
     }
@@ -636,6 +636,12 @@ exports.main = async (event = {}) => {
   try {
     const { OPENID } = cloud.getWXContext();
     if (!OPENID) return fail('无法识别当前微信用户', 'NO_OPENID');
+    if (!event || typeof event !== 'object' || Array.isArray(event) || ['httpMethod', 'headers', 'body'].some(k => Object.hasOwn(event, k))) return fail('仅支持已登录的小程序账号', 'NO_OPENID');
+    if (event.action === 'system.ping') {
+      const { APPID } = cloud.getWXContext();
+      if (!APPID) return fail('无法识别当前小程序', 'NO_OPENID');
+      return ok({ service: 'dataService', authenticated: true, subject: crypto.createHash('sha256').update('account-v1:' + APPID + ':' + OPENID).digest('hex') });
+    }
     return await main(event, OPENID);
   } catch (error) {
     if (['WRITE_CONFLICT', 'WRITE_INVALID', 'WRITE_EXPIRED', 'WRITE_DELETED', 'WRITE_LIMIT'].includes(error.code)) return fail(error.message, error.code);

@@ -108,7 +108,7 @@ test('MCP handshake, listing, draft and status use real backend contract', async
   assert.equal((await call('initialize', { protocolVersion: '2025-11-25' })).result.protocolVersion, '2025-11-25');
   await handle({ jsonrpc: '2.0', method: 'notifications/initialized' });
   const names = (await call('tools/list')).result.tools.map((tool) => tool.name);
-  assert.equal(names.length, 6);
+  assert.equal(names.length, 9);
   for (const name of ['summerverse_recent', 'summerverse_submit', 'summerverse_status']) assert(names.includes(name));
   assert.equal((await call('tools/call', { name: 'summerverse_submit', arguments: { requestId: 'mcp', draft: sample } })).result.isError, false);
   assert((await call('tools/call', { name: 'summerverse_status', arguments: { requestId: 'mcp' } })).result.content[0].text.includes('pending'));

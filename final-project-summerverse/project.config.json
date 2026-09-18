@@ -2,9 +2,18 @@
   "description": "SummerVerse 暑假数字分身微信小程序",
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "tests" },
-      { "type": "folder", "value": "docs" },
-      { "type": "folder", "value": "scripts" }
+      {
+        "type": "folder",
+        "value": "tests"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "scripts"
+      }
     ]
   },
   "setting": {
@@ -25,5 +34,7 @@
   "projectname": "summerverse-miniprogram",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
-  "condition": {}
+  "condition": {},
+  "isGameTourist": false,
+  "simulatorPluginLibVersion": {}
 }

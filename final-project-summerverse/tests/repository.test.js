@@ -41,7 +41,7 @@ test('本机目标可创建并更新进度', async () => {
 test('本机超过300条记忆仍可读取和搜索旧记录', async () => {
   const { repository, values } = loadRepository();
   const { STORAGE_KEYS } = require('../miniprogram/utils/constants');
-  values.set(STORAGE_KEYS.MEMORIES, Array.from({ length: 351 }, (_, i) => ({
+  values.set(require('../miniprogram/utils/account-scope').scopedKey(STORAGE_KEYS.MEMORIES), Array.from({ length: 351 }, (_, i) => ({
     _id: String(i), title: i === 0 ? '最早的旅行' : '记录', content: '', date: '2026-07-01', occurredAt: i
   })));
   assert.equal((await repository.listMemories()).data.length, 351);

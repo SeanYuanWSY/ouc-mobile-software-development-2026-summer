@@ -3,6 +3,7 @@ const { PROVIDERS, providerFor, defaults } = require('../../config/ai-providers'
 const repository = require('../../services/repository');
 const wechatData = require('../../services/wechat-data');
 const ai = require('../../services/ai');
+const { callFunction } = require('../../services/cloud');
 const mediaService = require('../../services/media');
 const storage = require('../../utils/storage');
 const { STORAGE_KEYS, DEFAULT_PROFILE } = require('../../utils/constants');
@@ -21,6 +22,7 @@ Page(withExperience({
     visionIndex: 0, endpoint: '', customModel: '', customVisionModel: '',
     showAdvanced: false, showAiHelp: false,
     modelIndex: 0,
+    vaultBusy: false, vaultSaved: false, vaultConfigured: false,
     tempApiKey: '',
     showKey: false,
     testingAI: false,
@@ -35,7 +37,7 @@ Page(withExperience({
   },
 
   onLoad() { this._alive = true; this.load(); },
-  onShow() { this._hidden = false; this.refreshAiFields(); },
+  onShow() { this._hidden = false; this.refreshAiFields(); this.refreshVault(); },
   onHide() { this._hidden = true; this.setData({ tempApiKey: '', showKey: false }); },
   onUnload() { this._alive = false; this._hidden = true; },
 
@@ -139,6 +141,7 @@ Page(withExperience({
     const d = getApp().globalData;
     const p = providerFor(d.aiProvider);
     this.setData({
+      vaultSaved: Boolean(d.aiSavedCredential), vaultConfigured: Boolean(d.aiVaultConfigured),
       providerId: p.id, providerIndex: PROVIDERS.findIndex((item) => item.id === p.id),
       models: p.models, visionModels: p.visionModels,
       modelIndex: Math.max(0, p.models.indexOf(d.aiModel)),
@@ -146,6 +149,42 @@ Page(withExperience({
       endpoint: d.aiEndpoint || '', customModel: d.aiModel || '',
       customVisionModel: d.visionModel || '', tempApiKey: d.aiSessionKey || '', showKey: false
     });
+  },
+  async refreshVault() {
+    try { await getApp().refreshCredential(); if (!this._hidden) this.refreshAiFields(); }
+    catch (_) { /* Session-only use remains available; saving fails closed. */ }
+  },
+  async saveAccountKey() {
+    if (this.data.vaultBusy) return;
+    const app = getApp(), d = app.globalData;
+    if (!d.aiSessionKey) return wx.showToast({ title: '请先填写要保存的 Key', icon: 'none' });
+    const revision = d.aiConfigRevision, epoch = d.accountEpoch;
+    const consent = await new Promise(resolve => wx.showModal({ title: '保存到我的账号？', content: 'Key 将加密保存在云端，供当前微信账号下次使用。只发送给当前选择的模型服务商，不会提供给电脑 MCP。可随时删除。', success: r => resolve(r.confirm), fail: () => resolve(false) }));
+    if (!consent || revision !== d.aiConfigRevision || epoch !== d.accountEpoch) return;
+    this.setData({ vaultBusy: true });
+    try {
+      await callFunction('deepseekProxy', { action: 'credential.save', expectedVersion: d.aiCredentialVersion,
+        config: { provider: d.aiProvider, endpoint: d.aiEndpoint, model: d.aiModel, visionModel: d.visionModel, apiKeyOverride: d.aiSessionKey } },
+        { beforeDispatch: () => { if (revision !== d.aiConfigRevision || epoch !== d.accountEpoch) throw new Error('设置已变化，请重试'); } });
+      if (revision !== d.aiConfigRevision || epoch !== d.accountEpoch) return;
+      app.clearTemporaryApiKey(); await app.refreshCredential();
+      if (!this._hidden) { this.refreshAiFields(); wx.showToast({ title: '已加密保存', icon: 'success' }); }
+    } catch (error) { if (!this._hidden) this.setData({ connection: { type: 'error', text: error.message } }); }
+    finally { if (!this._hidden) this.setData({ vaultBusy: false }); }
+  },
+  async deleteAccountKey() {
+    if (this.data.vaultBusy) return;
+    const app = getApp(), d = app.globalData;
+    const revision = d.aiConfigRevision, epoch = d.accountEpoch;
+    const check = () => { if (revision !== d.aiConfigRevision || epoch !== d.accountEpoch) throw new Error('设置已变化，请刷新后重试'); };
+    this.setData({ vaultBusy: true });
+    try {
+      await callFunction('deepseekProxy', { action: 'credential.delete', expectedVersion: d.aiCredentialVersion }, { beforeDispatch: check });
+      check();
+      app.clearTemporaryApiKey(); await app.refreshCredential();
+      if (!this._hidden) this.refreshAiFields();
+    } catch (error) { if (!this._hidden) this.setData({ connection: { type: 'error', text: error.message } }); }
+    finally { if (!this._hidden) this.setData({ vaultBusy: false }); }
   },
   saveAiFields(change) {
     const d = getApp().globalData;
@@ -172,9 +211,10 @@ Page(withExperience({
 
   toggleKey() { this.setData({ showKey: !this.data.showKey }); },
 
-  clearKey() {
+  async clearKey() {
     getApp().clearTemporaryApiKey();
     this.setData({ tempApiKey: '', connection: null });
+    await this.refreshVault();
   },
 
   async testAI() {
@@ -311,7 +351,7 @@ Page(withExperience({
   openPrivacy() {
     wx.showModal({
       title: '隐私原则',
-      content: '位置、微信步数、照片和麦克风只在你主动操作时请求。AI 功能会在同意后将相关记忆或照片经腾讯云发送给你选择的 AI 服务商，费用由你自己的 API 账户承担。Key 仅在本次运行内使用，可随时清除；基础记录无需 Key。',
+      content: '位置、微信步数、照片和麦克风只在你主动操作时请求。AI 功能会在同意后将相关记忆或照片经腾讯云发送给你选择的 AI 服务商，费用由你自己的 API 账户承担。Key 默认仅在本次运行内使用，也可选择加密保存到当前账号并随时删除；电脑连接凭证与模型 Key 相互独立；基础记录无需 Key。',
       showCancel: false
     });
   }

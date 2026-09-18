@@ -98,7 +98,7 @@ test('重连只合并健康检查，超时回调不会覆盖下一次成功', as
   const requests = [];
   prepareSubject({
     subject: '../miniprogram/app',
-    mocks: [{ spec: './config/env', value: { ENABLE_CLOUD: true } }, { spec: './services/ai-preferences', value: { ENABLE_CLOUD: true } }],
+    mocks: [{ spec: './config/env', value: { ENABLE_CLOUD: true } }, { spec: './services/ai-preferences', value: { load: () => ({ provider: 'deepseek', model: 'test', endpoint: '', visionModel: '' }) } }],
     globals: { App(value) { app = value; },
       wx: { cloud: { init() {}, callFunction(args) { requests.push(args); } } },
       setTimeout(fn) { timer = fn; return 1; }, clearTimeout() {} },
@@ -110,7 +110,8 @@ test('重连只合并健康检查，超时回调不会覆盖下一次成功', as
   timer(); assert.equal(await first, false);
   assert.equal(app.globalData.dataMode, 'cloud');
   const next = app.reconnectCloud();
-  requests[1].success({ result: { ok: true } });
+  app.refreshCredential = async () => {};
+  requests[1].success({ result: { ok: true, data: { subject: 'a'.repeat(64) } } });
   assert.equal(await next, true);
   requests[0].fail({ errMsg: 'late error' });
   assert.equal(app.globalData.cloudReady, true);
@@ -124,7 +125,7 @@ test('SDK同步异常及时结束连接状态，写入仍保守标记为结果�
   let app;
   prepareSubject({
     subject: '../miniprogram/app',
-    mocks: [{ spec: './config/env', value: { ENABLE_CLOUD: true } }, { spec: './services/ai-preferences', value: { ENABLE_CLOUD: true } }],
+    mocks: [{ spec: './config/env', value: { ENABLE_CLOUD: true } }, { spec: './services/ai-preferences', value: { load: () => ({ provider: 'deepseek', model: 'test', endpoint: '', visionModel: '' }) } }],
     globals: { App(value) { app = value; },
       wx: { cloud: { init() {}, callFunction() { throw new Error('SDK unavailable'); } } } },
   });

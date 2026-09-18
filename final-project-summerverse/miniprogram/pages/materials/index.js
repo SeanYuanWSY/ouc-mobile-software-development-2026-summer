@@ -40,6 +40,26 @@ Page(withExperience({
       if (links.length && this._alive) this.setData({ linkOpen: true, linkDraft: links[0], notice: '已收到这条聊天链接。确认后才会读取公开网页正文。' });
       if (files.length) this.importFiles(files);
     }
+    const returning = this._returning;
+    this._returning = false;
+    if (returning && !incoming?.length) return this.refreshCurrentWorkspace();
+  },
+  onHide() { this._returning = true; this._resumeRequest = (this._resumeRequest || 0) + 1; },
+  async refreshCurrentWorkspace() {
+    const workspace = this.data.workspace;
+    if (!this._alive || this.data.busy || this.data.unsaved || !workspace?.revision) return;
+    const request = this._resumeRequest = (this._resumeRequest || 0) + 1;
+    const epoch = this._epoch, operation = this._operation;
+    const current = () => this._alive && request === this._resumeRequest && epoch === this._epoch && operation === this._operation && !this.data.busy && !this.data.unsaved && this.data.workspace === workspace;
+    try {
+      const latest = await materials.get(workspace.id);
+      if (!current()) return;
+      this.setWorkspace(latest);
+      this.setData({ error: '', evidenceOpen: null });
+      await this.refreshLibrary();
+    } catch (e) {
+      if (current()) this.setData({ error: e.message || '资料刷新失败，请重新打开核对最新状态', saveState: '' });
+    }
   },
   onUnload() { this._alive = false; this._epoch += 1; this._operation += 1; this._libraryRequest += 1; },
   guard(epoch) { if (!this._alive || epoch !== this._epoch) throw new Error('已离开当前资料，本次处理停止'); },

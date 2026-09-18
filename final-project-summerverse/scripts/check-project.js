@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { buildManifest } = require('./manifest');
+const { buildManifest, assertRegular } = require('./manifest');
 
 const root = path.resolve(__dirname, '..');
 const mini = path.join(root, 'miniprogram');
@@ -9,12 +9,13 @@ const errors = [];
 const notes = [];
 
 const manifestFile = path.join(root, 'MANIFEST.sha256');
+assertRegular(manifestFile, { missing: true });
 if (!fs.existsSync(manifestFile)) errors.push('缺少 MANIFEST.sha256 完整性清单');
 else if (fs.readFileSync(manifestFile, 'utf8') !== buildManifest()) errors.push('MANIFEST.sha256 已过期；请先运行 npm run manifest');
 
 function walk(dir, predicate = () => true) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.isDirectory() && ['node_modules', 'dist', '.git'].includes(entry.name)) return [];
+    if (entry.isDirectory() && ['node_modules', 'dist', '.git', '.mimosa'].includes(entry.name)) return [];
     const value = path.join(dir, entry.name);
     return entry.isDirectory() ? walk(value, predicate) : predicate(value) ? [value] : [];
   });
@@ -37,7 +38,7 @@ for (const page of app.pages) {
   }
 }
 
-for (const file of walk(root, (value) => value.endsWith('.js'))) {
+for (const file of walk(root, (value) => /\.(?:js|cjs)$/.test(value))) {
   try { execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }); }
   catch (error) { errors.push(`JS 语法错误：${path.relative(root, file)}\n${String(error.stderr || error.message)}`); }
 }
@@ -71,8 +72,8 @@ for (const file of walk(mini, (value) => value.endsWith('.js'))) {
   }
 }
 
-const secretPattern = /sk-[A-Za-z0-9_-]{20,}/g;
-for (const file of walk(root, (value) => /\.(?:js|json|md|example|txt)$/.test(value))) {
+const secretPattern = /\bsk-[A-Za-z0-9_-]{20,}/g;
+for (const file of walk(root, (value) => /\.(?:js|cjs|json|md|example|txt)$/.test(value))) {
   const content = fs.readFileSync(file, 'utf8');
   const matches = content.match(secretPattern) || [];
   if (matches.some((value) => !/sk-your-key/.test(value))) errors.push(`疑似 API Key：${path.relative(root, file)}`);
